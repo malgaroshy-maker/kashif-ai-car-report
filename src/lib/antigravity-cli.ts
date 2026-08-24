@@ -89,14 +89,23 @@ export async function getAgyCliStatus(): Promise<AgyStatusInfo> {
  */
 export async function runAgyPrompt(
   promptText: string,
-  timeoutMs: number = 25000
+  timeoutMs: number = 60000
 ): Promise<string> {
   const binaryPath = findAgyBinaryPath() || "agy";
 
   return new Promise((resolve, reject) => {
     const child = spawn(
       binaryPath,
-      ["--print", promptText, "--output-format", "json", "--dangerously-skip-permissions"],
+      [
+        "--print",
+        promptText,
+        "--output-format",
+        "json",
+        "--effort",
+        "low",
+        "--disable-slash-commands",
+        "--dangerously-skip-permissions",
+      ],
       {
         stdio: ["ignore", "pipe", "pipe"],
         windowsHide: true,
@@ -141,17 +150,19 @@ export async function runAgyPrompt(
 export function extractJsonFromAgyResponse(rawOutput: string): any {
   if (!rawOutput) return null;
 
-  // 1. Direct JSON parse
+  let textToParse = rawOutput.trim();
+
+  // 1. Direct JSON parse or AGY wrapper response parse
   try {
-    const parsed = JSON.parse(rawOutput);
+    const parsed = JSON.parse(textToParse);
     if (parsed.response && typeof parsed.response === "string") {
+      textToParse = parsed.response.trim();
       try {
-        return JSON.parse(parsed.response);
+        return JSON.parse(textToParse);
       } catch {
-        // Continue
+        // Continue to code block parsing on inner response
       }
-    }
-    if (parsed.reportId || parsed.faultCategories) {
+    } else if (parsed.reportId || parsed.faultCategories) {
       return parsed;
     }
   } catch {
@@ -159,23 +170,24 @@ export function extractJsonFromAgyResponse(rawOutput: string): any {
   }
 
   // 2. Extract JSON code block
-  const jsonMatch = rawOutput.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const jsonMatch = textToParse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   if (jsonMatch && jsonMatch[1]) {
     try {
-      return JSON.parse(jsonMatch[1]);
+      return JSON.parse(jsonMatch[1].trim());
     } catch {
       // Continue
     }
   }
 
-  // 3. Match outer brackets
-  const firstBrace = rawOutput.indexOf("{");
-  const lastBrace = rawOutput.lastIndexOf("}");
-  if (firstBrace !== -1 && lastBrace > firstBrace) {
+  // 3. Try to locate first '{' and last '}'
+  const firstBrace = textToParse.indexOf("{");
+  const lastBrace = textToParse.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
     try {
-      return JSON.parse(rawOutput.slice(firstBrace, lastBrace + 1));
+      const extracted = textToParse.substring(firstBrace, lastBrace + 1);
+      return JSON.parse(extracted);
     } catch {
-      // Ignore
+      // Failed
     }
   }
 
