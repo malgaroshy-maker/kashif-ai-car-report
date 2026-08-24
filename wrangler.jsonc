@@ -1,11 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kashif-ai-car-report",
+  "name": "kashif",
   "compatibility_date": "2026-08-20",
   "compatibility_flags": [
     "nodejs_compat"
   ],
   "assets": {
-    "directory": ".next"
+    "directory": ".next",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "single-page-application"
   }
 }
