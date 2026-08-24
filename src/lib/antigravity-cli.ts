@@ -95,7 +95,7 @@ export async function runAgyPrompt(
 
   return new Promise((resolve, reject) => {
     const child = spawn(
-      binaryPath,
+      /*turbopackIgnore: true*/ binaryPath,
       [
         "--print",
         promptText,
