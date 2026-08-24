@@ -11,6 +11,15 @@ export interface AgyStatusInfo {
   statusNote: string;
 }
 
+function checkFileExistsSafe(filePath: string): boolean {
+  try {
+    if (!filePath || filePath === "agy" || filePath === "agy.exe") return false;
+    return fs.existsSync(filePath);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Locate the Antigravity CLI binary (agy.exe on Windows, agy on Linux/macOS)
  */
@@ -27,15 +36,10 @@ export function findAgyBinaryPath(): string | null {
     path.join(userProfile, "AppData", "Local", "agy", "bin", binaryName),
     path.join(userProfile, ".local", "bin", binaryName),
     path.join("/usr/local/bin", binaryName),
-    binaryName, // Check in PATH
   ];
 
   for (const p of candidatePaths) {
-    if (p === binaryName) {
-      // In PATH
-      continue;
-    }
-    if (fs.existsSync(p)) {
+    if (checkFileExistsSafe(p)) {
       return p;
     }
   }
@@ -49,7 +53,7 @@ export function findAgyBinaryPath(): string | null {
 export async function getAgyCliStatus(): Promise<AgyStatusInfo> {
   const binaryPath = findAgyBinaryPath() || "agy";
 
-  if (binaryPath && fs.existsSync(binaryPath)) {
+  if (binaryPath && checkFileExistsSafe(binaryPath)) {
     return {
       available: true,
       cliPath: binaryPath,
