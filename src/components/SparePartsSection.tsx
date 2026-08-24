@@ -272,6 +272,8 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
                         <img
                           src={state.url}
                           alt={part.partNameLibyan}
+                          referrerPolicy="no-referrer"
+                          loading="lazy"
                           onError={() => {
                             setPartImageMap((prev) => ({
                               ...prev,
@@ -476,6 +478,8 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
                 <img
                   src={partImageMap[activeImageModal.id].url}
                   alt={activeImageModal.partNameLibyan}
+                  referrerPolicy="no-referrer"
+                  loading="lazy"
                   className="w-full h-full object-contain rounded-lg"
                 />
               ) : (

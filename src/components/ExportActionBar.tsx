@@ -499,7 +499,7 @@ ${(report.sparePartsRequired || [])
                 p.partImageUrl &&
                 (p.partImageUrl.startsWith("http://") || p.partImageUrl.startsWith("https://")) &&
                 !p.partImageUrl.includes("/parts/")
-                  ? `<img src="${p.partImageUrl}" alt="${p.partNameLibyan}" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.parentElement.innerHTML = \`${p.svg.replace(/`/g, "\\`")}\`;">`
+                  ? `<img src="${p.partImageUrl}" alt="${p.partNameLibyan}" referrerpolicy="no-referrer" loading="lazy" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.parentElement.innerHTML = \`${p.svg.replace(/`/g, "\\`")}\`;">`
                   : p.svg
               }
             </div>
