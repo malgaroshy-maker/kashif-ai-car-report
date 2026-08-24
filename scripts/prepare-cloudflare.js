@@ -7,7 +7,18 @@ const publicDir = path.join(rootDir, 'public');
 
 console.log('🚀 Preparing Cloudflare Worker Assets output...');
 
-// 1. Copy .next/server/app/index.html to .next/index.html
+// 1. Map /_next/static to .next/_next/static so CSS and JS load with 100% styling
+const srcStatic = path.join(nextDir, 'static');
+const destUnderscoreNext = path.join(nextDir, '_next');
+const destUnderscoreNextStatic = path.join(destUnderscoreNext, 'static');
+
+if (fs.existsSync(srcStatic)) {
+  fs.mkdirSync(destUnderscoreNext, { recursive: true });
+  fs.cpSync(srcStatic, destUnderscoreNextStatic, { recursive: true, force: true });
+  console.log('✓ Mapped .next/static to .next/_next/static for CSS & JS styling');
+}
+
+// 2. Copy .next/server/app/index.html to .next/index.html
 const srcIndex = path.join(nextDir, 'server', 'app', 'index.html');
 const destIndex = path.join(nextDir, 'index.html');
 
@@ -16,7 +27,7 @@ if (fs.existsSync(srcIndex)) {
   console.log('✓ Created .next/index.html');
 }
 
-// 2. Copy .next/server/app/_not-found.html to .next/404.html
+// 3. Copy .next/server/app/_not-found.html to .next/404.html
 const src404 = path.join(nextDir, 'server', 'app', '_not-found.html');
 const dest404 = path.join(nextDir, '404.html');
 
@@ -25,7 +36,7 @@ if (fs.existsSync(src404)) {
   console.log('✓ Created .next/404.html');
 }
 
-// 3. Copy public assets (parts, icons, SVGs) into .next
+// 4. Copy public assets (parts, icons, SVGs) into .next
 if (fs.existsSync(publicDir)) {
   fs.cpSync(publicDir, nextDir, { recursive: true, force: true });
   console.log('✓ Copied public assets into .next');
