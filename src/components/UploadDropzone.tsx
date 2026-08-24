@@ -94,11 +94,22 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         body: formData,
       });
 
-      const data = await res.json();
-      if (data.success && data.report) {
+      const rawText = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(
+          res.ok
+            ? "تعذر قراءة الرد بصيغة صالحة"
+            : `خطأ في الخادم (${res.status}): ${rawText.slice(0, 100) || "يرجى التحقق من إعدادات المفتاح"}`
+        );
+      }
+
+      if (data && data.success && data.report) {
         onReportGenerated(data.report);
       } else {
-        setErrorMsg(data.error || "تعذر تحليل الملف المرفوع");
+        setErrorMsg(data?.error || "تعذر تحليل الملف المرفوع");
       }
     } catch (err: any) {
       setErrorMsg(err.message || "حدث خطأ أثناء رفع الملف");
@@ -145,11 +156,22 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         }),
       });
 
-      const data = await res.json();
-      if (data.success && data.report) {
+      const rawText = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(
+          res.ok
+            ? "تعذر قراءة الرد بصيغة صالحة"
+            : `خطأ في الخادم (${res.status}): ${rawText.slice(0, 100) || "يرجى التحقق من المدخلات"}`
+        );
+      }
+
+      if (data && data.success && data.report) {
         onReportGenerated(data.report);
       } else {
-        setErrorMsg(data.error || "تعذر تحليل الأكواد المدخلة");
+        setErrorMsg(data?.error || "تعذر تحليل الأكواد المدخلة");
       }
     } catch (err: any) {
       setErrorMsg(err.message || "حدث خطأ في المعالجة");
