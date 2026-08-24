@@ -344,14 +344,60 @@ ${rawInput.vehicleInfo?.make ? `الصانع: ${rawInput.vehicleInfo.make} ${raw
     });
 
     const responseText = response?.text || "{}";
-    const cleaned = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-    const parsedData = JSON.parse(cleaned);
+    const parsedData = safeJsonParseOrRepair(responseText);
 
-    return normalizeDiagnosticReport(parsedData, rawInput);
+    if (parsedData) {
+      return normalizeDiagnosticReport(parsedData, rawInput);
+    }
+    return fallbackLocalAnalyzer(rawInput);
   } catch (error) {
     console.error("Gemini analysis error after fallbacks:", error);
     return fallbackLocalAnalyzer(rawInput);
   }
+}
+
+/**
+ * Robust JSON parser that repairs common model output flaws (trailing commas, quotes, control chars)
+ */
+export function safeJsonParseOrRepair(rawText: string): any {
+  if (!rawText) return null;
+  let cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+  // 1. Direct parse
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Continue to repair
+  }
+
+  // 2. Extract largest JSON object between first { and last }
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    const sliced = cleaned.substring(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(sliced);
+    } catch {
+      cleaned = sliced;
+    }
+  }
+
+  // 3. Repair common JSON syntax errors (trailing commas, unquoted keys, control chars)
+  try {
+    const repaired = cleaned
+      // Remove trailing commas before } or ]
+      .replace(/,\s*([\}\]])/g, "$1")
+      // Fix unquoted keys
+      .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+      // Clean invalid control chars
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, (c) => (c === "\n" || c === "\r" || c === "\t" ? c : ""));
+
+    return JSON.parse(repaired);
+  } catch (e3) {
+    console.warn("JSON repair attempt failed:", e3);
+  }
+
+  return null;
 }
 
 /**

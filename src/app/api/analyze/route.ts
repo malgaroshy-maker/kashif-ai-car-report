@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
             const agyStatus = await getAgyCliStatus();
             if (agyStatus.available) {
               const fullPrompt = `${getKashifSystemInstruction()}\n\nنص تقرير الفحص المستخرج:\n${parsedPdf.rawText}`;
-              const agyOutput = await runAgyPrompt(fullPrompt, 35000);
+              const agyOutput = await runAgyPrompt(fullPrompt, 90000);
               report = extractJsonFromAgyResponse(agyOutput);
             }
           } catch (agyErr) {
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
         if (agyStatus.available) {
           const inputData = body.textReport ? `تقرير الفحص:\n${body.textReport}` : `الأكواد:\n${body.manualCodes}\nالسيارة: ${JSON.stringify(body.vehicleInfo || {})}`;
           const fullPrompt = `${getKashifSystemInstruction()}\n\nبيانات الفحص:\n${inputData}`;
-          const agyOutput = await runAgyPrompt(fullPrompt, 35000);
+          const agyOutput = await runAgyPrompt(fullPrompt, 90000);
           report = extractJsonFromAgyResponse(agyOutput);
         }
       } catch (agyErr) {
