@@ -2,25 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { askMechanicAssistant } from "@/lib/gemini";
 import { runAgyPrompt, getAgyCliStatus } from "@/lib/antigravity-cli";
 import { KashifDiagnosticReport } from "@/lib/types";
+import { KashifError, errorPayload } from "@/lib/errors";
+import { resolveModelId } from "@/lib/models";
 
 export async function POST(req: NextRequest) {
   try {
     const userApiKey = req.headers.get("x-gemini-api-key") || undefined;
     const body = await req.json();
-    const { report, question, history, apiKey, provider } = body as {
+    const { report, question, history, apiKey, provider, model } = body as {
       report: KashifDiagnosticReport;
       question: string;
       history: { sender: "user" | "assistant"; text: string }[];
       apiKey?: string;
       provider?: "gemini" | "agy";
+      model?: string;
     };
 
-    if (!report || !question) {
-      return NextResponse.json(
-        { error: "Report and question are required" },
-        { status: 400 }
-      );
-    }
+    if (!report || !question) throw new KashifError("NO_INPUT");
 
     if (provider === "agy") {
       try {
@@ -45,14 +43,17 @@ export async function POST(req: NextRequest) {
       report,
       question,
       history || [],
-      apiKey || userApiKey
+      apiKey || userApiKey,
+      resolveModelId(model || req.headers.get("x-gemini-model"))
     );
     return NextResponse.json({ reply, engine: "Google Gemini Cloud API" });
-  } catch (err: any) {
-    console.error("Chat API Error:", err);
-    return NextResponse.json(
-      { error: err.message || "Failed to process question" },
-      { status: 500 }
-    );
+  } catch (err) {
+    const { body: payload, status } = errorPayload(err);
+    if (err instanceof KashifError) {
+      console.warn(`[chat] ${err.code}: ${err.detail ?? ""}`);
+    } else {
+      console.error("[chat] unexpected", err);
+    }
+    return NextResponse.json({ ...payload, reply: null }, { status });
   }
 }

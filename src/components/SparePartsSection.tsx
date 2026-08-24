@@ -225,7 +225,7 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredParts.map((part) => {
           const isHighlighted = selectedPartId === part.id;
-          const svgCode = getPartSvg(part.partNameLibyan || part.partNameEnglish, part.oemPartNumber);
+          const svgCode = getPartSvg(part.partNameLibyan || part.partNameEnglish, part.oemPartNumber ?? undefined);
           const state = partImageMap[part.id] || { url: "", loading: false, mode: "photo" };
           const hasPhotoUrl = Boolean(state.url);
           const isPhotoMode = state.mode === "photo" && hasPhotoUrl;
@@ -379,7 +379,7 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
                       </a>
 
                       <button
-                        onClick={() => handleCopyPartNumber(part.oemPartNumber, part.id)}
+                        onClick={() => handleCopyPartNumber(part.oemPartNumber ?? "", part.id)}
                         className="text-slate-400 hover:text-white flex items-center gap-1 text-[10px] font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 cursor-pointer"
                       >
                         {copiedId === part.id ? (
@@ -429,14 +429,17 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
                     السعر التقديري في ليبيا:
                   </span>
                   <span className="text-xs font-bold font-mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-800/80">
-                    {part.estimatedPriceRangeLYD.min} - {part.estimatedPriceRangeLYD.max} د.ل
+                    {part.estimatedPriceRangeLYD
+                      ? `${part.estimatedPriceRangeLYD.min} - ${part.estimatedPriceRangeLYD.max} د.ل`
+                      : "غير مسعّرة"}
                   </span>
                 </div>
 
                 <div className="text-[11px] text-slate-400 bg-slate-950/90 p-2 rounded-lg border border-slate-800 flex items-start gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
                   <span className="leading-relaxed font-sans">
-                    {part.estimatedPriceRangeLYD.marketNote}
+                    {part.estimatedPriceRangeLYD?.marketNote ||
+                      "ما وصلنا سعر تقديري لهذي القطعة من التحليل."}
                   </span>
                 </div>
               </div>
@@ -488,7 +491,7 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
                   dangerouslySetInnerHTML={{
                     __html: getPartSvg(
                       activeImageModal.partNameLibyan || activeImageModal.partNameEnglish,
-                      activeImageModal.oemPartNumber
+                      activeImageModal.oemPartNumber ?? undefined
                     ),
                   }}
                 />
@@ -511,7 +514,9 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
               <div className="flex justify-between items-center pt-1 border-t border-slate-800">
                 <span className="text-slate-400 font-heading">السعر التقديري:</span>
                 <span className="font-bold text-emerald-400 font-mono text-xs sm:text-sm">
-                  {activeImageModal.estimatedPriceRangeLYD.min} - {activeImageModal.estimatedPriceRangeLYD.max} د.ل
+                  {activeImageModal.estimatedPriceRangeLYD
+                    ? `${activeImageModal.estimatedPriceRangeLYD.min} - ${activeImageModal.estimatedPriceRangeLYD.max} د.ل`
+                    : "غير مسعّرة"}
                 </span>
               </div>
             </div>

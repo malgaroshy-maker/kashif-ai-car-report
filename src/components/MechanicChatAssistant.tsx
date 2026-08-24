@@ -74,12 +74,16 @@ export const MechanicChatAssistant: React.FC<MechanicChatAssistantProps> = ({
     try {
       const storedApiKey = localStorage.getItem("kashif_gemini_api_key") || "";
       const activeProvider = localStorage.getItem("kashif_ai_provider") || "gemini";
+      const storedModel = localStorage.getItem("kashif_gemini_model") || "";
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         "x-ai-provider": activeProvider,
       };
       if (storedApiKey) {
         headers["x-gemini-api-key"] = storedApiKey;
+      }
+      if (storedModel) {
+        headers["x-gemini-model"] = storedModel;
       }
 
       const res = await fetch("/api/chat", {
@@ -90,6 +94,7 @@ export const MechanicChatAssistant: React.FC<MechanicChatAssistantProps> = ({
           question: text,
           history: messages,
           apiKey: storedApiKey || undefined,
+          model: storedModel || undefined,
           provider: activeProvider,
         }),
       });

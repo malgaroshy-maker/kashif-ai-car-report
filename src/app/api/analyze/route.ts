@@ -4,12 +4,19 @@ import { analyzeReportWithGemini, normalizeDiagnosticReport, getKashifSystemInst
 import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "@/lib/sample-data";
 import { enrichReportWithOnlinePartImages } from "@/lib/parts-search";
 import { runAgyPrompt, extractJsonFromAgyResponse, getAgyCliStatus } from "@/lib/antigravity-cli";
+import { KashifError, errorPayload } from "@/lib/errors";
+import { resolveModelId } from "@/lib/models";
+
+/** Uploads are base64'd for the model; cap before that. */
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const ALLOWED_MIME = /^(application\/pdf|image\/(jpeg|png|webp))$/;
 
 export async function POST(req: NextRequest) {
   try {
     const contentType = req.headers.get("content-type") || "";
     const userApiKey = req.headers.get("x-gemini-api-key") || undefined;
     const providerHeader = req.headers.get("x-ai-provider") || undefined;
+    const headerModel = req.headers.get("x-gemini-model") || undefined;
 
     // 1. Multipart Form Data (Direct File Upload)
     if (contentType.includes("multipart/form-data")) {
@@ -26,12 +33,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, report: SAMPLE_TOYOTA_COROLLA });
       }
 
-      if (!file) {
-        return NextResponse.json(
-          { success: false, error: "لم يتم استلام أي ملف للفحص" },
-          { status: 400 }
-        );
+      if (!file) throw new KashifError("NO_INPUT");
+      if (file.size > MAX_UPLOAD_BYTES) {
+        throw new KashifError("FILE_TOO_LARGE", `${file.size} bytes`);
       }
+      const formModel = (formData.get("model") as string) || headerModel;
 
       const fileBuffer = Buffer.from(await file.arrayBuffer());
       const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
@@ -65,7 +71,8 @@ export async function POST(req: NextRequest) {
                 year: parsedPdf.extractedYear,
               },
             },
-            formApiKey
+            formApiKey,
+            resolveModelId(formModel)
           );
         }
 
@@ -84,9 +91,9 @@ export async function POST(req: NextRequest) {
           try {
             report.sparePartsRequired = await enrichReportWithOnlinePartImages(
               report.sparePartsRequired,
-              report?.vehicle?.make,
-              report?.vehicle?.model,
-              report?.vehicle?.year
+              report?.vehicle?.make ?? undefined,
+              report?.vehicle?.model ?? undefined,
+              report?.vehicle?.year ?? undefined
             );
           } catch (e) {
             console.warn("Could not enrich part images:", e);
@@ -96,13 +103,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, report });
       } else {
         // Image upload (OCR & Vision AI)
-        const base64Data = fileBuffer.toString("base64");
         const mimeType = file.type || "image/jpeg";
+        if (!ALLOWED_MIME.test(mimeType)) {
+          throw new KashifError("UNSUPPORTED_FILE", mimeType);
+        }
+        const base64Data = fileBuffer.toString("base64");
         let report = await analyzeReportWithGemini(
           {
             imageParts: [{ inlineData: { data: base64Data, mimeType } }],
           },
-          formApiKey
+          formApiKey,
+          resolveModelId(formModel)
         );
 
         report = normalizeDiagnosticReport(report);
@@ -111,9 +122,9 @@ export async function POST(req: NextRequest) {
           try {
             report.sparePartsRequired = await enrichReportWithOnlinePartImages(
               report.sparePartsRequired,
-              report?.vehicle?.make,
-              report?.vehicle?.model,
-              report?.vehicle?.year
+              report?.vehicle?.make ?? undefined,
+              report?.vehicle?.model ?? undefined,
+              report?.vehicle?.year ?? undefined
             );
           } catch (e) {
             console.warn("Could not enrich part images:", e);
@@ -133,6 +144,12 @@ export async function POST(req: NextRequest) {
     }
     if (body.sampleId === "toyota-corolla") {
       return NextResponse.json({ success: true, report: SAMPLE_TOYOTA_COROLLA });
+    }
+
+    // Without this, an empty body reached the model as a prompt with no scan
+    // data in it and the request hung until something upstream gave up.
+    if (!body.textReport && !body.manualCodes && !body.imageBase64) {
+      throw new KashifError("NO_INPUT");
     }
 
     let report: any = null;
@@ -168,7 +185,8 @@ export async function POST(req: NextRequest) {
               ]
             : undefined,
         },
-        activeApiKey
+        activeApiKey,
+        resolveModelId(body.model || headerModel)
       );
     }
 
@@ -189,11 +207,15 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, report });
-  } catch (error: any) {
-    console.error("API Analyze Error:", error);
-    return NextResponse.json(
-      { success: false, error: error.message || "حدث خطأ أثناء معالجة التقرير" },
-      { status: 500 }
-    );
+  } catch (error) {
+    const { body, status } = errorPayload(error);
+    if (error instanceof KashifError) {
+      console.warn(`[analyze] ${error.code}: ${error.detail ?? ""}`);
+    } else {
+      // Never echo an unexpected error's message to the client: an upstream
+      // body can contain the caller's own API key.
+      console.error("[analyze] unexpected", error);
+    }
+    return NextResponse.json(body, { status });
   }
 }

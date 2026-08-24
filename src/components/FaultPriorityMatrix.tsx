@@ -139,8 +139,8 @@ export const FaultPriorityMatrix: React.FC<FaultPriorityMatrixProps> = ({
                 <FaultCodeCard
                   key={`crit-${idx}`}
                   fault={fault}
-                  vehicleMake={report?.vehicle?.make}
-                  vehicleModel={report?.vehicle?.model}
+                  vehicleMake={report?.vehicle?.make ?? undefined}
+                  vehicleModel={report?.vehicle?.model ?? undefined}
                   onSelectPart={onSelectPart}
                 />
               ))}
@@ -161,8 +161,8 @@ export const FaultPriorityMatrix: React.FC<FaultPriorityMatrixProps> = ({
                 <FaultCodeCard
                   key={`mod-${idx}`}
                   fault={fault}
-                  vehicleMake={report?.vehicle?.make}
-                  vehicleModel={report?.vehicle?.model}
+                  vehicleMake={report?.vehicle?.make ?? undefined}
+                  vehicleModel={report?.vehicle?.model ?? undefined}
                   onSelectPart={onSelectPart}
                 />
               ))}
@@ -183,8 +183,8 @@ export const FaultPriorityMatrix: React.FC<FaultPriorityMatrixProps> = ({
                 <FaultCodeCard
                   key={`min-${idx}`}
                   fault={fault}
-                  vehicleMake={report?.vehicle?.make}
-                  vehicleModel={report?.vehicle?.model}
+                  vehicleMake={report?.vehicle?.make ?? undefined}
+                  vehicleModel={report?.vehicle?.model ?? undefined}
                   onSelectPart={onSelectPart}
                 />
               ))}

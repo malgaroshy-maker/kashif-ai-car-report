@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   FileCheck,
 } from "lucide-react";
-import { KashifDiagnosticReport } from "@/lib/types";
+import { KashifDiagnosticReport, orUnknown } from "@/lib/types";
+import { escapeDeep, safeFilenamePart } from "@/lib/html-escape";
 import { getPartSvg } from "@/lib/part-visuals";
 import { getElectricalDiagnosticsForCode } from "@/lib/sensor-locator";
 
@@ -30,7 +31,14 @@ export const ExportActionBar: React.FC<ExportActionBarProps> = ({ report }) => {
 
   // 2. Generate and open WhatsApp message
   const handleWhatsAppShare = () => {
-    const vehicle = report?.vehicle || { make: "مركبة", model: "", year: "", vin: "" };
+    const v = report?.vehicle;
+    const vehicle = {
+      make: orUnknown(v?.make, "مركبة"),
+      model: orUnknown(v?.model, ""),
+      year: orUnknown(v?.year, ""),
+      vin: orUnknown(v?.vin),
+      mileage: orUnknown(v?.mileage, "غير مسجل"),
+    };
     const summary = report?.summary || {
       overallHealthScore: 70,
       severityStatus: "متوسط / انتبه",
@@ -53,7 +61,7 @@ export const ExportActionBar: React.FC<ExportActionBarProps> = ({ report }) => {
 المركبة: ${vehicle.make} ${vehicle.model} (${vehicle.year})
 رقم الهيكل VIN: ${vehicle.vin}
 مؤشر الجاهزية: ${summary.overallHealthScore}% (${summary.severityStatus})
-الممشى: ${vehicle.mileage || "غير مسجل"}
+الممشى: ${vehicle.mileage}
 جهاز الفحص: ${report.scannerInfo?.toolName || "جهاز OBD"}
 
 ملخص التقييم الفني:
@@ -72,7 +80,11 @@ ${
 ${(report.sparePartsRequired || [])
   .map(
     (p) =>
-      `• ${p.partNameLibyan} (OEM: ${p.oemPartNumber}) ~ ${p.estimatedPriceRangeLYD?.min || 50}-${p.estimatedPriceRangeLYD?.max || 200} د.ل`
+      `• ${p.partNameLibyan} (OEM: ${orUnknown(p.oemPartNumber)}) ~ ${
+        p.estimatedPriceRangeLYD
+          ? `${p.estimatedPriceRangeLYD.min}-${p.estimatedPriceRangeLYD.max} د.ل`
+          : "غير مسعّرة"
+      }`
   )
   .join("\n")}
 
@@ -84,7 +96,14 @@ ${(report.sparePartsRequired || [])
 
   // 3. Download standalone, highly styled, self-contained HTML report with HD parts SVG
   const handleDownloadHtml = () => {
-    const faultCats = report?.faultCategories || {
+    // Every string below is model output, interpolated into an HTML file the
+    // user forwards to their customer. Escaping once at the source is the only
+    // enforceable place: the template has hundreds of interpolation points and
+    // one missed call is the whole hole. `svg` is merged in afterwards from the
+    // ORIGINAL part, because it is the one value that must stay real markup.
+    const safe = escapeDeep(report);
+
+    const faultCats = safe?.faultCategories || {
       criticalFaults: [],
       moderateFaults: [],
       minorOrHistoricalFaults: [],
@@ -95,12 +114,22 @@ ${(report.sparePartsRequired || [])
       ...(faultCats.minorOrHistoricalFaults || []),
     ];
 
-    const partsWithSvg = (report?.sparePartsRequired || []).map((p) => ({
-      ...p,
-      svg: getPartSvg(p.partNameLibyan || p.partNameEnglish, p.oemPartNumber),
+    const partsWithSvg = (report?.sparePartsRequired || []).map((p, i) => ({
+      ...escapeDeep(p),
+      svg: getPartSvg(
+        p.partNameLibyan || p.partNameEnglish,
+        p.oemPartNumber ?? undefined
+      ),
+      _key: i,
     }));
 
-    const score = typeof report?.summary?.overallHealthScore === "number" ? report.summary.overallHealthScore : 70;
+    const score =
+      typeof report?.summary?.overallHealthScore === "number"
+        ? report.summary.overallHealthScore
+        : 0;
+    const scoreNote = report?.summary?.isScoreEstimated
+      ? "مؤشر محسوب من عدد الأعطال"
+      : "مؤشر الجاهزية";
     const healthColor =
       score >= 80
         ? "#10B981"
@@ -113,7 +142,7 @@ ${(report.sparePartsRequired || [])
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تقرير فحص فني معتمد - ${report.vehicle.make} ${report.vehicle.model} (${report.vehicle.year})</title>
+  <title>تقرير فحص فني معتمد - ${orUnknown(safe.vehicle.make, 'مركبة')} ${orUnknown(safe.vehicle.model, '')} (${orUnknown(safe.vehicle.year, '')})</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
@@ -373,25 +402,25 @@ ${(report.sparePartsRequired || [])
 
         <div class="workshop-seal">
           <span>فحص إلكتروني موثق</span>
-          <span>• جهاز ${report.scannerInfo.toolName}</span>
+          <span>• جهاز ${orUnknown(safe.scannerInfo.toolName)}</span>
         </div>
       </div>
 
       <div class="hero-content">
         <div>
-          <div class="car-title">${report.vehicle.make} ${report.vehicle.model} (${report.vehicle.year})</div>
-          <div class="car-vin">VIN: ${report.vehicle.vin}</div>
+          <div class="car-title">${orUnknown(safe.vehicle.make, 'مركبة')} ${orUnknown(safe.vehicle.model, '')} (${orUnknown(safe.vehicle.year, '')})</div>
+          <div class="car-vin">VIN: ${orUnknown(safe.vehicle.vin)}</div>
           <div class="telemetry-row">
-            <div class="telemetry-chip">الممشى: <strong>${report.vehicle.mileage || "184,200 كم"}</strong></div>
-            <div class="telemetry-chip">المحرك: <strong>${report.vehicle.engineSpecs?.displacement || "قياسي"}</strong></div>
-            <div class="telemetry-chip">تاريخ الفحص: <strong>${report.generatedAt.slice(0, 10)}</strong></div>
+            <div class="telemetry-chip">الممشى: <strong>${orUnknown(safe.vehicle.mileage)}</strong></div>
+            <div class="telemetry-chip">المحرك: <strong>${orUnknown(safe.vehicle.engineSpecs?.displacement)}</strong></div>
+            <div class="telemetry-chip">تاريخ الفحص: <strong>${safe.generatedAt.slice(0, 10)}</strong></div>
             <div class="telemetry-chip">الفني الفاحص: <strong>م. أحمد الفرجاني</strong></div>
           </div>
         </div>
 
         <div class="gauge-wrapper">
           <div class="health-gauge">
-            <div class="gauge-score">${report.summary.overallHealthScore}%</div>
+            <div class="gauge-score">${safe.summary.overallHealthScore}%</div>
             <div class="gauge-label">الجاهزية</div>
           </div>
         </div>
@@ -401,14 +430,14 @@ ${(report.sparePartsRequired || [])
     <!-- Executive Summary -->
     <div class="summary-card">
       <div class="summary-title">ملخص التقييم الفني للمركبة:</div>
-      <p class="summary-text">${report.summary.briefSummaryArabic}</p>
+      <p class="summary-text">${safe.summary.briefSummaryArabic}</p>
     </div>
 
     <!-- Fault Priority Matrix -->
     <h2 class="section-title">مصفوفة تصنيف الأنظمة والأعطال</h2>
     <div class="matrix-grid">
       <div class="matrix-card critical">
-        <span class="matrix-badge" style="background: rgba(239,68,68,0.15); color: var(--red);">أعطال حرجة (${report.faultCategories.criticalFaults.length})</span>
+        <span class="matrix-badge" style="background: rgba(239,68,68,0.15); color: var(--red);">أعطال حرجة (${safe.faultCategories.criticalFaults.length})</span>
         <div style="font-size: 11px; color: var(--text-muted);">
           ${
             report.faultCategories.criticalFaults.length === 0
@@ -421,7 +450,7 @@ ${(report.sparePartsRequired || [])
       </div>
 
       <div class="matrix-card moderate">
-        <span class="matrix-badge" style="background: rgba(245,158,11,0.15); color: var(--amber);">أعطال متوسطة للصيانة (${report.faultCategories.moderateFaults.length})</span>
+        <span class="matrix-badge" style="background: rgba(245,158,11,0.15); color: var(--amber);">أعطال متوسطة للصيانة (${safe.faultCategories.moderateFaults.length})</span>
         <div style="font-size: 11px; color: var(--text-muted);">
           ${
             report.faultCategories.moderateFaults.length === 0
@@ -434,9 +463,9 @@ ${(report.sparePartsRequired || [])
       </div>
 
       <div class="matrix-card passed">
-        <span class="matrix-badge" style="background: rgba(16,185,129,0.15); color: var(--emerald);">أنظمة سليمة واجتازت الفحص (${report.passedSystems.length})</span>
+        <span class="matrix-badge" style="background: rgba(16,185,129,0.15); color: var(--emerald);">أنظمة سليمة واجتازت الفحص (${safe.passedSystems.length})</span>
         <div style="font-size: 11px; color: var(--text-muted);">
-          ${report.passedSystems.map((s) => s.systemNameArabic).join(" • ")}
+          ${safe.passedSystems.map((s) => s.systemNameArabic).join(" • ")}
         </div>
       </div>
     </div>
@@ -447,7 +476,7 @@ ${(report.sparePartsRequired || [])
       ${allFaults
         .map(
           (f) => {
-            const elec = f.electricalDiagnostics || getElectricalDiagnosticsForCode(f.code, report.vehicle?.make, report.vehicle?.model);
+            const elec = f.electricalDiagnostics || getElectricalDiagnosticsForCode(f.code, safe.vehicle?.make ?? undefined, safe.vehicle?.model ?? undefined);
             return `
         <div class="fault-card">
           <div class="fault-header">
@@ -524,9 +553,9 @@ ${(report.sparePartsRequired || [])
           <div style="border-top: 1px solid var(--border); padding-top: 8px; margin-top: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <span style="font-size: 11px; color: var(--text-muted);">السعر التقديري في ليبيا:</span>
-              <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--emerald);">${p.estimatedPriceRangeLYD.min} - ${p.estimatedPriceRangeLYD.max} د.ل</span>
+              <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--emerald);">${p.estimatedPriceRangeLYD ? `${p.estimatedPriceRangeLYD.min} - ${p.estimatedPriceRangeLYD.max} د.ل` : 'غير مسعّرة'}</span>
             </div>
-            <div style="font-size: 10px; color: var(--text-muted);">${p.estimatedPriceRangeLYD.marketNote}</div>
+            <div style="font-size: 10px; color: var(--text-muted);">${p.estimatedPriceRangeLYD?.marketNote || 'ما وصلنا سعر تقديري لهذي القطعة.'}</div>
           </div>
         </div>
       `
@@ -537,7 +566,7 @@ ${(report.sparePartsRequired || [])
     <!-- Diagnostic Checklist -->
     <h2 class="section-title">خطوات فحص الأسطى التسلسلية (Checklist)</h2>
     <div class="checklist-card">
-      ${report.workshopChecklist
+      ${safe.workshopChecklist
         .map(
           (step) => `
         <div class="check-step">
@@ -562,7 +591,7 @@ ${(report.sparePartsRequired || [])
       </div>
 
       <div style="display: flex; gap: 20px; font-size: 11px; color: var(--text-muted);">
-        <div>التاريخ: <strong style="color: #fff;">${report.generatedAt.slice(0, 10)}</strong></div>
+        <div>التاريخ: <strong style="color: #fff;">${safe.generatedAt.slice(0, 10)}</strong></div>
         <div>توقيع الفاحص: <span class="sign-line"></span></div>
       </div>
     </div>
@@ -578,7 +607,7 @@ ${(report.sparePartsRequired || [])
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `تقرير_كاشف_${report.vehicle.make}_${report.vehicle.model}_${report.generatedAt.slice(0, 10)}.html`;
+    a.download = `تقرير_كاشف_${safeFilenamePart(report.vehicle.make, 'مركبة')}_${safeFilenamePart(report.vehicle.model, '')}_${safeFilenamePart(report.generatedAt.slice(0, 10))}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

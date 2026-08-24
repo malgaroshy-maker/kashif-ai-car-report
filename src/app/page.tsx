@@ -208,7 +208,11 @@ export default function HomePage() {
             <SparePartsSection
               spareParts={activeReport.sparePartsRequired}
               selectedPartId={selectedPartId}
-              vehicleInfo={activeReport.vehicle}
+              vehicleInfo={{
+                make: activeReport.vehicle.make ?? undefined,
+                model: activeReport.vehicle.model ?? undefined,
+                year: activeReport.vehicle.year ?? undefined,
+              }}
             />
 
             {/* Floating AI Mechanic Assistant Chat */}

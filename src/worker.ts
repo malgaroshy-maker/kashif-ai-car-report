@@ -1,6 +1,26 @@
 import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "./lib/sample-data";
 import { getKashifSystemInstruction, normalizeDiagnosticReport, safeJsonParseOrRepair } from "./lib/gemini";
 import { searchPartImageOnline } from "./lib/parts-search";
+import { KashifError, errorPayload, fromUpstreamStatus } from "./lib/errors";
+import { DEFAULT_MODEL, KNOWN_MODELS, fetchLiveModels, resolveModelId } from "./lib/models";
+
+/** Uploads are base64'd into the request to Gemini; cap them before that. */
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Chunked base64. The previous version built the string with
+ * `bytes.reduce((s, b) => s + String.fromCharCode(b), "")`, which is quadratic
+ * and exhausts the Worker CPU budget on a multi-megabyte PDF.
+ */
+function toBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  const CHUNK = 0x8000;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
 
 interface Env {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -17,7 +37,7 @@ export default {
       const corsHeaders = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, x-gemini-api-key, x-ai-provider",
+        "Access-Control-Allow-Headers": "Content-Type, x-gemini-api-key, x-ai-provider, x-gemini-model",
       };
 
       if (request.method === "OPTIONS") {
@@ -26,21 +46,21 @@ export default {
 
       // GET /api/models
       if (url.pathname === "/api/models" && request.method === "GET") {
+        const key = request.headers.get("x-gemini-api-key") || env.GEMINI_API_KEY || "";
+        // With a key, Google is the authority on what exists; without one the
+        // shared offline list is returned so settings still renders something.
+        const models = key ? await fetchLiveModels(key) : KNOWN_MODELS;
         return new Response(
           JSON.stringify({
             success: true,
             hasEnvKey: Boolean(env.GEMINI_API_KEY),
-            models: [
-              { id: "gemini-3.7-flash", displayName: "Gemini 3.7 Flash", description: "النموذج الافتراضي الأحدث والأعلى كفاءة", isRecommended: true },
-              { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite", description: "نموذج خفيف وفائق السرعة (490ms)" },
-              { id: "gemini-3.6-flash", displayName: "Gemini 3.6 Flash", description: "معالجة متعددة الوسائط سريعة" },
-              { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", description: "استنتاج متقدم وسريع" },
-              { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", description: "معالجة سريعة للمستندات" },
-            ],
+            defaultModel: DEFAULT_MODEL,
+            models,
             agyStatus: {
               available: false,
               engineName: "Antigravity CLI (agy)",
-              statusNote: "أداة agy تعمل محلياً فقط على أجهزة الورشة (يتم استخدام Gemini Cloud API)",
+              statusNote:
+                "أداة agy تعمل محلياً فقط على أجهزة الورشة (يتم استخدام Gemini Cloud API)",
             },
           }),
           { headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -66,63 +86,74 @@ export default {
       if (url.pathname === "/api/analyze" && request.method === "POST") {
         try {
           const contentType = request.headers.get("content-type") || "";
-          const headerKey = request.headers.get("x-gemini-api-key") || env.GEMINI_API_KEY || "";
+          const headerKey =
+            request.headers.get("x-gemini-api-key") || env.GEMINI_API_KEY || "";
 
-          let bodyData: any = {};
+          const bodyData: {
+            imageBase64?: string;
+            imageMimeType?: string;
+            textReport?: string;
+            manualCodes?: string;
+            vehicleInfo?: Record<string, unknown>;
+            model?: string;
+          } = {};
           let sampleId: string | null = null;
           let activeKey = headerKey;
+          let requestedModel: string | null =
+            request.headers.get("x-gemini-model") || null;
 
           if (contentType.includes("multipart/form-data")) {
             const formData = await request.formData();
             sampleId = formData.get("sampleId") as string | null;
             const formKey = formData.get("apiKey") as string | null;
             if (formKey) activeKey = formKey;
+            const formModel = formData.get("model") as string | null;
+            if (formModel) requestedModel = formModel;
 
             const file = formData.get("file") as File | null;
             if (file) {
-              const fileBuffer = await file.arrayBuffer();
-              const base64 = btoa(
-                new Uint8Array(fileBuffer).reduce(
-                  (data, byte) => data + String.fromCharCode(byte),
-                  ""
-                )
-              );
-              bodyData.imageBase64 = base64;
-              bodyData.imageMimeType = file.type || "application/pdf";
+              if (file.size > MAX_UPLOAD_BYTES) {
+                throw new KashifError("FILE_TOO_LARGE", `${file.size} bytes`);
+              }
+              const mime = file.type || "application/pdf";
+              if (
+                !/^(application\/pdf|image\/(jpeg|png|webp))$/.test(mime)
+              ) {
+                throw new KashifError("UNSUPPORTED_FILE", mime);
+              }
+              bodyData.imageBase64 = toBase64(await file.arrayBuffer());
+              bodyData.imageMimeType = mime;
             }
           } else {
-            bodyData = await request.json();
-            sampleId = bodyData.sampleId || null;
-            if (bodyData.apiKey) activeKey = bodyData.apiKey;
+            const json = (await request.json()) as Record<string, unknown>;
+            Object.assign(bodyData, json);
+            sampleId = (json.sampleId as string) || null;
+            if (json.apiKey) activeKey = json.apiKey as string;
+            if (json.model) requestedModel = json.model as string;
           }
 
-          // Sample Reports
+          // The two demos are the only reports served without analysis, and
+          // they are requested explicitly by id — never substituted silently.
           if (sampleId === "bmw-528i") {
             return new Response(
-              JSON.stringify({ success: true, report: SAMPLE_BMW_528I }),
+              JSON.stringify({ success: true, report: SAMPLE_BMW_528I, sample: true }),
               { headers: { "Content-Type": "application/json", ...corsHeaders } }
             );
           }
           if (sampleId === "toyota-corolla") {
             return new Response(
-              JSON.stringify({ success: true, report: SAMPLE_TOYOTA_COROLLA }),
+              JSON.stringify({ success: true, report: SAMPLE_TOYOTA_COROLLA, sample: true }),
               { headers: { "Content-Type": "application/json", ...corsHeaders } }
             );
           }
 
-          if (!activeKey) {
-            return new Response(
-              JSON.stringify({
-                success: false,
-                error: "يرجى إدخال مفتاح Google Gemini API في الإعدادات أو تعيينه في متغيرات البيئة.",
-              }),
-              { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-            );
+          if (!activeKey) throw new KashifError("NO_API_KEY");
+          if (!bodyData.imageBase64 && !bodyData.textReport && !bodyData.manualCodes) {
+            throw new KashifError("NO_INPUT");
           }
 
-          // Call Google Gemini Cloud API directly
           const systemInstruction = getKashifSystemInstruction();
-          const contents: any[] = [];
+          const contents: unknown[] = [];
 
           if (bodyData.imageBase64) {
             contents.push({
@@ -147,8 +178,13 @@ ${bodyData.vehicleInfo ? `السيارة: ${JSON.stringify(bodyData.vehicleInfo)
             contents.push({ parts: [{ text: promptText }] });
           }
 
-          const modelName = env.GEMINI_MODEL || "gemini-2.5-flash";
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+          // The user's choice first, then the app's advertised default. This
+          // used to hardcode gemini-2.5-flash, so the deployed site silently
+          // ran two generations below what the UI showed.
+          const modelName = resolveModelId(
+            requestedModel || env.GEMINI_MODEL || DEFAULT_MODEL
+          );
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(activeKey)}`;
 
           const geminiRes = await fetch(geminiUrl, {
             method: "POST",
@@ -158,40 +194,59 @@ ${bodyData.vehicleInfo ? `السيارة: ${JSON.stringify(bodyData.vehicleInfo)
               generationConfig: { responseMimeType: "application/json" },
               contents,
             }),
+            signal: AbortSignal.timeout(45_000),
           });
 
           if (!geminiRes.ok) {
-            const errText = await geminiRes.text();
-            throw new Error(`Gemini API Error (${geminiRes.status}): ${errText}`);
+            // The upstream body can echo the key back; keep it out of the client.
+            throw fromUpstreamStatus(geminiRes.status, await geminiRes.text());
           }
 
-          const geminiJson: any = await geminiRes.json();
-          const responseText = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-          let parsedReport = safeJsonParseOrRepair(responseText);
+          const geminiJson = (await geminiRes.json()) as {
+            candidates?: { content?: { parts?: { text?: string }[] } }[];
+          };
+          const responseText =
+            geminiJson.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          const parsedReport = safeJsonParseOrRepair(responseText);
 
-          if (!parsedReport) {
-            parsedReport = SAMPLE_BMW_528I;
-          } else {
-            parsedReport = normalizeDiagnosticReport(parsedReport, bodyData);
-          }
+          // THE bug this whole pass exists for: this used to be
+          // `parsedReport = SAMPLE_BMW_528I`, handing the BMW demo to whoever
+          // uploaded a scan that failed to parse — presented as their own car.
+          if (!parsedReport) throw new KashifError("UNREADABLE_RESPONSE");
 
           return new Response(
-            JSON.stringify({ success: true, report: parsedReport }),
+            JSON.stringify({
+              success: true,
+              report: normalizeDiagnosticReport(parsedReport, bodyData),
+              model: modelName,
+            }),
             { headers: { "Content-Type": "application/json", ...corsHeaders } }
           );
-        } catch (err: any) {
-          return new Response(
-            JSON.stringify({ success: false, error: err.message || "حدث خطأ أثناء معالجة التقرير" }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
+        } catch (err) {
+          const { body, status } = errorPayload(err);
+          if (err instanceof KashifError) {
+            console.warn(`[analyze] ${err.code}: ${err.detail ?? ""}`);
+          } else {
+            console.error("[analyze] unexpected", err);
+          }
+          return new Response(JSON.stringify(body), {
+            status,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
         }
       }
 
       // POST /api/chat
       if (url.pathname === "/api/chat" && request.method === "POST") {
         try {
-          const body: any = await request.json();
-          const activeKey = body.apiKey || request.headers.get("x-gemini-api-key") || env.GEMINI_API_KEY || "";
+          const body = (await request.json()) as {
+            apiKey?: string;
+            model?: string;
+            question?: string;
+            report?: { vehicle?: unknown; faultCategories?: unknown };
+          };
+          const activeKey =
+            body.apiKey || request.headers.get("x-gemini-api-key") || env.GEMINI_API_KEY || "";
 
           if (!activeKey) {
             return new Response(
@@ -202,8 +257,10 @@ ${bodyData.vehicleInfo ? `السيارة: ${JSON.stringify(bodyData.vehicleInfo)
             );
           }
 
-          const modelName = env.GEMINI_MODEL || "gemini-2.5-flash";
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+          const modelName = resolveModelId(
+            body.model || env.GEMINI_MODEL || DEFAULT_MODEL
+          );
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(activeKey)}`;
 
           const prompt = `أنت "الأسطى كاشف"، فني ميكانيكا وفاحص سيارات ليبي خبير في ورش الصيانة.
 سياق السيارة: ${JSON.stringify(body.report?.vehicle || {})}
@@ -217,20 +274,29 @@ ${bodyData.vehicleInfo ? `السيارة: ${JSON.stringify(bodyData.vehicleInfo)
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
             }),
+            signal: AbortSignal.timeout(30_000),
           });
 
-          const geminiJson: any = await geminiRes.json();
-          const reply = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text || "حصل تأخير في الاتصال، يرجى المحاولة ثانية.";
+          if (!geminiRes.ok) {
+            throw fromUpstreamStatus(geminiRes.status, await geminiRes.text());
+          }
+
+          const geminiJson = (await geminiRes.json()) as {
+            candidates?: { content?: { parts?: { text?: string }[] } }[];
+          };
+          const reply = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!reply) throw new KashifError("UNREADABLE_RESPONSE");
 
           return new Response(
             JSON.stringify({ reply }),
             { headers: { "Content-Type": "application/json", ...corsHeaders } }
           );
-        } catch (err: any) {
-          return new Response(
-            JSON.stringify({ error: err.message || "Chat failed" }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
+        } catch (err) {
+          const { body: payload, status } = errorPayload(err);
+          return new Response(JSON.stringify({ ...payload, reply: null }), {
+            status,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
         }
       }
     }

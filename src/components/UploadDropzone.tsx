@@ -74,11 +74,17 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
     try {
       const storedApiKey = localStorage.getItem("kashif_gemini_api_key") || "";
       const activeProvider = localStorage.getItem("kashif_ai_provider") || "gemini";
+      const storedModel = localStorage.getItem("kashif_gemini_model") || "";
       const formData = new FormData();
       formData.append("file", file);
       formData.append("provider", activeProvider);
       if (storedApiKey) {
         formData.append("apiKey", storedApiKey);
+      }
+      // The settings model picker used to write this to localStorage and stop
+      // there, so the user's choice never reached the API.
+      if (storedModel) {
+        formData.append("model", storedModel);
       }
 
       const headers: Record<string, string> = {
@@ -86,6 +92,9 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
       };
       if (storedApiKey) {
         headers["x-gemini-api-key"] = storedApiKey;
+      }
+      if (storedModel) {
+        headers["x-gemini-model"] = storedModel;
       }
 
       const res = await fetch("/api/analyze", {
@@ -134,12 +143,16 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
     try {
       const storedApiKey = localStorage.getItem("kashif_gemini_api_key") || "";
       const activeProvider = localStorage.getItem("kashif_ai_provider") || "gemini";
+      const storedModel = localStorage.getItem("kashif_gemini_model") || "";
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         "x-ai-provider": activeProvider,
       };
       if (storedApiKey) {
         headers["x-gemini-api-key"] = storedApiKey;
+      }
+      if (storedModel) {
+        headers["x-gemini-model"] = storedModel;
       }
 
       const res = await fetch("/api/analyze", {
@@ -148,6 +161,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         body: JSON.stringify({
           manualCodes,
           apiKey: storedApiKey || undefined,
+          model: storedModel || undefined,
           provider: activeProvider,
           vehicleInfo: {
             vin: manualVin,

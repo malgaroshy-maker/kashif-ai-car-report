@@ -17,7 +17,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { LIBYAN_DICTIONARY } from "@/lib/dictionary";
-import { AvailableModelItem } from "@/lib/gemini";
+import { DEFAULT_MODEL, KNOWN_MODELS, type AvailableModelItem } from "@/lib/models";
 
 interface HeaderProps {
   onNewScanClick?: () => void;
@@ -38,15 +38,9 @@ export const Header: React.FC<HeaderProps> = ({
   const [agyStatus, setAgyStatus] = useState<{ available: boolean; cliPath?: string; statusNote?: string } | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [hasEnvKey, setHasEnvKey] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("gemini-3.7-flash");
-  const [availableModels, setAvailableModels] = useState<AvailableModelItem[]>([
-    { id: "gemini-3.7-flash", displayName: "Gemini 3.7 Flash", description: "النموذج الافتراضي الأحدث والأعلى كفاءة", isRecommended: true },
-    { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite", description: "نموذج خفيف وفائق السرعة (490ms)" },
-    { id: "gemini-3.6-flash", displayName: "Gemini 3.6 Flash", description: "معالجة متعددة الوسائط سريعة" },
-    { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", description: "استنتاج متقدم وسريع" },
-    { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash-Lite", description: "معالجة خفيفة سريعة وموفرة للحصة" },
-    { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", description: "معالجة سريعة للمستندات" },
-  ]);
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
+  const [availableModels, setAvailableModels] =
+    useState<AvailableModelItem[]>(KNOWN_MODELS);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [savedStatus, setSavedStatus] = useState<string | null>(null);

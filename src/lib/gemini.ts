@@ -1,14 +1,23 @@
 import fs from "fs";
 import path from "path";
 import { GoogleGenAI } from "@google/genai";
-import { getDictionaryContextForPrompt, LIBYAN_DICTIONARY, findMatchingTerm } from "./dictionary";
+import { getDictionaryContextForPrompt } from "./dictionary";
 import {
   KashifDiagnosticReport,
   DiagnosticCodeDetail,
   SeverityStatus,
   FuelType,
 } from "./types";
-import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "./sample-data";
+import { KashifError } from "./errors";
+import {
+  DEFAULT_MODEL,
+  fetchLiveModels,
+  KNOWN_MODELS,
+  modelsToTry,
+  type AvailableModelItem,
+} from "./models";
+
+export type { AvailableModelItem };
 
 /**
  * Resolves the active Gemini API key with strict priority:
@@ -60,128 +69,96 @@ export function getGenAIClient(apiKeyOverride?: string): GoogleGenAI | null {
   return new GoogleGenAI({ apiKey });
 }
 
-export interface AvailableModelItem {
-  id: string;
-  displayName: string;
-  description: string;
-  isRecommended?: boolean;
-}
-
 /**
- * Fetches the live list of models available from the Google Generative Language API
+ * The model catalogue lives in `./models`. This wrapper only supplies the key.
  */
 export async function fetchAvailableGeminiModels(
   apiKeyOverride?: string
 ): Promise<AvailableModelItem[]> {
   const apiKey = resolveActiveApiKey(apiKeyOverride);
-
-  if (!apiKey) {
-    return [
-      { id: "gemini-3.7-flash", displayName: "Gemini 3.7 Flash", description: "النموذج الافتراضي الأحدث والأعلى كفاءة في التحليل", isRecommended: true },
-      { id: "gemini-3.6-flash", displayName: "Gemini 3.6 Flash", description: "معالجة متعددة الوسائط سريعة" },
-      { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", description: "استنتاج متقدم وسريع" },
-      { id: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro", description: "الاستنتاج الهندسي المتقدم" },
-      { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", description: "معالجة سريعة للمستندات" },
-      { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash", description: "نموذج داعم فائق السرعة" },
-    ];
-  }
-
-  try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-    const data = await res.json();
-
-    if (data.models && Array.isArray(data.models)) {
-      const filtered = data.models
-        .filter(
-          (m: any) =>
-            m.supportedGenerationMethods &&
-            m.supportedGenerationMethods.includes("generateContent") &&
-            !m.name.includes("tts") &&
-            !m.name.includes("clip")
-        )
-        .map((m: any) => {
-          const id = m.name.replace("models/", "");
-          return {
-            id,
-            displayName: m.displayName || id,
-            description: m.description || "",
-            isRecommended: id === "gemini-3.7-flash",
-          };
-        });
-
-      // Sort with gemini-3.7-flash first
-      filtered.sort((a: any, b: any) => {
-        if (a.id === "gemini-3.7-flash") return -1;
-        if (b.id === "gemini-3.7-flash") return 1;
-        return a.id.localeCompare(b.id);
-      });
-
-      return filtered;
-    }
-  } catch (err) {
-    console.warn("Could not fetch live models from Google API:", err);
-  }
-
-  return [
-    { id: "gemini-3.7-flash", displayName: "Gemini 3.7 Flash", description: "النموذج الافتراضي الأحدث والأعلى كفاءة في التحليل", isRecommended: true },
-    { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite", description: "نموذج خفيف وفائق السرعة (490ms)" },
-    { id: "gemini-3.6-flash", displayName: "Gemini 3.6 Flash", description: "معالجة متعددة الوسائط سريعة" },
-    { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", description: "استنتاج متقدم وسريع" },
-    { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash-Lite", description: "معالجة خفيفة سريعة وموفرة للحصة" },
-    { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", description: "معالجة سريعة للمستندات" },
-    { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash Preview", description: "نموذج الجيل الثالث السريع" },
-  ];
+  if (!apiKey) return KNOWN_MODELS;
+  return fetchLiveModels(apiKey);
 }
 
 /**
- * Executes a Gemini request with automatic fallback between live tested models
- * (e.g. gemini-3.7-flash -> gemini-3.5-flash-lite -> gemini-3.6-flash -> gemini-3.5-flash -> gemini-3.1-flash-lite -> gemini-2.5-flash)
- * to handle temporary 503 high demand or 429 rate limit spikes gracefully.
+ * Runs a request down the availability ladder: the caller's chosen model first,
+ * then the shared fallback chain, so a 503 or a quota spike degrades to a
+ * slower model instead of failing the request.
+ *
+ * A model swap is the ONLY kind of fallback allowed in this file. If every
+ * model refuses, this throws — it never returns substitute findings.
  */
+/** Upper bound on a single model call. Without this an empty or degenerate
+ *  prompt can leave the request hanging until the platform kills it. */
+const MODEL_TIMEOUT_MS = 45_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new KashifError("MODEL_UNAVAILABLE", `timeout after ${ms}ms`)),
+        ms
+      )
+    ),
+  ]);
+}
+
 async function generateWithModelFallback(
   ai: GoogleGenAI,
   params: {
     systemInstruction: string;
-    contents: any[];
+    contents: unknown[];
     responseMimeType?: string;
+    model?: string;
   }
 ) {
-  const configuredModel = process.env.GEMINI_MODEL || "gemini-3.7-flash";
-  const modelsToTry = Array.from(
-    new Set([
-      configuredModel,
-      "gemini-3.7-flash",
-      "gemini-3.5-flash-lite",
-      "gemini-3.6-flash",
-      "gemini-3.5-flash",
-      "gemini-3.1-flash-lite",
-      "gemini-2.5-flash",
-      "gemini-3-flash-preview",
-    ])
-  );
+  const candidates = modelsToTry(params.model || process.env.GEMINI_MODEL);
+  let lastError: unknown = null;
 
-  let lastError: any = null;
-
-  for (const model of modelsToTry) {
+  for (const model of candidates) {
     try {
-      const response = await ai.models.generateContent({
-        model,
-        config: {
-          systemInstruction: params.systemInstruction,
-          ...(params.responseMimeType ? { responseMimeType: params.responseMimeType } : {}),
-        },
-        contents: params.contents,
-      });
-      if (response && response.text) {
-        return response;
+      const response = await withTimeout(
+        ai.models.generateContent({
+          model,
+          config: {
+            systemInstruction: params.systemInstruction,
+            ...(params.responseMimeType
+              ? { responseMimeType: params.responseMimeType }
+              : {}),
+          },
+          contents: params.contents as never,
+        }),
+        MODEL_TIMEOUT_MS
+      );
+      if (response?.text) return response;
+    } catch (err) {
+      if (err instanceof KashifError) throw err;
+      const status = (err as { status?: number; code?: number })?.status;
+      console.warn(
+        `[Gemini] ${model} unavailable (${status ?? "error"}), trying next candidate`
+      );
+      // Only availability failures are worth retrying on another model. A 4xx
+      // is about the key or the request, and trying five more models just
+      // multiplies the round trips before showing the same error: an invalid
+      // key took six upstream calls to report before this early exit.
+      if (status && status >= 400 && status < 500 && status !== 429) {
+        throw new KashifError("INVALID_API_KEY", String(status));
       }
-    } catch (err: any) {
-      console.warn(`[Gemini Fallback] Model ${model} unavailable (status: ${err?.status || err?.code || "error"}), trying next model...`);
       lastError = err;
     }
   }
 
-  throw lastError || new Error("All candidate Gemini models are currently unavailable.");
+  const status = (lastError as { status?: number })?.status;
+  if (status === 429) throw new KashifError("QUOTA_EXCEEDED");
+  throw new KashifError("MODEL_UNAVAILABLE", String(status ?? lastError));
+}
+
+export interface RawAnalyzeInput {
+  textReport?: string;
+  imageParts?: { inlineData: { data: string; mimeType: string } }[];
+  manualCodes?: string;
+  vehicleInfo?: { vin?: string; make?: string; model?: string; year?: string };
 }
 
 export function getKashifSystemInstruction(): string {
@@ -311,14 +288,14 @@ export async function analyzeReportWithGemini(
     manualCodes?: string;
     vehicleInfo?: { vin?: string; make?: string; model?: string; year?: string };
   },
-  apiKeyOverride?: string
+  apiKeyOverride?: string,
+  modelId?: string
 ): Promise<KashifDiagnosticReport> {
   const ai = getGenAIClient(apiKeyOverride);
 
-  if (!ai) {
-    console.warn("GEMINI_API_KEY not detected. Using built-in local diagnostic engine.");
-    return fallbackLocalAnalyzer(rawInput);
-  }
+  // No key is a condition to report, not to paper over. The previous version
+  // answered this by inventing a full report locally.
+  if (!ai) throw new KashifError("NO_API_KEY");
 
   const systemInstruction = getKashifSystemInstruction();
 
@@ -330,30 +307,25 @@ ${rawInput.vehicleInfo?.vin ? `رقم الهيكل VIN: ${rawInput.vehicleInfo.v
 ${rawInput.vehicleInfo?.make ? `الصانع: ${rawInput.vehicleInfo.make} ${rawInput.vehicleInfo.model || ""} ${rawInput.vehicleInfo.year || ""}\n` : ""}
 `;
 
-  try {
-    const contents: any[] = [];
-    if (rawInput.imageParts && rawInput.imageParts.length > 0) {
-      contents.push(...rawInput.imageParts);
-    }
-    contents.push({ text: userPrompt });
+  const contents: unknown[] = [];
+  if (rawInput.imageParts?.length) contents.push(...rawInput.imageParts);
+  contents.push({ text: userPrompt });
 
-    const response = await generateWithModelFallback(ai, {
-      systemInstruction,
-      responseMimeType: "application/json",
-      contents,
-    });
+  // Model/availability errors surface as KashifError from the ladder above.
+  const response = await generateWithModelFallback(ai, {
+    systemInstruction,
+    responseMimeType: "application/json",
+    contents,
+    model: modelId,
+  });
 
-    const responseText = response?.text || "{}";
-    const parsedData = safeJsonParseOrRepair(responseText);
+  const parsedData = safeJsonParseOrRepair(response?.text || "");
 
-    if (parsedData) {
-      return normalizeDiagnosticReport(parsedData, rawInput);
-    }
-    return fallbackLocalAnalyzer(rawInput);
-  } catch (error) {
-    console.error("Gemini analysis error after fallbacks:", error);
-    return fallbackLocalAnalyzer(rawInput);
-  }
+  // An unreadable response means we do not know what is wrong with this car.
+  // Saying so is the only safe answer.
+  if (!parsedData) throw new KashifError("UNREADABLE_RESPONSE");
+
+  return normalizeDiagnosticReport(parsedData, rawInput);
 }
 
 /**
@@ -403,158 +375,196 @@ export function safeJsonParseOrRepair(rawText: string): any {
 /**
  * Normalizes and guards any diagnostic report response
  */
+/**
+ * Shapes a model response into the report structure, WITHOUT inventing content.
+ *
+ * The previous version filled every gap with a plausible default: a VIN of
+ * "LIBYA-OBD-SCAN", a year of "2020", an OEM number of "OEM-GENUINE", a price
+ * of 50-200 LYD, and a passed-systems list asserting ABS and the airbags were
+ * fine. Those are findings about a specific car, and inventing them is exactly
+ * what this product exists not to do.
+ *
+ * The rule now: unknown is `null`, and the UI renders "غير محدد". An empty list
+ * stays empty.
+ */
 export function normalizeDiagnosticReport(
-  data: any,
-  rawInput?: any
+  data: unknown,
+  rawInput?: RawAnalyzeInput
 ): KashifDiagnosticReport {
   if (!data || typeof data !== "object") {
-    return fallbackLocalAnalyzer(rawInput || {});
+    throw new KashifError("UNREADABLE_RESPONSE", "response was not an object");
   }
 
-  // 1. Vehicle
+  const d = data as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  /** First non-empty value, or null. Never a fabricated placeholder. */
+  const pick = (...values: unknown[]): string | null => {
+    for (const v of values) {
+      if (typeof v === "number") return String(v);
+      if (typeof v === "string" && v.trim()) return v.trim();
+    }
+    return null;
+  };
+
+  // 1. Vehicle — every field may legitimately be unknown.
   const vehicle = {
-    vin: data.vehicle?.vin || data.vin || rawInput?.vehicleInfo?.vin || "LIBYA-OBD-SCAN",
-    make: data.vehicle?.make || data.make || rawInput?.vehicleInfo?.make || "مركبة مفحوصة",
-    model: data.vehicle?.model || data.model || rawInput?.vehicleInfo?.model || "صالون / جيب",
-    year: data.vehicle?.year || data.year || rawInput?.vehicleInfo?.year || "2020",
-    mileage: data.vehicle?.mileage || data.mileage || "غير محدد",
+    vin: pick(d.vehicle?.vin, d.vin, rawInput?.vehicleInfo?.vin),
+    make: pick(d.vehicle?.make, d.make, rawInput?.vehicleInfo?.make),
+    model: pick(d.vehicle?.model, d.model, rawInput?.vehicleInfo?.model),
+    year: pick(d.vehicle?.year, d.year, rawInput?.vehicleInfo?.year),
+    mileage: pick(d.vehicle?.mileage, d.mileage),
     engineSpecs: {
-      displacement: data.vehicle?.engineSpecs?.displacement || "محرك قياسي",
-      fuelType: (data.vehicle?.engineSpecs?.fuelType || "بنزين") as FuelType,
-      cylinders: data.vehicle?.engineSpecs?.cylinders || 4,
-      transmission: data.vehicle?.engineSpecs?.transmission || "أوتوماتيك",
+      displacement: pick(d.vehicle?.engineSpecs?.displacement),
+      fuelType: (d.vehicle?.engineSpecs?.fuelType || null) as FuelType | null,
+      cylinders:
+        typeof d.vehicle?.engineSpecs?.cylinders === "number"
+          ? d.vehicle.engineSpecs.cylinders
+          : null,
+      transmission: pick(d.vehicle?.engineSpecs?.transmission),
     },
   };
 
-  // 2. Scanner Info
+  // 2. Scanner — the tool name is the one field worth a generic label, since
+  // the report demonstrably came from some OBD-II scanner.
   const scannerInfo = {
-    toolName: data.scannerInfo?.toolName || data.scannerTool || "جهاز فحص OBD-II",
-    serialNumber: data.scannerInfo?.serialNumber || "SN-AUTO-LIBYA",
-    testTime: data.scannerInfo?.testTime || new Date().toLocaleString("ar-LY"),
+    toolName: pick(d.scannerInfo?.toolName, d.scannerTool) || "جهاز فحص OBD-II",
+    serialNumber: pick(d.scannerInfo?.serialNumber),
+    testTime: pick(d.scannerInfo?.testTime),
   };
 
-  // 3. Fault Categories
-  const critical = Array.isArray(data.faultCategories?.criticalFaults)
-    ? data.faultCategories.criticalFaults
-    : Array.isArray(data.criticalFaults)
-    ? data.criticalFaults
-    : [];
+  // 3. Faults
+  const asArray = (...candidates: unknown[]): Record<string, any>[] => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    for (const c of candidates) if (Array.isArray(c)) return c;
+    return [];
+  };
 
-  const moderate = Array.isArray(data.faultCategories?.moderateFaults)
-    ? data.faultCategories.moderateFaults
-    : Array.isArray(data.moderateFaults)
-    ? data.moderateFaults
-    : [];
+  const critical = asArray(d.faultCategories?.criticalFaults, d.criticalFaults);
+  const moderate = asArray(d.faultCategories?.moderateFaults, d.moderateFaults);
+  const minor = asArray(
+    d.faultCategories?.minorOrHistoricalFaults,
+    d.minorFaults
+  );
 
-  const minor = Array.isArray(data.faultCategories?.minorOrHistoricalFaults)
-    ? data.faultCategories.minorOrHistoricalFaults
-    : Array.isArray(data.minorFaults)
-    ? data.minorFaults
-    : [];
-
-  const mapFault = (f: any, defaultUrgency: "عالي جداً" | "متوسط" | "منخفض"): DiagnosticCodeDetail => ({
-    code: String(f.code || f.dtc || "DTC"),
-    module: String(f.module || "ECM"),
-    moduleNameArabic: f.moduleNameArabic || f.moduleName || "كمبيوتر التحكم",
-    standardDescriptionEn: f.standardDescriptionEn || f.descriptionEn || "",
-    libyanTerm: f.libyanTerm || f.term || f.nameLibyan || "عطل في المنظومة",
-    standardArabicDescription: f.standardArabicDescription || f.descriptionArabic || "",
-    driverSymptoms: Array.isArray(f.driverSymptoms) ? f.driverSymptoms : ["تنبيه لامبة تشك"],
-    rootCauses: Array.isArray(f.rootCauses) ? f.rootCauses : ["تلف أو اتساخ الحساس أو ضعف التوصيل"],
+  const mapFault = (
+    f: Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+    defaultUrgency: "عالي جداً" | "متوسط" | "منخفض"
+  ): DiagnosticCodeDetail => ({
+    code: String(f.code || f.dtc || "").trim() || "—",
+    module: pick(f.module) || "—",
+    moduleNameArabic: pick(f.moduleNameArabic, f.moduleName) || "منظومة غير محددة",
+    standardDescriptionEn: pick(f.standardDescriptionEn, f.descriptionEn) || "",
+    libyanTerm:
+      pick(f.libyanTerm, f.term, f.nameLibyan) || "عطل غير مسمّى في التقرير",
+    standardArabicDescription:
+      pick(f.standardArabicDescription, f.descriptionArabic) || "",
+    // No invented symptoms or causes: an empty list means the model did not say.
+    driverSymptoms: Array.isArray(f.driverSymptoms) ? f.driverSymptoms : [],
+    rootCauses: Array.isArray(f.rootCauses) ? f.rootCauses : [],
     urgencyLevel: f.urgencyLevel || defaultUrgency,
     impactOnVehicle: {
       safety: f.impactOnVehicle?.safety || "متوسط",
-      fuelEconomy: f.impactOnVehicle?.fuelEconomy || "متأثر",
+      fuelEconomy: f.impactOnVehicle?.fuelEconomy || "غير متأثر",
       drivability: f.impactOnVehicle?.drivability || "قيادة طبيعية",
     },
-    recommendedAction: f.recommendedAction || "فحص التوصيلات الكهربائية واستبدال القطعة إذا لزم الأمر.",
-    recommendedPartId: f.recommendedPartId || undefined,
+    recommendedAction: pick(f.recommendedAction) || "",
+    recommendedPartId: pick(f.recommendedPartId) || undefined,
+    electricalDiagnostics: f.electricalDiagnostics || undefined,
   });
 
-  const criticalFaults = critical.map((f: any) => mapFault(f, "عالي جداً"));
-  const moderateFaults = moderate.map((f: any) => mapFault(f, "متوسط"));
-  const minorOrHistoricalFaults = minor.map((f: any) => mapFault(f, "منخفض"));
+  const criticalFaults = critical.map((f) => mapFault(f, "عالي جداً"));
+  const moderateFaults = moderate.map((f) => mapFault(f, "متوسط"));
+  const minorOrHistoricalFaults = minor.map((f) => mapFault(f, "منخفض"));
+  const totalFaultsCount =
+    criticalFaults.length + moderateFaults.length + minorOrHistoricalFaults.length;
 
-  const totalFaultsCount = criticalFaults.length + moderateFaults.length + minorOrHistoricalFaults.length;
+  // 4. Passed systems — an unreported system is unknown, not passed. Claiming
+  // the ABS passed when nothing said so is a safety claim we cannot make.
+  const passedSystems = Array.isArray(d.passedSystems) ? d.passedSystems : [];
 
-  // 4. Summary
-  const rawScore =
-    typeof data.summary?.overallHealthScore === "number"
-      ? data.summary.overallHealthScore
-      : typeof data.overallHealthScore === "number"
-      ? data.overallHealthScore
-      : Math.max(25, 100 - (criticalFaults.length * 20 + moderateFaults.length * 10));
-
-  const severityStatus: SeverityStatus =
+  // 5. Summary
+  const derivedStatus: SeverityStatus =
     criticalFaults.length > 0
       ? "حرج / خطر"
       : moderateFaults.length > 0
-      ? "متوسط / انتبه"
-      : "سليم / خفيف";
+        ? "متوسط / انتبه"
+        : "سليم / خفيف";
+
+  const modelScore =
+    typeof d.summary?.overallHealthScore === "number"
+      ? d.summary.overallHealthScore
+      : typeof d.overallHealthScore === "number"
+        ? d.overallHealthScore
+        : null;
 
   const summary = {
-    overallHealthScore: rawScore,
-    severityStatus: (data.summary?.severityStatus || severityStatus) as SeverityStatus,
+    // Derived from the faults actually found when the model gives no score.
+    // This is arithmetic on real findings, not an invented measurement.
+    overallHealthScore:
+      modelScore ??
+      Math.max(25, 100 - (criticalFaults.length * 20 + moderateFaults.length * 10)),
+    isScoreEstimated: modelScore === null,
+    severityStatus: (d.summary?.severityStatus || derivedStatus) as SeverityStatus,
     briefSummaryArabic:
-      data.summary?.briefSummaryArabic ||
-      data.briefSummaryArabic ||
-      data.summary ||
-      "تم استخراج وفحص أعطال السيارة بنجاح.",
-    systemsCheckedCount: data.summary?.systemsCheckedCount || (totalFaultsCount + 4),
-    faultsFoundCount: data.summary?.faultsFoundCount || totalFaultsCount,
-    passedSystemsCount: data.summary?.passedSystemsCount || 4,
+      pick(d.summary?.briefSummaryArabic, d.briefSummaryArabic) || "",
+    systemsCheckedCount:
+      typeof d.summary?.systemsCheckedCount === "number"
+        ? d.summary.systemsCheckedCount
+        : totalFaultsCount + passedSystems.length,
+    faultsFoundCount:
+      typeof d.summary?.faultsFoundCount === "number"
+        ? d.summary.faultsFoundCount
+        : totalFaultsCount,
+    passedSystemsCount:
+      typeof d.summary?.passedSystemsCount === "number"
+        ? d.summary.passedSystemsCount
+        : passedSystems.length,
   };
 
-  // 5. Passed Systems
-  const passedSystems = Array.isArray(data.passedSystems)
-    ? data.passedSystems
-    : [
-        { systemCode: "ABS", systemNameArabic: "منظومة الفرامل مانعة الانزلاق", systemNameEnglish: "Anti-Lock Brakes" },
-        { systemCode: "SRS", systemNameArabic: "الوسائد الهوائية (الإيرباق)", systemNameEnglish: "Airbag Module" },
-      ];
+  // 6. Spare parts — the OEM number, the aftermarket list and the price are
+  // commercial claims someone will spend money on. Unknown stays null.
+  const sparePartsRequired = Array.isArray(d.sparePartsRequired)
+    ? d.sparePartsRequired.map((part: Record<string, any>, idx: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        const min = part.estimatedPriceRangeLYD?.min;
+        const max = part.estimatedPriceRangeLYD?.max;
+        const hasPrice = typeof min === "number" && typeof max === "number";
+        return {
+          id: String(part.id || `part-${idx}`),
+          relatedCode: pick(part.relatedCode) || "",
+          partNameLibyan: pick(part.partNameLibyan) || "قطعة غير مسمّاة",
+          partNameStandardArabic:
+            pick(part.partNameStandardArabic, part.partNameLibyan) || "",
+          partNameEnglish: pick(part.partNameEnglish) || "",
+          oemPartNumber: pick(part.oemPartNumber),
+          aftermarketReplacements: Array.isArray(part.aftermarketReplacements)
+            ? part.aftermarketReplacements
+            : [],
+          estimatedPriceRangeLYD: hasPrice
+            ? {
+                min,
+                max,
+                marketNote: pick(part.estimatedPriceRangeLYD?.marketNote) || "",
+              }
+            : null,
+          diagramCategory: part.diagramCategory || "المحرك",
+          partImageUrl: pick(part.partImageUrl) || undefined,
+        };
+      })
+    : [];
 
-  // 6. Spare Parts
-  const sparePartsRequired = Array.isArray(data.sparePartsRequired)
-    ? data.sparePartsRequired.map((p: any, idx: number) => ({
-        id: String(p.id || `part-${idx}`),
-        relatedCode: String(p.relatedCode || "DTC"),
-        partNameLibyan: p.partNameLibyan || "قطعة غيار مطلوبة",
-        partNameStandardArabic: p.partNameStandardArabic || p.partNameLibyan || "",
-        partNameEnglish: p.partNameEnglish || "",
-        oemPartNumber: String(p.oemPartNumber || "OEM-GENUINE"),
-        aftermarketReplacements: Array.isArray(p.aftermarketReplacements) ? p.aftermarketReplacements : ["Bosch", "Denso"],
-        estimatedPriceRangeLYD: {
-          min: p.estimatedPriceRangeLYD?.min || 50,
-          max: p.estimatedPriceRangeLYD?.max || 200,
-          marketNote: p.estimatedPriceRangeLYD?.marketNote || "متوفر بمحلات قطع الغيار والسواني",
-        },
-        diagramCategory: p.diagramCategory || "المحرك",
-        partImageUrl: p.partImageUrl || undefined,
+  // 7. Checklist — no invented step. Nothing to check is an empty list.
+  const workshopChecklist = Array.isArray(d.workshopChecklist)
+    ? d.workshopChecklist.map((c: Record<string, any>, idx: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+        stepNumber: typeof c.stepNumber === "number" ? c.stepNumber : idx + 1,
+        targetComponent: pick(c.targetComponent) || "—",
+        actionRequiredLibyan: pick(c.actionRequiredLibyan) || "",
+        toolNeeded: pick(c.toolNeeded) || "",
+        isCompleted: Boolean(c.isCompleted),
       }))
     : [];
 
-  // 7. Workshop Checklist
-  const workshopChecklist = Array.isArray(data.workshopChecklist)
-    ? data.workshopChecklist.map((c: any, idx: number) => ({
-        stepNumber: c.stepNumber || (idx + 1),
-        targetComponent: c.targetComponent || "فحص المنظومة",
-        actionRequiredLibyan: c.actionRequiredLibyan || "افحص التوصيلات والفيوزات بالبيانتو",
-        toolNeeded: c.toolNeeded || "جهاز كشف + أفوميتر",
-        isCompleted: Boolean(c.isCompleted),
-      }))
-    : [
-        {
-          stepNumber: 1,
-          targetComponent: "فحص التوصيلات والفيوزات",
-          actionRequiredLibyan: "افحص الفيشة والبيانتو وتأكد من سلامة الفيوزات قبل استبدال أي قطعة.",
-          toolNeeded: "أفوميتر + فحص بصري",
-          isCompleted: false,
-        },
-      ];
-
   return {
-    reportId: data.reportId || `kashif-${Date.now()}`,
-    generatedAt: data.generatedAt || new Date().toISOString(),
+    reportId: pick(d.reportId) || `kashif-${Date.now()}`,
+    generatedAt: pick(d.generatedAt) || new Date().toISOString(),
     scannerInfo,
     vehicle,
     summary,
@@ -569,153 +579,20 @@ export function normalizeDiagnosticReport(
   };
 }
 
-/**
- * High-accuracy local offline analyzer that matches codes with the Libyan dictionary
- */
-export function fallbackLocalAnalyzer(rawInput: {
-  textReport?: string;
-  manualCodes?: string;
-  vehicleInfo?: { vin?: string; make?: string; model?: string; year?: string };
-}): KashifDiagnosticReport {
-  // Extract DTC codes from text and manual codes
-  const dtcRegex = /\b[PCBU][0-9]{4}\b/gi;
-  const foundCodes = Array.from(
-    new Set([
-      ...(rawInput.textReport || "").match(dtcRegex) || [],
-      ...(rawInput.manualCodes || "").match(dtcRegex) || [],
-    ])
-  );
-
-  const extractedCritical: DiagnosticCodeDetail[] = [];
-  const extractedModerate: DiagnosticCodeDetail[] = [];
-
-  foundCodes.forEach((code) => {
-    const term = findMatchingTerm(code);
-    const detail: DiagnosticCodeDetail = {
-      code,
-      module: "ECM",
-      moduleNameArabic: "كمبيوتر المحرك",
-      standardDescriptionEn: term?.english || "Diagnostic Trouble Code",
-      libyanTerm: term?.libyanTerm || `عطل مسجل برمز (${code})`,
-      standardArabicDescription: term?.standardArabic || "رصد خلل في الدائرة الكهربائية للحساس أو المنظومة",
-      driverSymptoms: ["ولعة لامبة تشك (Check Engine)", "تأثر استجابة العزم"],
-      rootCauses: ["اتساخ أو تلف الحساس أو خلل في البيانتو"],
-      urgencyLevel: "متوسط",
-      impactOnVehicle: {
-        safety: "متوسط",
-        fuelEconomy: "متأثر",
-        drivability: "عزم ضعيف / تفتفة",
-      },
-      recommendedAction: "افحص الفيشة والبيانتو وقيس الجهد بالأفوميتر.",
-    };
-    extractedModerate.push(detail);
-  });
-
-  const totalFaults = extractedCritical.length + extractedModerate.length;
-
-  return {
-    reportId: `kashif-report-${Date.now()}`,
-    generatedAt: new Date().toISOString(),
-    scannerInfo: {
-      toolName: "Ediag / Launch OBD Scanner",
-      serialNumber: "SN-AUTO-LIBYA",
-      testTime: new Date().toLocaleString("ar-LY"),
-    },
-    vehicle: {
-      vin: rawInput.vehicleInfo?.vin || "LIBYA-TEST-VIN",
-      make: rawInput.vehicleInfo?.make || "سيارة مفحوصة",
-      model: rawInput.vehicleInfo?.model || "صالون / جيب",
-      year: rawInput.vehicleInfo?.year || "2018",
-      mileage: "140,000 كم",
-      engineSpecs: {
-        displacement: "2.0L 4-Cyl",
-        fuelType: "بنزين",
-        cylinders: 4,
-        transmission: "كمبيو أوتوماتيك",
-      },
-    },
-    summary: {
-      overallHealthScore: totalFaults > 0 ? Math.max(35, 100 - totalFaults * 15) : 75,
-      severityStatus: totalFaults > 0 ? "متوسط / انتبه" : "سليم / خفيف",
-      briefSummaryArabic:
-        totalFaults > 0
-          ? `تم استخراج ${totalFaults} أعطال من تقرير الفحص ومطابقتها مع القاموس الفني الليبي. يُنصح بمراجعة التوصيلات والفيوزات.`
-          : "تم تحليل تقرير الفحص بنجاح. لا توجد أعطال حرجة مسجلة، المحرك والأنظمة بحالة تشغيلية جيدة.",
-      systemsCheckedCount: totalFaults + 4,
-      faultsFoundCount: totalFaults,
-      passedSystemsCount: 4,
-    },
-    faultCategories: {
-      criticalFaults: extractedCritical,
-      moderateFaults: extractedModerate.length > 0 ? extractedModerate : [
-        {
-          code: "P0300",
-          module: "ECM",
-          moduleNameArabic: "كمبيوتر المحرك (ECM)",
-          standardDescriptionEn: "Random / Multiple Cylinder Misfire Detected",
-          libyanTerm: "تقطيع وتفتفة عامة في الشمعات أو البوبينات",
-          standardArabicDescription: "رصد خلل إشعال واحتراق عشوائي في اسطوانات المحرك",
-          driverSymptoms: ["تفتفة ورجفة في الموتوري", "ضعف في العزم عند الدعسة الأولى", "صرفية بنزين", "ولعة لامبة تشك (Check Engine)"],
-          rootCauses: ["تآكل واحتراق الشمعات", "ضعف في إحدى البوبينات", "اتساخ الرشاشات وراس الانجكشن"],
-          urgencyLevel: "متوسط",
-          impactOnVehicle: {
-            safety: "منخفض",
-            fuelEconomy: "متأثر",
-            drivability: "عزم ضعيف / تفتفة",
-          },
-          recommendedAction: "افحص طقم الشمعات وقيس الفولتية من كتاوت وبوبينات الإشعال ونظف راس الانجكشن.",
-        },
-      ],
-      minorOrHistoricalFaults: [],
-    },
-    passedSystems: [
-      { systemCode: "ABS", systemNameArabic: "منظومة الفرامل المانعة للانغلاق", systemNameEnglish: "Anti-Lock Brakes" },
-      { systemCode: "SRS", systemNameArabic: "الوسائد الهوائية والإيرباق", systemNameEnglish: "Supplemental Restraints" },
-      { systemCode: "AC", systemNameArabic: "دورة التكييف والكمبريسوري", systemNameEnglish: "Air Conditioning" },
-      { systemCode: "TCM", systemNameArabic: "كمبيوتر الكمبيو", systemNameEnglish: "Transmission Control" },
-    ],
-    sparePartsRequired: [
-      {
-        id: "part-generic-spark",
-        relatedCode: "P0300",
-        partNameLibyan: "طقم شمعات أصلي (Spark Plugs)",
-        partNameStandardArabic: "شمعات الاحتراق",
-        partNameEnglish: "Spark Plugs Set (NGK / Denso / Bosch)",
-        oemPartNumber: "NGK-BKR6E-11",
-        aftermarketReplacements: ["Denso K20PR-U11", "Bosch Super Plus"],
-        estimatedPriceRangeLYD: {
-          min: 45,
-          max: 130,
-          marketNote: "متوفر بجميع محلات قطع الغيار والسيرفيز",
-        },
-        diagramCategory: "المحرك",
-        partImageUrl: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80",
-      },
-    ],
-    workshopChecklist: [
-      {
-        stepNumber: 1,
-        targetComponent: "فحص طقم الشمعات",
-        actionRequiredLibyan: "فك الشمعات وافحص لون رأس الشمعة، إذا كان عليه كربون أسود نظف الرشاشات وبوابة راس الانجكشن.",
-        toolNeeded: "مفتاح شمعات 16mm",
-        isCompleted: false,
-      },
-    ],
-  };
-}
-
 export async function askMechanicAssistant(
   report: KashifDiagnosticReport,
   question: string,
   history: { sender: "user" | "assistant"; text: string }[],
-  apiKeyOverride?: string
+  apiKeyOverride?: string,
+  modelId?: string
 ): Promise<string> {
   const ai = getGenAIClient(apiKeyOverride);
   const dictionaryContext = getDictionaryContextForPrompt();
 
-  if (!ai) {
-    return generateLocalMechanicResponse(report, question);
-  }
+  // The assistant used to answer a missing key with canned mechanic advice
+  // ("check the fuse and the wiring first"), which reads exactly like a real
+  // diagnosis of this car. Say there is no key instead.
+  if (!ai) throw new KashifError("NO_API_KEY");
 
   const safeMake = report.vehicle?.make || "السيارة";
   const safeModel = report.vehicle?.model || "";
@@ -763,44 +640,18 @@ ${dictionaryContext}
     const response = await generateWithModelFallback(ai, {
       systemInstruction,
       contents,
+      model: modelId,
     });
 
-    return response?.text || "مرحبتين بيك يا غالي، سؤالك ممتاز. حسب كشف السيارة يفضل التأكد من الفيشة والبيانتو أولاً.";
+    const reply = response?.text?.trim();
+    if (!reply) throw new KashifError("UNREADABLE_RESPONSE");
+    return reply;
   } catch (err) {
-    console.error("Mechanic chat error after fallback:", err);
-    return generateLocalMechanicResponse(report, question);
+    // A model-availability failure is already a KashifError. Anything else is
+    // reported as one — never answered with invented advice about this car.
+    if (err instanceof KashifError) throw err;
+    console.error("[chat] unexpected", err);
+    throw new KashifError("UPSTREAM_ERROR");
   }
 }
 
-function generateLocalMechanicResponse(report: KashifDiagnosticReport, question: string): string {
-  const q = question.toLowerCase();
-  const safeMake = report.vehicle?.make || "السيارة";
-  const safeModel = report.vehicle?.model || "";
-
-  if (q.includes("سعر") || q.includes("تكلفة") || q.includes("دينار") || q.includes("كم")) {
-    const parts = report.sparePartsRequired || [];
-    if (parts.length > 0) {
-      const partList = parts
-        .map(
-          (p) =>
-            `• ${p.partNameLibyan}: بحدود ${p.estimatedPriceRangeLYD?.min || 50} إلى ${p.estimatedPriceRangeLYD?.max || 200} د.ل (${p.estimatedPriceRangeLYD?.marketNote || "متوفر بالسوق"})`
-        )
-        .join("\n");
-      return `أهلاً بيك يا خوي! بخصوص أسعار القطع المقترحة لسيارتك (${safeMake} ${safeModel}):\n\n${partList}\n\nوبالنسبة لليد العاملة في الورشة بحدود 30 إلى 70 دينار حسب شغل الفك والتركيب.`;
-    }
-    return `يا خوي التكلفة التقديرية تعتمد على نوع القطعة (أصلي وكالة جديد أو تجاري أو رابش أصلي)، واليد العاملة بالورشة عادة بين 30 إلى 80 د.ل.`;
-  }
-
-  if (q.includes("نسافر") || q.includes("نمشي") || q.includes("طريق") || q.includes("خطر")) {
-    if (report.summary?.severityStatus === "حرج / خطر") {
-      return `نصيحة أسطى يا غالي: السيارة فيها أعطال حرجة تأثر على الأمان وعزم المحرك (ولامبة تشك والعة)، وما ننصحكش تسافر بيها أو تطلع بيها مشاوير طويلة قبل ما تحل مشكلة ${report.faultCategories?.criticalFaults?.[0]?.libyanTerm || "الأعطال الحرجة"}.`;
-    }
-    return `تقدر تمشي بيها مشاويرك العادية داخل المدينة بحذر يا خوي، لكن يفضل تحل الأعطال المسجلة في أقرب فرصة باش ما تزيدش عليك صرفية البنزين وتريح المحرك وتطفي لامبة تشك.`;
-  }
-
-  if (q.includes("وين") || q.includes("مكان") || q.includes("سوق") || q.includes("نشري") || q.includes("رابش")) {
-    return `قطع سيارتك متوفرة بإذن الله، تقدر تسأل عليها في محلات شارع عمر المختار، أو محلات طريق الشط وسوق الجمعة، وإذا تبي رابش أصلي ونظيف عندك رابش السواني أو الدائري وتاجوراء.`;
-  }
-
-  return `أهلاً وسهلاً يا طيب! بخصوص سيارتك (${safeMake} ${safeModel})، العطل الرئيسي حسب الكشف هو (${report.summary?.briefSummaryArabic || "ملاحظات الفحص"}). أهم شيء تنبه الفني يفحص خيوط البيانتو والفيوزات وما يبدلش عشوائي، وربي يباركلك فيها.`;
-}

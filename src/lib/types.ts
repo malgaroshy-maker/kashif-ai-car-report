@@ -51,13 +51,16 @@ export interface SparePartItem {
   partNameLibyan: string; // e.g. "حساس ماف (حساس الهواء)"
   partNameStandardArabic: string;
   partNameEnglish: string;
-  oemPartNumber: string; // e.g. "22204-22010"
-  aftermarketReplacements: string[]; // e.g. ["Denso 197-6030", "Bosch 0280218xxx"]
+  /** null when the model did not supply one. Never a placeholder — somebody
+   *  walks into a parts shop with this number. */
+  oemPartNumber: string | null;
+  aftermarketReplacements: string[]; // empty when none were given
+  /** null when no price was given. An invented range misleads a purchase. */
   estimatedPriceRangeLYD: {
     min: number;
     max: number;
-    marketNote: string; // e.g. "جديد أصلي أو تجاري تايواني، أو رابش في السواني / الدائري"
-  };
+    marketNote: string;
+  } | null;
   diagramCategory: "المحرك" | "الفرامل" | "الفرامل والعادم" | "التعليق والصالة" | "الكهرباء" | "التبريد والتكييف" | "الهيكل والمقصورة" | "الهيكل";
   partImageUrl?: string;
 }
@@ -80,25 +83,30 @@ export interface KashifDiagnosticReport {
   reportId: string;
   generatedAt: string;
   scannerInfo: {
-    toolName: string; // e.g. "Ediag", "Launch X431", "Autel MaxiSys"
-    serialNumber?: string;
-    testTime?: string;
+    toolName: string; // the one safe generic: the report came from some scanner
+    serialNumber?: string | null;
+    testTime?: string | null;
   };
+  /** A scanner report often omits half of this. `null` means the scan did not
+   *  say — the UI renders "غير محدد" rather than guessing a year or a VIN. */
   vehicle: {
-    vin: string;
-    make: string;
-    model: string;
-    year: number | string;
-    mileage?: string;
+    vin: string | null;
+    make: string | null;
+    model: string | null;
+    year: number | string | null;
+    mileage?: string | null;
     engineSpecs?: {
-      displacement?: string;
-      fuelType: FuelType;
-      cylinders?: number;
-      transmission?: string;
+      displacement?: string | null;
+      fuelType?: FuelType | null;
+      cylinders?: number | null;
+      transmission?: string | null;
     };
   };
   summary: {
     overallHealthScore: number; // 0 - 100
+    /** true when the score was computed from the fault counts rather than
+     *  supplied by the analysis. The UI must say so. */
+    isScoreEstimated?: boolean;
     severityStatus: SeverityStatus;
     briefSummaryArabic: string; // ملخص بلهجة ليبية فصيحة ومفهومة
     systemsCheckedCount: number;
@@ -120,4 +128,14 @@ export interface ChatMessage {
   sender: "user" | "assistant";
   text: string;
   timestamp: string;
+}
+
+/** Renders a possibly-unknown report value. One spelling of "we do not know". */
+export function orUnknown(
+  value: string | number | null | undefined,
+  fallback = "غير محدد"
+): string {
+  if (value === null || value === undefined) return fallback;
+  const s = String(value).trim();
+  return s === "" ? fallback : s;
 }

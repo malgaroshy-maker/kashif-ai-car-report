@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchAvailableGeminiModels } from "@/lib/gemini";
+import { DEFAULT_MODEL } from "@/lib/models";
 import { getAgyCliStatus } from "@/lib/antigravity-cli";
 
 export async function GET(req: NextRequest) {
@@ -12,6 +13,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: true,
       models,
+      defaultModel: DEFAULT_MODEL,
       hasEnvKey,
       agyStatus,
     });
