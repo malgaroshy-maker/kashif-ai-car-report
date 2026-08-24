@@ -49,14 +49,24 @@ export function findAgyBinaryPath(): string | null {
 export async function getAgyCliStatus(): Promise<AgyStatusInfo> {
   const binaryPath = findAgyBinaryPath() || "agy";
 
+  if (binaryPath && fs.existsSync(binaryPath)) {
+    return {
+      available: true,
+      cliPath: binaryPath,
+      engineName: "Antigravity CLI (agy)",
+      statusNote: "محرك وكيل Antigravity المحلي جاهز ونشط ومكتشف بنجاح",
+    };
+  }
+
   return new Promise((resolve) => {
-    exec(`"${binaryPath}" --help`, { timeout: 4000 }, (error, stdout) => {
-      if (!error && (stdout.includes("Usage of agy") || stdout.includes("Usage: agy"))) {
+    exec(`"${binaryPath}" --help`, { timeout: 4000 }, (error, stdout, stderr) => {
+      const combined = (stdout || "") + (stderr || "");
+      if (combined.includes("Usage of agy") || combined.includes("Usage: agy") || combined.includes("agy.exe")) {
         resolve({
           available: true,
           cliPath: binaryPath,
           engineName: "Antigravity CLI (agy)",
-          statusNote: "محرك وكيل Antigravity المحلي جاهز ونشط",
+          statusNote: "محرك وكيل Antigravity المحلي جاهز ونشط ومكتشف بنجاح",
         });
       } else {
         resolve({
