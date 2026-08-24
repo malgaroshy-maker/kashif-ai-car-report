@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-base: #090D16;
+    --surface-1: #0F172A;
+    --surface-2: #1E293B;
+    --surface-3: #334155;
+    
+    --border-subtle: #1E293B;
+    --border-card: #283548;
+    --border-focus: #3B82F6;
+
+    --brand-primary: #2563EB;
+    --brand-accent: #3B82F6;
+    --brand-amber: #D97706;
+    --brand-emerald: #059669;
+    --brand-rose: #DC2626;
+
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans Arabic", "Rubik", "Cairo", sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: rgba(59, 130, 246, 0.3);
+    color: #FFFFFF;
+  }
+}
+
+.font-heading {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Rubik", "Cairo", "Tajawal", sans-serif;
+  letter-spacing: -0.015em;
+}
+
+.font-mono {
+  font-family: "Plus Jakarta Sans", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+/* Precision Workbench Panels */
+.workbench-panel {
+  background-color: #0F172A;
+  border: 1px solid #1E293B;
+}
+
+.workbench-card {
+  background-color: #0D1527;
+  border: 1px solid #1F2E47;
+}
+
+/* Clean, restrained scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090D16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Print Stylesheet for clean physical PDF printing */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .workbench-panel, .workbench-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    color: #0f172a !important;
+  }
+
+  .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400 {
+    color: #1e293b !important;
+  }
+
+  .text-white {
+    color: #000000 !important;
+  }
+
+  .bg-slate-900, .bg-slate-950, .bg-slate-800 {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+  }
+}
