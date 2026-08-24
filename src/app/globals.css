@@ -1,106 +1,446 @@
 @import "tailwindcss";
 
-@layer base {
+/* ============================================================================
+   KASHIF AI — THE FUSE-BOX LID
+   The legend silkscreened inside a car's fuse-box lid.
+
+   Two material facts drive everything below:
+   1. Depth is a MOULDED RIB, never a shadow. A rib is a dark line with a lit
+      line beside it. That pair reads as a physical ridge. There is exactly one
+      shadow in this system, on a cell that has been pulled out.
+   2. Status colour is not a palette. It is ISO/DIN 72581-3, the blade-fuse
+      colour code every mechanic already decodes. 10A red, 20A yellow,
+      30A green, 25A clear, 15A blue. Nothing else is chromatic.
+   ========================================================================= */
+
+@theme inline {
+  --color-board: var(--board);
+  --color-board-sunk: var(--board-sunk);
+  --color-cell: var(--cell);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rib: var(--rib);
+  --color-rib-lit: var(--rib-lit);
+
+  --color-amp-10-tab: var(--amp-10-tab);
+  --color-amp-10-ink: var(--amp-10-ink);
+  --color-amp-20-tab: var(--amp-20-tab);
+  --color-amp-20-ink: var(--amp-20-ink);
+  --color-amp-30-tab: var(--amp-30-tab);
+  --color-amp-30-ink: var(--amp-30-ink);
+  --color-amp-25-tab: var(--amp-25-tab);
+  --color-amp-25-ink: var(--amp-25-ink);
+  --color-amp-15-tab: var(--amp-15-tab);
+  --color-amp-15-ink: var(--amp-15-ink);
+
+  --font-sans: var(--font-readex), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-azeret), ui-monospace, "Cascadia Mono", monospace;
+
+  --radius-plate: 1px;
+  --radius-input: 2px;
+}
+
+/* ---------------------------------------------------------------- tokens -- */
+
+:root {
+  color-scheme: light;
+
+  /* The lid. Pale grey moulded ABS, with the silkscreened panels printed on it. */
+  --board: #d5d7cf;
+  --board-sunk: #c2c5bc;
+  --cell: #f4f4f0;
+
+  /* Silkscreen ink */
+  --ink: #1a1d19;
+  --ink-2: #4c524a;
+  --ink-3: #525956;
+
+  /* Moulded ribs: the dark groove and the lit crest. This pair IS the depth. */
+  --rib: #a9ada5;
+  --rib-lit: #eceee7;
+
+  /* ISO/DIN 72581-3 blade fuse colours.
+     -tab = the fuse's own plastic, used for tabs, marks and fills.
+     -ink = the same hue pushed to a text-safe contrast against --cell. */
+  --amp-10-tab: #de3b2f; /* 10A red    — حرج */
+  --amp-10-ink: #a81f15;
+  --amp-20-tab: #f2c200; /* 20A yellow — متوسط */
+  --amp-20-ink: #7a5500;
+  --amp-30-tab: #2e9e5b; /* 30A green  — سليم */
+  --amp-30-ink: #125b2f;
+  --amp-25-tab: #c8cbc5; /* 25A clear  — ذاكرة */
+  --amp-25-ink: #565c59;
+  --amp-15-tab: #2e7fc4; /* 15A blue   — the one interactive ink */
+  --amp-15-ink: #0f5288;
+
+  --lift: 0 6px 18px -6px rgb(12 14 12 / 0.42);
+
+  /* Type. One body size carries the whole board; rank is weight, case and rule. */
+  --t-label: 0.6875rem;
+  --t-plate: 0.75rem;
+  --t-body: 0.9375rem;
+  --t-bank: 0.9375rem;
+  --t-title: 1.375rem;
+  --t-score: 2.75rem;
+
+  --lh-tight: 1.25;
+  --lh-body: 1.6;
+
+  /* Space, on a 4px module — a fuse box is a grid of fixed pitches. */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  --tap: 44px;
+  --measure: 68ch;
+
+  /* Three moments, one curve. */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-mark: 90ms;
+  --dur-lift: 160ms;
+  --dur-sheet: 200ms;
+}
+
+@media (min-width: 768px) {
   :root {
-    --bg-base: #090D16;
-    --surface-1: #0F172A;
-    --surface-2: #1E293B;
-    --surface-3: #334155;
-    
-    --border-subtle: #1E293B;
-    --border-card: #283548;
-    --border-focus: #3B82F6;
+    --t-body: 1rem;
+    --t-title: 1.75rem;
+    --t-score: 3.25rem;
+  }
+}
 
-    --brand-primary: #2563EB;
-    --brand-accent: #3B82F6;
-    --brand-amber: #D97706;
-    --brand-emerald: #059669;
-    --brand-rose: #DC2626;
+/* The canonical lid: charcoal ABS, off-white silkscreen. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
 
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
+    --board: #17191a;
+    --board-sunk: #0e1011;
+    --cell: #212426;
+
+    --ink: #edeeea;
+    --ink-2: #a3a9a5;
+    --ink-3: #8b928e;
+
+    --rib: #0b0d0e;
+    --rib-lit: #363b3d;
+
+    --amp-10-tab: #f0554a;
+    --amp-10-ink: #ff9188;
+    --amp-20-tab: #f5cb1e;
+    --amp-20-ink: #f0c94f;
+    --amp-30-tab: #3fbe73;
+    --amp-30-ink: #63d795;
+    --amp-25-tab: #8e948f;
+    --amp-25-ink: #b0b6b2;
+    --amp-15-tab: #4a9bdd;
+    --amp-15-ink: #82c0f0;
+
+    --lift: 0 8px 22px -6px rgb(0 0 0 / 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --board: #17191a;
+  --board-sunk: #0e1011;
+  --cell: #212426;
+
+  --ink: #edeeea;
+  --ink-2: #a3a9a5;
+  --ink-3: #8b928e;
+
+  --rib: #0b0d0e;
+  --rib-lit: #363b3d;
+
+  --amp-10-tab: #f0554a;
+  --amp-10-ink: #ff9188;
+  --amp-20-tab: #f5cb1e;
+  --amp-20-ink: #f0c94f;
+  --amp-30-tab: #3fbe73;
+  --amp-30-ink: #63d795;
+  --amp-25-tab: #8e948f;
+  --amp-25-ink: #b0b6b2;
+  --amp-15-tab: #4a9bdd;
+  --amp-15-ink: #82c0f0;
+
+  --lift: 0 8px 22px -6px rgb(0 0 0 / 0.7);
+}
+
+/* ------------------------------------------------------------------ base -- */
+
+@layer base {
+  * {
+    min-width: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans Arabic", "Rubik", "Cairo", sans-serif;
-    background-color: var(--bg-base);
-    color: var(--text-primary);
-    min-height: 100vh;
+    background-color: var(--board);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--t-body);
+    line-height: var(--lh-body);
+    font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: var(--lh-tight);
+    text-wrap: balance;
+    font-weight: 700;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Data is always tabular and always Latin-figured — a fuse box prints F14,
+     15A and P0102, never Arabic-Indic numerals. */
+  [data-num],
+  code,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* -- browser surfaces: the parts we did not draw still carry the design -- */
 
   ::selection {
-    background-color: rgba(59, 130, 246, 0.3);
-    color: #FFFFFF;
+    background-color: color-mix(in oklab, var(--amp-15-tab) 32%, transparent);
+    color: var(--ink);
+  }
+
+  :where(input, textarea) {
+    caret-color: var(--amp-15-tab);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--amp-15-tab);
+    outline-offset: 2px;
+    border-radius: 0;
+  }
+
+  a {
+    color: var(--amp-15-ink);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Square, because nothing on a fuse box is rounded. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rib) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--board-sunk);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--rib);
+    border: 2px solid var(--board-sunk);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-3);
   }
 }
 
-.font-heading {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Rubik", "Cairo", "Tajawal", sans-serif;
-  letter-spacing: -0.015em;
+/* ------------------------------------------------------------ primitives -- */
+
+@layer components {
+  /* A moulded rib. The groove plus its lit crest — this is the entire depth
+     system. Never replace it with a shadow. */
+  .rib {
+    border-block-start: 1px solid var(--rib);
+    box-shadow: inset 0 1px 0 0 var(--rib-lit);
+  }
+
+  .rib-heavy {
+    border-block-start: 3px solid var(--rib);
+    box-shadow: inset 0 1px 0 0 var(--rib-lit);
+  }
+
+  /* A silkscreened panel recessed into the board. */
+  .k-cell {
+    background-color: var(--cell);
+    border: 1px solid var(--rib);
+    box-shadow: inset 0 1px 0 0 var(--rib-lit);
+  }
+
+  /* Field labels: the small tracked caps printed above every value. */
+  .k-label {
+    font-size: var(--t-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    color: var(--ink-2);
+  }
+
+  /* The heavy rib that opens a severity bank, with the name set inside it. */
+  .k-bank {
+    font-size: var(--t-bank);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.3;
+  }
+
+  /* A stamped code label: reversed mono on a solid ink block. */
+  .k-plate {
+    font-family: var(--font-mono);
+    font-size: var(--t-plate);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    padding: 5px var(--s2);
+    border-radius: var(--radius-plate);
+    background-color: var(--ink);
+    color: var(--cell);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The fuse seated in its slot: a solid block carrying the severity mark.
+     An object, not an accent stripe down the edge of a card — a coloured
+     border band would read as the generic status-stripe tell and would also
+     hide the amp rating this seat can show. */
+  .k-seat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 30px;
+    padding: 4px 6px;
+    border-radius: var(--radius-plate);
+    font-family: var(--font-mono);
+    font-size: var(--t-plate);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--cell);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .k-lift {
+    box-shadow: var(--lift);
+  }
 }
 
-.font-mono {
-  font-family: "Plus Jakarta Sans", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+/* --- BRIDGE — delete with the surface rebuild (plan.md Phase 5) -----------
+   The incumbent screens still reference .workbench-panel, .workbench-card and
+   .font-heading. Mapping them onto the new tokens keeps the app rendering, and
+   moves it onto the fuse-box palette, while its components are rewritten. Any
+   new markup uses .k-cell and the primitives instead. */
+
+@layer components {
+  .workbench-panel,
+  .workbench-card {
+    background-color: var(--cell);
+    border: 1px solid var(--rib);
+    box-shadow: inset 0 1px 0 0 var(--rib-lit);
+    border-radius: 0;
+  }
+
+  .font-heading {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
 }
 
-/* Precision Workbench Panels */
-.workbench-panel {
-  background-color: #0F172A;
-  border: 1px solid #1E293B;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-.workbench-card {
-  background-color: #0D1527;
-  border: 1px solid #1F2E47;
-}
+/* ----------------------------------------------------------------- print -- */
+/* The board prints as a legend sheet. The amp inks drop out; the severity
+   SHAPES carry it, which is why every mark has one. */
 
-/* Clean, restrained scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #090D16;
-}
-::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
-}
-
-/* Print Stylesheet for clean physical PDF printing */
 @media print {
+  :root,
+  :root[data-theme="dark"],
+  :root[data-theme="light"] {
+    --board: #ffffff;
+    --board-sunk: #ffffff;
+    --cell: #ffffff;
+    --ink: #000000;
+    --ink-2: #333333;
+    --ink-3: #555555;
+    --rib: #999999;
+    --rib-lit: #ffffff;
+    --lift: none;
+
+    /* Printing is deterministic: the ink values are pinned to the light lid
+       whatever theme the screen was in, so a report printed at night does not
+       come out in the pale night-bay reds. */
+    --amp-10-tab: #a81f15;
+    --amp-10-ink: #a81f15;
+    --amp-20-tab: #7a5500;
+    --amp-20-ink: #7a5500;
+    --amp-30-tab: #125b2f;
+    --amp-30-ink: #125b2f;
+    --amp-25-tab: #565c59;
+    --amp-25-ink: #565c59;
+    --amp-15-tab: #0f5288;
+    --amp-15-ink: #0f5288;
+  }
+
   body {
-    background-color: #ffffff !important;
-    background-image: none !important;
-    color: #0f172a !important;
+    background: #fff;
+    color: #000;
   }
 
   .no-print {
     display: none !important;
   }
 
-  .workbench-panel, .workbench-card {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    box-shadow: none !important;
-    color: #0f172a !important;
+  .k-cell,
+  .rib,
+  .rib-heavy {
+    box-shadow: none;
   }
 
-  .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400 {
-    color: #1e293b !important;
+  .k-plate {
+    background: transparent;
+    color: #000;
+    border: 1px solid #000;
   }
 
-  .text-white {
-    color: #000000 !important;
+  .k-tab {
+    border-inline-start-color: #000 !important;
   }
 
-  .bg-slate-900, .bg-slate-950, .bg-slate-800 {
-    background-color: #f8fafc !important;
-    border-color: #cbd5e1 !important;
+  a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    color: #555;
   }
 }

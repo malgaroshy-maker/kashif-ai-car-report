@@ -50,3 +50,9 @@ scratch_models.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# impeccable working files
+.impeccable/
+
+# dev server logs
+.next-dev*.log
