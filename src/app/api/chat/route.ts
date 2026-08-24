@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { askMechanicAssistant } from "@/lib/gemini";
-import { runAgyPrompt, getAgyCliStatus } from "@/lib/antigravity-cli";
+import { tryAgyPrompt } from "@/lib/agy";
 import { KashifDiagnosticReport } from "@/lib/types";
 import { KashifError, errorPayload } from "@/lib/errors";
 import { resolveModelId } from "@/lib/models";
@@ -21,21 +21,18 @@ export async function POST(req: NextRequest) {
     if (!report || !question) throw new KashifError("NO_INPUT");
 
     if (provider === "agy") {
-      try {
-        const agyStatus = await getAgyCliStatus();
-        if (agyStatus.available) {
-          const prompt = `أنت "الأسطى كاشف"، فني ميكانيكا وخبير فحص سيارات ليبي.
+      const prompt = `أنت "الأسطى كاشف"، فني ميكانيكا وخبير فحص سيارات ليبي.
 سياق السيارة الحالية: ${report.vehicle.make} ${report.vehicle.model} (${report.vehicle.year})، رقم الهيكل: ${report.vehicle.vin}.
 الأعطال المسجلة: ${report.faultCategories.criticalFaults.concat(report.faultCategories.moderateFaults).map(f => `${f.code}: ${f.libyanTerm}`).join("، ")}.
 سؤال المستخدم: "${question}".
 أجب بلهجة ليبية فنية محترفة ودقيقة وقدم خطوات عملية فورية:`;
-          const reply = await runAgyPrompt(prompt, 15000);
-          if (reply && reply.trim()) {
-            return NextResponse.json({ reply: reply.trim(), engine: "Antigravity CLI (agy)" });
-          }
-        }
-      } catch (agyErr) {
-        console.warn("AGY Chat failed, falling back to Gemini API:", agyErr);
+
+      const reply = await tryAgyPrompt(prompt, 15_000);
+      if (reply) {
+        return NextResponse.json({
+          reply: reply.trim(),
+          engine: "Antigravity CLI (agy)",
+        });
       }
     }
 

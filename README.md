@@ -1,10 +1,10 @@
 # 🚗 كاشف الذكي (Kashif AI)
 ### المساعد الذكي لتحليل تقارير أجهزة فحص السيارات بالمصطلحات الليبية المعتمدة
-#### Automotive OBD-II Diagnostic AI Engine with Dual Runtime: Google Gemini 3.7 Flash & Antigravity CLI (`agy`)
+#### Automotive OBD-II Diagnostic AI Engine — Google Gemini 3.7 Flash (bring your own key)
 
 [![Live Demo](https://img.shields.io/badge/Live-kashif.malgaroshy.workers.dev-10B981.svg?style=flat&logo=cloudflare)](https://kashif.malgaroshy.workers.dev)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-malgaroshy--maker%2Fkashif--ai--car--report-black.svg?style=flat&logo=github)](https://github.com/malgaroshy-maker/kashif-ai-car-report)
-[![Next.js 15](https://img.shields.io/badge/Next.js-15.3-black.svg?style=flat&logo=next.js)](https://nextjs.org/)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black.svg?style=flat&logo=next.js)](https://nextjs.org/)
 [![Google Gemini](https://img.shields.io/badge/AI-Gemini%203.7%20Flash-4285F4.svg?style=flat&logo=google)](https://ai.google.dev/)
 [![Antigravity CLI](https://img.shields.io/badge/Agent-Antigravity%20(agy)-8B5CF6.svg?style=flat)](https://antigravity.google/)
 [![Cloudflare Workers](https://img.shields.io/badge/Deploy-Cloudflare%20Workers-F38020.svg?style=flat&logo=cloudflare)](https://kashif.malgaroshy.workers.dev)
@@ -20,9 +20,10 @@
 
 1. **قاموس صيانة السيارات الليبي المعتمد (200+ مصطلح):**
    - مطابقة دقيقة لأكواد الأعطال (DTCs) مع مصطلحات الورش الحقيقية: **شمعات** (بدون ذكر للبواجي)، **علبة الفيوزات** (بدون سكاتلة)، بوبينات، مزاطوري، بيانتو، براتشو، كونفيرتا، قرسيوني كوبيركو، ستاقوبا، باطنيات.
-2. **محرك الذكاء الاصطناعي المزدوج (Dual AI Engine):**
-   - 🌐 **Google Gemini Cloud API:** نموذج `gemini-3.7-flash` فائق الدقة مع نماذج احتياطية سريعة ودالة إصلاح تلقائي لنصوص الـ JSON.
-   - 💻 **Antigravity CLI (`agy` Local Engine):** تشغيل محلي فائق السرعة عبر سطر الأوامر لأجهزة الورش.
+2. **محرك التحليل (Google Gemini):**
+   - 🌐 نموذج `gemini-3.7-flash` مع سلسلة نماذج احتياطية عند الضغط أو تجاوز الحصة.
+   - 🔑 **مفتاحك أنت:** التطبيق ما يشحنش مفتاح مشترك — كل مستخدم يحط مفتاح Google AI Studio حقّه في الإعدادات، ويتخزّن في متصفحه فقط.
+   - 💻 محرك **Antigravity CLI (`agy`)** المحلي متاح في بيئة التطوير فقط.
 3. **مخطط الحساسات وعلبة الفيوزات والأفوميتر (Component & Fuse Locator):**
    - رسم بياني تفاعلي ثنائي الأبعاد لموقع الحساس في حوض المحرك.
    - مخطط تفصيلي لرقم وقوة ولون ومكان **الفيوز** المخصص في علبة الفيوزات لمنع استبدال قطع سليمة.
@@ -70,14 +71,37 @@ npm run dev
 
 ## ☁️ النشر على Cloudflare Workers (Cloudflare Deployment)
 
-المشروع مهيأ ومربوط بالكامل للنشر التلقائي عبر **Cloudflare Workers Assets** و **GitHub Actions**:
+المشروع ينشر عبر المحوّل الرسمي **[@opennextjs/cloudflare](https://opennext.js.org/cloudflare)**، وهو يشغّل تطبيق Next.js كامل على Cloudflare Workers — نفس مسارات الـ API في `src/app/api/*`، بدون نسخة ثانية منها.
 
-1. **معالج الحافة الطرفي ([src/worker.ts](file:///d:/projects/car%20report/src/worker.ts)):**
-   - يتولى معالجة مسارات الـ API (`/api/analyze`, `/api/chat`, `/api/models`, `/api/parts-image`) مباشرة على خوادم Cloudflare Edge.
-2. **سكربت تجهيز الأصول ([scripts/prepare-cloudflare.js](file:///d:/projects/car%20report/scripts/prepare-cloudflare.js)):**
-   - يقوم تلقائياً بإنشاء روابط الـ HTML وملفات التنسيق `_next/static` في جذر حزمة النشر.
-3. **ملف الإعدادات ([wrangler.jsonc](file:///d:/projects/car%20report/wrangler.jsonc)):**
-   - يربط معالج الـ Worker مع مجلد الأصول الثابتة `.next` وقواعد الـ SPA Routing.
+```bash
+# بناء حزمة Cloudflare
+npm run cf:build
+
+# تجربتها محلياً على وقت تشغيل Workers الحقيقي
+npm run cf:preview
+
+# النشر
+npm run cf:deploy
+```
+
+**الإعدادات:**
+
+| الملف | الدور |
+|---|---|
+| `wrangler.jsonc` | اسم الـ Worker، ومجلد الأصول `.open-next/assets` فقط |
+| `open-next.config.ts` | إعدادات المحوّل (بدون تخزين مؤقت — التطبيق ما يحتاجش ISR) |
+| `.dev.vars` | متغيرات محلية (انسخ من `.dev.vars.example`) |
+| `.github/workflows/deploy-cloudflare.yml` | فحص وبناء ونشر تلقائي عند الدفع إلى `main` |
+
+**المفتاح على الخادم (اختياري):** التطبيق مبني على مبدأ "مفتاحك أنت"، لكن لو حبيت تحط مفتاحاً على الـ Worker:
+
+```bash
+npx wrangler secret put GEMINI_API_KEY
+```
+
+لا تضعه أبداً في `wrangler.jsonc` — الملف مرفوع على Git بنص واضح.
+
+**أسرار GitHub المطلوبة للنشر التلقائي:** `CLOUDFLARE_API_TOKEN` و `CLOUDFLARE_ACCOUNT_ID`. بدونها يتخطى سير العمل خطوة النشر بدل ما يفشل.
 
 ---
 
@@ -89,11 +113,12 @@ npm run dev
 │   │   ├── api/
 │   │   │   ├── analyze/     # مسار تحليل ملفات PDF والصور والرموز
 │   │   │   ├── chat/        # مسار مساعد الأسطى كاشف
-│   │   │   ├── models/      # مسار فحص النماذج وحالة AGY CLI
+│   │   │   ├── models/      # قائمة النماذج المتاحة
 │   │   │   └── parts-image/ # محرك البحث الحي عن صور القطع
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── components/
+│   │   ├── ui/                        # أوليّات نظام التصميم (لوحة الفيوزات)
 │   │   ├── Header.tsx                 # الشريط العلوي ومبدل المحرك والقواميس
 │   │   ├── UploadDropzone.tsx         # منطقة رفع الملفات والإدخال اليدوي
 │   │   ├── VehicleHealthCard.tsx      # بطاقة صحة المركبة والـ Gauge
@@ -105,20 +130,24 @@ npm run dev
 │   │   ├── MechanicChatAssistant.tsx  # شات الأسطى كاشف
 │   │   └── ExportActionBar.tsx        # أدوات التصدير والتقرير المستقل
 │   ├── lib/
-│   │   ├── antigravity-cli.ts # وحدة الاتصال بمحرك Antigravity CLI
+│   │   ├── antigravity-cli.ts # محرك Antigravity CLI (بيئة التطوير فقط)
+│   │   ├── agy.ts             # بوابة تمنع تحميل agy في الإنتاج
+│   │   ├── errors.ts          # أخطاء مصنّفة برسائل عربية
+│   │   ├── models.ts          # المصدر الوحيد لأسماء نماذج Gemini
+│   │   ├── html-escape.ts     # تهريب HTML لتقرير التصدير المستقل
 │   │   ├── dictionary.ts      # القاموس الفني الليبي المعتمد (200+ مصطلح)
-│   │   ├── gemini.ts          # محرك Google Gemini 3.7 Flash مع الإصلاح الذاتي
+│   │   ├── gemini.ts          # محرك Google Gemini 3.7 Flash
 │   │   ├── part-visuals.ts    # رسومات الـ SVG الهندسية لقطع الغيار
 │   │   ├── parts-search.ts    # محرك جلب صور قطع الغيار متعدد الطبقات
 │   │   ├── sample-data.ts     # نماذج الفحص الجاهزة (BMW E39 / Corolla)
 │   │   ├── sensor-locator.ts  # قاعدة بيانات مواقع الحساسات والفيوزات
 │   │   └── types.ts           # هياكل البيانات و TypeScript Types
-│   └── worker.ts              # معالج Cloudflare Worker Edge
-├── scripts/
-│   └── prepare-cloudflare.js  # سكربت تجهيز مخرجات Cloudflare تلقائياً
 ├── .github/workflows/
 │   └── deploy-cloudflare.yml  # سير عمل النشر التلقائي عبر GitHub Actions
 ├── wrangler.jsonc             # إعدادات Cloudflare Workers & Assets
+├── open-next.config.ts        # إعدادات محوّل OpenNext
+├── PRODUCT.md                 # حقائق المنتج الثابتة
+├── plan.md                    # خطة إعادة البناء والمراجعة الهندسية
 ├── PRD_KASHIF_AI.md           # وثيقة متطلبات المنتج الكاملة
 └── ROADMAP.md                 # خارطة طريق وتوثيق المشروع
 ```

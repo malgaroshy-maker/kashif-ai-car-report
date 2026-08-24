@@ -1,52 +1,100 @@
-name: Deploy Kashif AI to Cloudflare Pages
+name: Deploy Kashif AI to Cloudflare Workers
+
+# The previous version of this file ran `wrangler pages deploy .next`, which
+# targets Cloudflare *Pages*, while production is a *Worker* named `kashif`.
+# It had therefore never deployed the live site — and had it succeeded it would
+# have served static assets with no API routes at all.
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  deploy:
+  verify:
+    name: Typecheck, lint & build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    name: Build & Deploy to Cloudflare Pages
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: npm
 
-      - name: Install Dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Build Next.js Application
-        run: npm run build
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # Not blocking yet: 27 `no-explicit-any` errors remain at the AI
+      # response boundary. Schema validation (plan.md F19) removes them, and
+      # this becomes a hard gate in the same change.
+      - name: Lint
+        run: npx eslint .
+        continue-on-error: true
+
+      - name: Build for Cloudflare
+        run: npm run cf:build
+
+  deploy:
+    name: Deploy Worker
+    needs: verify
+    runs-on: ubuntu-latest
+    # Deploying needs credentials. Without them the job is skipped rather than
+    # failing the run, so a fork or a contributor's push still gets verified.
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check Cloudflare credentials
+        id: creds
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-3.7-flash' }}
-          NEXT_PUBLIC_APP_NAME: "Kashif AI - كاشف الذكي"
-
-      - name: Check Cloudflare Secrets Configuration
-        id: check-secrets
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] && [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
-            echo "has_secrets=true" >> $GITHUB_OUTPUT
+          if [ -n "$CF_TOKEN" ] && [ -n "$CF_ACCOUNT" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
           else
-            echo "has_secrets=false" >> $GITHUB_OUTPUT
-            echo "ℹ️ CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not configured in GitHub Secrets."
-            echo "👉 You can either add them in Repo Settings > Secrets, or use Cloudflare Dashboard 'Connect to Git' directly."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not set — skipping deploy."
           fi
 
-      - name: Deploy to Cloudflare Pages
-        if: steps.check-secrets.outputs.has_secrets == 'true'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .next --project-name=kashif-ai-car-report
+      - name: Build and deploy
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run cf:deploy
+
+      # The bug this whole migration exists to close: the deploy used to
+      # publish the entire .next directory as public assets. If any of these
+      # ever return 200 again, the asset directory has been widened.
+      # (/BUILD_ID is deliberately not listed — the adapter publishes it by
+      # design and it carries nothing sensitive.)
+      - name: Assert build internals are not published
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          BASE=https://kashif.malgaroshy.workers.dev
+          fail=0
+          for path in /build-manifest.json /required-server-files.json /server/app/index.html /app-path-routes-manifest.json /cache/.rscinfo; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -L "$BASE$path")
+            if [ "$code" = "200" ]; then
+              echo "::error::$path is publicly readable (HTTP 200)"
+              fail=1
+            else
+              echo "ok: $path -> $code"
+            fi
+          done
+          exit $fail

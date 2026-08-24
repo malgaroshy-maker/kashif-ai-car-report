@@ -3,7 +3,7 @@ import { parseScannerPdf } from "@/lib/pdf-parser";
 import { analyzeReportWithGemini, normalizeDiagnosticReport, getKashifSystemInstruction } from "@/lib/gemini";
 import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "@/lib/sample-data";
 import { enrichReportWithOnlinePartImages } from "@/lib/parts-search";
-import { runAgyPrompt, extractJsonFromAgyResponse, getAgyCliStatus } from "@/lib/antigravity-cli";
+import { tryAgyPrompt, parseAgyJson } from "@/lib/agy";
 import { KashifError, errorPayload } from "@/lib/errors";
 import { resolveModelId } from "@/lib/models";
 
@@ -48,16 +48,11 @@ export async function POST(req: NextRequest) {
 
         // Try AGY CLI if selected
         if (provider === "agy") {
-          try {
-            const agyStatus = await getAgyCliStatus();
-            if (agyStatus.available) {
-              const fullPrompt = `${getKashifSystemInstruction()}\n\nنص تقرير الفحص المستخرج:\n${parsedPdf.rawText}`;
-              const agyOutput = await runAgyPrompt(fullPrompt, 90000);
-              report = extractJsonFromAgyResponse(agyOutput);
-            }
-          } catch (agyErr) {
-            console.warn("AGY execution failed, falling back to Gemini API:", agyErr);
-          }
+          const agyOutput = await tryAgyPrompt(
+            `${getKashifSystemInstruction()}\n\nنص تقرير الفحص المستخرج:\n${parsedPdf.rawText}`,
+            90_000
+          );
+          if (agyOutput) report = await parseAgyJson(agyOutput);
         }
 
         if (!report) {
@@ -155,17 +150,14 @@ export async function POST(req: NextRequest) {
     let report: any = null;
 
     if (body.provider === "agy" && (body.textReport || body.manualCodes)) {
-      try {
-        const agyStatus = await getAgyCliStatus();
-        if (agyStatus.available) {
-          const inputData = body.textReport ? `تقرير الفحص:\n${body.textReport}` : `الأكواد:\n${body.manualCodes}\nالسيارة: ${JSON.stringify(body.vehicleInfo || {})}`;
-          const fullPrompt = `${getKashifSystemInstruction()}\n\nبيانات الفحص:\n${inputData}`;
-          const agyOutput = await runAgyPrompt(fullPrompt, 90000);
-          report = extractJsonFromAgyResponse(agyOutput);
-        }
-      } catch (agyErr) {
-        console.warn("AGY JSON analyze failed, falling back to Gemini API:", agyErr);
-      }
+      const inputData = body.textReport
+        ? `تقرير الفحص:\n${body.textReport}`
+        : `الأكواد:\n${body.manualCodes}\nالسيارة: ${JSON.stringify(body.vehicleInfo || {})}`;
+      const agyOutput = await tryAgyPrompt(
+        `${getKashifSystemInstruction()}\n\nبيانات الفحص:\n${inputData}`,
+        90_000
+      );
+      if (agyOutput) report = await parseAgyJson(agyOutput);
     }
 
     if (!report) {

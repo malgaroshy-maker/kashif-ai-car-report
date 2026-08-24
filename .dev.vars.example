@@ -1,0 +1,6 @@
+# Local Cloudflare Worker bindings, read by `next dev` and `opennextjs-cloudflare preview`.
+# Copy to .dev.vars (gitignored) and fill in. Never commit the real file.
+#
+# Optional. Kashif is bring-your-own-key: users paste their own Google AI Studio
+# key in Settings. This only exists so local development does not need one.
+GEMINI_API_KEY=

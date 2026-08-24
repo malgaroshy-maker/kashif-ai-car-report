@@ -1,14 +1,37 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kashif",
-  "main": "src/worker.ts",
+
+  // Built by `opennextjs-cloudflare build`. This replaces the hand-written
+  // src/worker.ts, which re-implemented all four API routes and had already
+  // drifted from src/app/api/* — the Next routes are the single source now.
+  "main": ".open-next/worker.js",
+
   "compatibility_date": "2026-08-20",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  // Only the adapter's real static output. This used to point at ".next",
+  // which published the entire build directory: /server/app/index.html,
+  // /BUILD_ID and /required-server-files.json were all publicly fetchable,
+  // and the upload included .next/cache and .next/dev.
   "assets": {
-    "directory": ".next",
-    "html_handling": "auto-trailing-slash",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "kashif"
+    }
+  ],
+
+  "observability": {
+    "enabled": true
   }
+
+  // GEMINI_API_KEY is deliberately NOT declared here. The product is
+  // bring-your-own-key, and a `vars` entry would be plaintext in the repo.
+  // For local dev put it in .dev.vars; to set one on the deployed Worker use
+  // `npx wrangler secret put GEMINI_API_KEY`.
 }

@@ -56,3 +56,8 @@ next-env.d.ts
 
 # dev server logs
 .next-dev*.log
+
+# cloudflare / opennext
+/.open-next/
+.dev.vars
+.wrangler/
