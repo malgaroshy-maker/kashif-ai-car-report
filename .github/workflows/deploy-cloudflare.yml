@@ -31,12 +31,11 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      # Not blocking yet: 27 `no-explicit-any` errors remain at the AI
-      # response boundary. Schema validation (plan.md F19) removes them, and
-      # this becomes a hard gate in the same change.
+      # A hard gate as of the schema-validation change: the AI response
+      # boundary is typed now, so there are no `no-explicit-any` errors left
+      # to wave through. Two `no-img-element` warnings remain and are allowed.
       - name: Lint
         run: npx eslint .
-        continue-on-error: true
 
       - name: Build for Cloudflare
         run: npm run cf:build

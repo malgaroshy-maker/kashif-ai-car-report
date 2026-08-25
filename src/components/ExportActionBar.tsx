@@ -1,16 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Printer,
   Share2,
   Download,
-  Copy,
-  Check,
-  Smartphone,
-  ExternalLink,
-  ShieldCheck,
-  FileCheck,
 } from "lucide-react";
 import { KashifDiagnosticReport, orUnknown } from "@/lib/types";
 import { escapeDeep, safeFilenamePart } from "@/lib/html-escape";
@@ -22,7 +16,6 @@ interface ExportActionBarProps {
 }
 
 export const ExportActionBar: React.FC<ExportActionBarProps> = ({ report }) => {
-  const [copiedLink, setCopiedLink] = useState(false);
 
   // 1. Trigger Print to PDF
   const handlePrint = () => {
@@ -39,11 +32,13 @@ export const ExportActionBar: React.FC<ExportActionBarProps> = ({ report }) => {
       vin: orUnknown(v?.vin),
       mileage: orUnknown(v?.mileage, "غير مسجل"),
     };
-    const summary = report?.summary || {
-      overallHealthScore: 70,
-      severityStatus: "متوسط / انتبه",
-      briefSummaryArabic: "تم فحص التقرير بنجاح.",
-    };
+    // A report with no summary used to be shared as "70% / متوسط / انتبه /
+    // تم فحص التقرير بنجاح" — a grade, a severity and a verdict, none of them
+    // from this car. Say the score is unknown instead.
+    const summary = report?.summary;
+    const scoreLine = summary
+      ? `${summary.overallHealthScore}%${summary.isScoreEstimated ? " (تقديري من عدد الأعطال)" : ""} (${summary.severityStatus})`
+      : "غير محدد";
     const faultCategories = report?.faultCategories || {
       criticalFaults: [],
       moderateFaults: [],
@@ -60,7 +55,7 @@ export const ExportActionBar: React.FC<ExportActionBarProps> = ({ report }) => {
 ----------------------------------
 المركبة: ${vehicle.make} ${vehicle.model} (${vehicle.year})
 رقم الهيكل VIN: ${vehicle.vin}
-مؤشر الجاهزية: ${summary.overallHealthScore}% (${summary.severityStatus})
+مؤشر الجاهزية: ${scoreLine}
 الممشى: ${vehicle.mileage}
 جهاز الفحص: ${report.scannerInfo?.toolName || "جهاز OBD"}
 
@@ -127,9 +122,13 @@ ${(report.sparePartsRequired || [])
       typeof report?.summary?.overallHealthScore === "number"
         ? report.summary.overallHealthScore
         : 0;
+    // The on-screen report says when a score was derived from the fault counts
+    // rather than reported by the scan. The exported certificate — the copy
+    // that gets forwarded and printed — was computing this label and then
+    // never printing it.
     const scoreNote = report?.summary?.isScoreEstimated
-      ? "مؤشر محسوب من عدد الأعطال"
-      : "مؤشر الجاهزية";
+      ? "الجاهزية (تقديري)"
+      : "الجاهزية";
     const healthColor =
       score >= 80
         ? "#10B981"
@@ -421,7 +420,7 @@ ${(report.sparePartsRequired || [])
         <div class="gauge-wrapper">
           <div class="health-gauge">
             <div class="gauge-score">${safe.summary.overallHealthScore}%</div>
-            <div class="gauge-label">الجاهزية</div>
+            <div class="gauge-label">${scoreNote}</div>
           </div>
         </div>
       </div>
@@ -476,7 +475,7 @@ ${(report.sparePartsRequired || [])
       ${allFaults
         .map(
           (f) => {
-            const elec = f.electricalDiagnostics || getElectricalDiagnosticsForCode(f.code, safe.vehicle?.make ?? undefined, safe.vehicle?.model ?? undefined);
+            const elec = f.electricalDiagnostics || getElectricalDiagnosticsForCode(f.code, safe.vehicle?.make ?? undefined);
             return `
         <div class="fault-card">
           <div class="fault-header">

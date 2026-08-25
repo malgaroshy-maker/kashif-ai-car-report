@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Package,
   Copy,
@@ -40,117 +40,110 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
   const [activeImageModal, setActiveImageModal] = useState<SparePartItem | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>("ALL");
 
-  // Dynamic live image search state map: partId -> { url, loading, mode: 'photo' | 'vector' }
-  const [partImageMap, setPartImageMap] = useState<
-    Record<
-      string,
-      {
-        url: string;
-        loading: boolean;
-        mode: "photo" | "vector";
-      }
-    >
+  /**
+   * Part photos arrive after the report does.
+   *
+   * The analysis used to wait on an image search for every part before it
+   * returned, which is most of why a diagnosis took ~41s. Now the card renders
+   * immediately with its vector schematic and a photo replaces it if one turns
+   * up — so a slow or missing photo costs the reader nothing.
+   *
+   * Only what is genuinely stateful is held here: photos this component
+   * fetched, which parts are mid-flight, and any manual photo/vector toggle.
+   * Whether a part already came with a usable photo is a fact about the props
+   * and is derived at render.
+   */
+  const [fetchedImages, setFetchedImages] = useState<Record<string, string>>({});
+  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
+  const [modeOverrides, setModeOverrides] = useState<
+    Record<string, "photo" | "vector">
   >({});
 
-  // Initialize part images and auto-search missing ones online
-  useEffect(() => {
-    const list = Array.isArray(spareParts) ? spareParts : [];
-    if (list.length === 0) return;
+  /** A URL supplied with the report, as opposed to our own placeholder SVGs. */
+  const suppliedPhoto = (part: SparePartItem): string =>
+    part.partImageUrl &&
+    part.partImageUrl.startsWith("https://") &&
+    !part.partImageUrl.includes("/parts/")
+      ? part.partImageUrl
+      : "";
 
-    const initialMap: Record<
-      string,
-      { url: string; loading: boolean; mode: "photo" | "vector" }
-    > = {};
+  const partImageMap: Record<
+    string,
+    { url: string; loading: boolean; mode: "photo" | "vector" }
+  > = {};
+  for (const part of Array.isArray(spareParts) ? spareParts : []) {
+    const url = fetchedImages[part.id] || suppliedPhoto(part);
+    partImageMap[part.id] = {
+      url,
+      loading: Boolean(loadingImages[part.id]),
+      mode: modeOverrides[part.id] ?? (url ? "photo" : "vector"),
+    };
+  }
 
-    list.forEach((part) => {
-      const hasRealPhoto =
-        part.partImageUrl &&
-        (part.partImageUrl.startsWith("https://") || part.partImageUrl.startsWith("http://")) &&
-        !part.partImageUrl.includes("/parts/");
+  // Read once, so the lookup is not re-created on every render of a parent
+  // that rebuilds its vehicleInfo object.
+  const vehicleMake = vehicleInfo?.make ?? "";
+  const vehicleModel = vehicleInfo?.model ?? "";
+  const vehicleYear = String(vehicleInfo?.year ?? "");
 
-      initialMap[part.id] = {
-        url: hasRealPhoto ? part.partImageUrl! : "",
-        loading: false,
-        mode: "photo",
-      };
-    });
+  // Fetch the photo for one part.
+  const fetchPartImageLive = useCallback(
+    async (part: SparePartItem) => {
+      setLoadingImages((prev) => ({ ...prev, [part.id]: true }));
+      try {
+        const params = new URLSearchParams({
+          make: vehicleMake,
+          model: vehicleModel,
+          year: vehicleYear,
+          oem: part.oemPartNumber || "",
+          partName: part.partNameEnglish || part.partNameLibyan || "",
+        });
 
-    setPartImageMap((prev) => ({ ...initialMap, ...prev }));
-
-    // Trigger auto-search for parts that do not have a live photo
-    list.forEach((part) => {
-      const hasRealPhoto =
-        part.partImageUrl &&
-        (part.partImageUrl.startsWith("https://") || part.partImageUrl.startsWith("http://")) &&
-        !part.partImageUrl.includes("/parts/");
-
-      if (!hasRealPhoto) {
-        fetchPartImageLive(part);
-      }
-    });
-  }, [spareParts, vehicleInfo]);
-
-  // Fetch online image for a specific part
-  const fetchPartImageLive = async (part: SparePartItem) => {
-    setPartImageMap((prev) => ({
-      ...prev,
-      [part.id]: {
-        url: prev[part.id]?.url || "",
-        loading: true,
-        mode: "photo",
-      },
-    }));
-
-    try {
-      const params = new URLSearchParams({
-        make: vehicleInfo?.make || "",
-        model: vehicleInfo?.model || "",
-        year: String(vehicleInfo?.year || ""),
-        oem: part.oemPartNumber || "",
-        partName: part.partNameEnglish || part.partNameLibyan || "",
-      });
-
-      const res = await fetch(`/api/parts-image?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.imageUrl) {
-          setPartImageMap((prev) => ({
-            ...prev,
-            [part.id]: {
-              url: data.imageUrl,
-              loading: false,
-              mode: "photo",
-            },
-          }));
-          return;
+        const res = await fetch(`/api/parts-image?${params.toString()}`, {
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { imageUrl?: string | null };
+          if (data.imageUrl) {
+            setFetchedImages((prev) => ({ ...prev, [part.id]: data.imageUrl! }));
+            // A photo that arrives replaces the schematic unless the reader
+            // has already chosen which one they want to look at.
+            setModeOverrides((prev) =>
+              part.id in prev ? prev : { ...prev, [part.id]: "photo" }
+            );
+          }
         }
+      } catch (err) {
+        // No photo is an ordinary outcome, not an error worth showing: the
+        // card keeps its schematic, which names the part just as well.
+        console.warn("[parts] no photo for", part.id, err);
+      } finally {
+        setLoadingImages((prev) => ({ ...prev, [part.id]: false }));
       }
-    } catch {
-      // Fallback
-    }
+    },
+    [vehicleMake, vehicleModel, vehicleYear]
+  );
 
-    setPartImageMap((prev) => ({
-      ...prev,
-      [part.id]: {
-        url: prev[part.id]?.url || "",
-        loading: false,
-        mode: prev[part.id]?.url ? "photo" : "vector",
-      },
-    }));
-  };
+  // Look up the parts that did not arrive with a photo, once each.
+  const requested = useRef(new Set<string>());
+  useEffect(() => {
+    for (const part of Array.isArray(spareParts) ? spareParts : []) {
+      if (suppliedPhoto(part) || requested.current.has(part.id)) continue;
+      requested.current.add(part.id);
+      fetchPartImageLive(part);
+    }
+  }, [spareParts, fetchPartImageLive]);
 
   // Toggle between Real Photo & Vector Schematic
   const togglePartVisualMode = (partId: string) => {
-    setPartImageMap((prev) => {
-      const current = prev[partId] || { url: "", loading: false, mode: "vector" };
-      return {
-        ...prev,
-        [partId]: {
-          ...current,
-          mode: current.mode === "photo" ? "vector" : "photo",
-        },
-      };
-    });
+    setModeOverrides((prev) => ({
+      ...prev,
+      [partId]:
+        (prev[partId] ?? (partImageMap[partId]?.url ? "photo" : "vector")) ===
+        "photo"
+          ? "vector"
+          : "photo",
+    }));
   };
 
   // Keyboard accessibility
@@ -275,9 +268,11 @@ export const SparePartsSection: React.FC<SparePartsSectionProps> = ({
                           referrerPolicy="no-referrer"
                           loading="lazy"
                           onError={() => {
-                            setPartImageMap((prev) => ({
+                            // A dead link, or one the CSP refused. Fall back to
+                            // the schematic rather than a broken-image icon.
+                            setModeOverrides((prev) => ({
                               ...prev,
-                              [part.id]: { ...state, mode: "vector" },
+                              [part.id]: "vector",
                             }));
                           }}
                           className="w-full h-full object-contain rounded-lg group-hover/img:scale-105 transition-transform duration-200"

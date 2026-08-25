@@ -1,7 +1,6 @@
 import { exec, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
-import { KashifDiagnosticReport } from "./types";
 
 export interface AgyStatusInfo {
   available: boolean;
@@ -147,7 +146,7 @@ export async function runAgyPrompt(
 /**
  * Parse JSON report returned by AGY or fallback
  */
-export function extractJsonFromAgyResponse(rawOutput: string): any {
+export function extractJsonFromAgyResponse(rawOutput: string): unknown {
   if (!rawOutput) return null;
 
   let textToParse = rawOutput.trim();

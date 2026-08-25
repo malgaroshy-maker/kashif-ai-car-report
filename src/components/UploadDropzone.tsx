@@ -13,6 +13,12 @@ import {
   Loader2,
 } from "lucide-react";
 import { KashifDiagnosticReport } from "@/lib/types";
+import {
+  analyzeCodes,
+  analyzeFile,
+  loadSampleReport,
+  messageOf,
+} from "@/lib/api-client";
 
 interface UploadDropzoneProps {
   onReportGenerated: (report: KashifDiagnosticReport) => void;
@@ -46,19 +52,9 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
     );
 
     try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sampleId }),
-      });
-      const data = await res.json();
-      if (data.success && data.report) {
-        onReportGenerated(data.report);
-      } else {
-        setErrorMsg(data.error || "تعذر معالجة تقرير العينة");
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || "حدث خطأ في الاتصال");
+      onReportGenerated(await loadSampleReport(sampleId));
+    } catch (err) {
+      setErrorMsg(messageOf(err, "تعذر معالجة تقرير العينة"));
     } finally {
       setIsLoading(false);
       setStatusMessage("");
@@ -72,56 +68,9 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
     setStatusMessage("جاري استخراج الأكواد والمطابقة مع القاموس الفني...");
 
     try {
-      const storedApiKey = localStorage.getItem("kashif_gemini_api_key") || "";
-      const activeProvider = localStorage.getItem("kashif_ai_provider") || "gemini";
-      const storedModel = localStorage.getItem("kashif_gemini_model") || "";
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("provider", activeProvider);
-      if (storedApiKey) {
-        formData.append("apiKey", storedApiKey);
-      }
-      // The settings model picker used to write this to localStorage and stop
-      // there, so the user's choice never reached the API.
-      if (storedModel) {
-        formData.append("model", storedModel);
-      }
-
-      const headers: Record<string, string> = {
-        "x-ai-provider": activeProvider,
-      };
-      if (storedApiKey) {
-        headers["x-gemini-api-key"] = storedApiKey;
-      }
-      if (storedModel) {
-        headers["x-gemini-model"] = storedModel;
-      }
-
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers,
-        body: formData,
-      });
-
-      const rawText = await res.text();
-      let data: any = null;
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        throw new Error(
-          res.ok
-            ? "تعذر قراءة الرد بصيغة صالحة"
-            : `خطأ في الخادم (${res.status}): ${rawText.slice(0, 100) || "يرجى التحقق من إعدادات المفتاح"}`
-        );
-      }
-
-      if (data && data.success && data.report) {
-        onReportGenerated(data.report);
-      } else {
-        setErrorMsg(data?.error || "تعذر تحليل الملف المرفوع");
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || "حدث خطأ أثناء رفع الملف");
+      onReportGenerated(await analyzeFile(file));
+    } catch (err) {
+      setErrorMsg(messageOf(err, "تعذر تحليل الملف المرفوع"));
     } finally {
       setIsLoading(false);
       setStatusMessage("");
@@ -141,54 +90,15 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
     setStatusMessage("جاري تحليل الرموز واستخراج أرقام القطع والتشخيص...");
 
     try {
-      const storedApiKey = localStorage.getItem("kashif_gemini_api_key") || "";
-      const activeProvider = localStorage.getItem("kashif_ai_provider") || "gemini";
-      const storedModel = localStorage.getItem("kashif_gemini_model") || "";
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        "x-ai-provider": activeProvider,
-      };
-      if (storedApiKey) {
-        headers["x-gemini-api-key"] = storedApiKey;
-      }
-      if (storedModel) {
-        headers["x-gemini-model"] = storedModel;
-      }
-
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
+      onReportGenerated(
+        await analyzeCodes({
           manualCodes,
-          apiKey: storedApiKey || undefined,
-          model: storedModel || undefined,
-          provider: activeProvider,
-          vehicleInfo: {
-            vin: manualVin,
-            make: manualMakeModel,
-          },
-        }),
-      });
-
-      const rawText = await res.text();
-      let data: any = null;
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        throw new Error(
-          res.ok
-            ? "تعذر قراءة الرد بصيغة صالحة"
-            : `خطأ في الخادم (${res.status}): ${rawText.slice(0, 100) || "يرجى التحقق من المدخلات"}`
-        );
-      }
-
-      if (data && data.success && data.report) {
-        onReportGenerated(data.report);
-      } else {
-        setErrorMsg(data?.error || "تعذر تحليل الأكواد المدخلة");
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || "حدث خطأ في المعالجة");
+          vin: manualVin,
+          makeModel: manualMakeModel,
+        })
+      );
+    } catch (err) {
+      setErrorMsg(messageOf(err, "تعذر تحليل الأكواد المدخلة"));
     } finally {
       setIsLoading(false);
       setStatusMessage("");

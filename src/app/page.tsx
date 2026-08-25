@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Header } from "@/components/Header";
 import { UploadDropzone } from "@/components/UploadDropzone";
 import { VehicleHealthCard } from "@/components/VehicleHealthCard";
@@ -11,69 +11,86 @@ import { MechanicChatAssistant } from "@/components/MechanicChatAssistant";
 import { ExportActionBar } from "@/components/ExportActionBar";
 import { InspectionHistory } from "@/components/InspectionHistory";
 import { KashifDiagnosticReport } from "@/lib/types";
+import { removeLocal, useLocalJson, writeLocal } from "@/lib/local-store";
 import {
   Wrench,
   ShieldCheck,
   Zap,
-  BookOpen,
   Cpu,
   CheckCircle2,
 } from "lucide-react";
 
+const HISTORY_KEY = "kashif_saved_reports";
+
+/** Stable identity: a fresh [] each render would loop useSyncExternalStore. */
+const EMPTY_HISTORY: KashifDiagnosticReport[] = [];
+
+/** The history list holds the last fifteen scans. */
+const HISTORY_LIMIT = 15;
+
+/**
+ * A stored report is only shown if it still has the parts the UI reads.
+ * Anything else is a record from an older version, or a truncated write.
+ */
+function isUsableStoredReport(value: unknown): value is KashifDiagnosticReport {
+  if (!value || typeof value !== "object") return false;
+  const r = value as Partial<KashifDiagnosticReport>;
+  return (
+    typeof r.reportId === "string" &&
+    !!r.vehicle &&
+    !!r.summary &&
+    typeof r.summary.overallHealthScore === "number" &&
+    !!r.faultCategories &&
+    Array.isArray(r.faultCategories.criticalFaults) &&
+    Array.isArray(r.faultCategories.moderateFaults) &&
+    Array.isArray(r.faultCategories.minorOrHistoricalFaults) &&
+    Array.isArray(r.passedSystems) &&
+    Array.isArray(r.sparePartsRequired) &&
+    Array.isArray(r.workshopChecklist)
+  );
+}
+
+/**
+ * Reads the stored history, dropping anything that no longer parses.
+ *
+ * The previous version patched the holes instead of dropping the record: a
+ * report with no summary was rendered with a health score of 70 and a status
+ * of "متوسط / انتبه" — a grade this app invented for a car whose findings it
+ * had lost.
+ */
+function readHistory(value: unknown): KashifDiagnosticReport[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.filter(isUsableStoredReport);
+}
+
 export default function HomePage() {
   const [activeReport, setActiveReport] = useState<KashifDiagnosticReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [savedReports, setSavedReports] = useState<KashifDiagnosticReport[]>([]);
+  // Read straight from storage during render, so there is no empty first pass
+  // and no second one to correct it.
+  const savedReports = useLocalJson<KashifDiagnosticReport[]>(
+    HISTORY_KEY,
+    readHistory,
+    EMPTY_HISTORY
+  );
   const [selectedPartId, setSelectedPartId] = useState<string | undefined>(undefined);
-
-  // Load history from LocalStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("kashif_saved_reports");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          const safe = parsed
-            .filter((p) => p && typeof p === "object")
-            .map((p) => ({
-              ...p,
-              vehicle: p.vehicle || { make: "مركبة مفحوصة", model: "", year: "" },
-              summary: p.summary || { overallHealthScore: 70, severityStatus: "متوسط / انتبه" },
-              faultCategories: p.faultCategories || { criticalFaults: [], moderateFaults: [], minorOrHistoricalFaults: [] },
-              passedSystems: p.passedSystems || [],
-              sparePartsRequired: p.sparePartsRequired || [],
-              workshopChecklist: p.workshopChecklist || [],
-            }));
-          setSavedReports(safe);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load local reports:", e);
-    }
-  }, []);
 
   // Save new report to state & LocalStorage
   const handleReportGenerated = (report: KashifDiagnosticReport) => {
     setActiveReport(report);
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Persist to local history
-    setSavedReports((prev) => {
-      const filtered = prev.filter((r) => r.reportId !== report.reportId);
-      const updated = [report, ...filtered].slice(0, 15);
-      try {
-        localStorage.setItem("kashif_saved_reports", JSON.stringify(updated));
-      } catch (err) {}
-      return updated;
-    });
+    // Persist to local history. A failed write (quota, storage disabled) is
+    // logged and shrugged off: the report is on screen either way, and only
+    // the history list loses it.
+    const filtered = savedReports.filter((r) => r.reportId !== report.reportId);
+    writeLocal(
+      HISTORY_KEY,
+      JSON.stringify([report, ...filtered].slice(0, HISTORY_LIMIT))
+    );
   };
 
-  const handleClearHistory = () => {
-    setSavedReports([]);
-    try {
-      localStorage.removeItem("kashif_saved_reports");
-    } catch (e) {}
-  };
+  const handleClearHistory = () => removeLocal(HISTORY_KEY);
 
   const handleSelectPart = (partId?: string) => {
     if (partId) {

@@ -6,11 +6,9 @@ import {
   Zap,
   Activity,
   MapPin,
-  HelpCircle,
   CheckCircle2,
   AlertTriangle,
   Cpu,
-  Layers,
   Wrench,
   Gauge,
 } from "lucide-react";
@@ -34,7 +32,7 @@ export const SensorFuseLocatorModal: React.FC<SensorFuseLocatorModalProps> = ({
 
   const diag =
     fault.electricalDiagnostics ||
-    getElectricalDiagnosticsForCode(fault.code, vehicleMake, vehicleModel);
+    getElectricalDiagnosticsForCode(fault.code, vehicleMake);
 
   const { fuseInfo, sensorLocation, multimeterTest } = diag;
 

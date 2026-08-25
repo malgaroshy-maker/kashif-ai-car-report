@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { askMechanicAssistant } from "@/lib/gemini";
 import { tryAgyPrompt } from "@/lib/agy";
-import { KashifDiagnosticReport } from "@/lib/types";
+import { ChatReportContext } from "@/lib/types";
 import { KashifError, errorPayload } from "@/lib/errors";
 import { resolveModelId } from "@/lib/models";
+
+/** Turns of conversation sent upstream. Six is three exchanges. */
+const MAX_HISTORY = 6;
 
 export async function POST(req: NextRequest) {
   try {
     const userApiKey = req.headers.get("x-gemini-api-key") || undefined;
     const body = await req.json();
     const { report, question, history, apiKey, provider, model } = body as {
-      report: KashifDiagnosticReport;
+      report: ChatReportContext;
       question: string;
       history: { sender: "user" | "assistant"; text: string }[];
       apiKey?: string;
@@ -19,6 +22,10 @@ export async function POST(req: NextRequest) {
     };
 
     if (!report || !question) throw new KashifError("NO_INPUT");
+
+    // The panel keeps the whole conversation, but the model does not need all
+    // of it and every turn is re-uploaded. Keep the recent exchanges.
+    const recentHistory = Array.isArray(history) ? history.slice(-MAX_HISTORY) : [];
 
     if (provider === "agy") {
       const prompt = `أنت "الأسطى كاشف"، فني ميكانيكا وخبير فحص سيارات ليبي.
@@ -39,7 +46,7 @@ export async function POST(req: NextRequest) {
     const reply = await askMechanicAssistant(
       report,
       question,
-      history || [],
+      recentHistory,
       apiKey || userApiKey,
       resolveModelId(model || req.headers.get("x-gemini-model"))
     );

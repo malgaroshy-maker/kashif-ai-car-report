@@ -234,8 +234,7 @@ const ELECTRICAL_DATABASE: Record<string, Partial<ElectricalDiagnosticInfo>> = {
  */
 export function getElectricalDiagnosticsForCode(
   code: string,
-  make?: string,
-  model?: string
+  make?: string
 ): ElectricalDiagnosticInfo {
   const normalized = (code || "").toUpperCase().trim();
 

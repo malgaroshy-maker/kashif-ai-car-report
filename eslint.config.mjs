@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Build output. `npx eslint .` otherwise walks the whole Cloudflare
+    // bundle and reports ~35k problems in code we did not write.
+    ".open-next/**",
+    // Wrangler's local dev scratch, which holds a bundled copy of the worker.
+    ".wrangler/**",
   ]),
 ]);
 

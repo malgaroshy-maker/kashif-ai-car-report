@@ -17,9 +17,12 @@ export async function GET(req: NextRequest) {
       hasEnvKey,
       agyStatus,
     });
-  } catch (error: any) {
+  } catch (error) {
+    // The upstream message is not ours to forward: a Google error body can
+    // quote back the key that was sent with the request.
+    console.error("[models] unexpected", error);
     return NextResponse.json(
-      { success: false, error: error.message || "فشل جلب النماذج" },
+      { success: false, error: "فشل جلب قائمة النماذج" },
       { status: 500 }
     );
   }

@@ -1,5 +1,18 @@
 import PDFParser from "pdf2json";
 
+/**
+ * pdf2json ships types that do not describe the two-argument constructor or
+ * `getRawTextContent()`, both of which are documented and in use. This is the
+ * shape actually called, declared once here rather than cast at each call.
+ */
+interface RawTextPdfParser {
+  on(event: "pdfParser_dataError", handler: (err: { parserError?: unknown }) => void): void;
+  on(event: "pdfParser_dataReady", handler: () => void): void;
+  getRawTextContent(): string;
+  parseBuffer(buffer: Buffer): void;
+}
+type RawTextPdfParserCtor = new (context: null, textOnly: 0 | 1) => RawTextPdfParser;
+
 export interface ExtractedScannerData {
   rawText: string;
   extractedVin?: string;
@@ -16,9 +29,9 @@ export async function parseScannerPdf(buffer: Buffer): Promise<ExtractedScannerD
 
   try {
     rawText = await new Promise<string>((resolve) => {
-      const pdfParser = new (PDFParser as any)(null, 1);
+      const pdfParser = new (PDFParser as unknown as RawTextPdfParserCtor)(null, 1);
 
-      pdfParser.on("pdfParser_dataError", (errData: any) => {
+      pdfParser.on("pdfParser_dataError", (errData) => {
         console.warn("PDF parser error:", errData?.parserError);
         resolve(buffer.toString("utf-8"));
       });

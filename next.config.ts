@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+import { PART_IMAGE_HOSTS } from "./src/lib/part-image-hosts";
 
 // Makes Cloudflare bindings (env vars, ASSETS) available during `next dev`,
 // so local development behaves like the deployed Worker.
@@ -20,10 +21,9 @@ const csp = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  // Part photos come back from a live image search, so the host is not known
-  // ahead of time. Narrows to an allowlist when that search moves behind our
-  // own endpoint (F28).
-  "img-src 'self' data: blob: https:",
+  // Part photos now come from a fixed set of origins, checked again in
+  // /api/parts-image before the URL reaches the browser.
+  `img-src 'self' data: blob: ${PART_IMAGE_HOSTS.join(" ")}`,
   "connect-src 'self' https://generativelanguage.googleapis.com",
   "form-action 'self'",
   "base-uri 'self'",
@@ -61,6 +61,18 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         headers: [
           { key: "Cache-Control", value: "no-store, max-age=0" },
+        ],
+      },
+      {
+        // The exception: a part photo lookup carries no key and no vehicle
+        // data worth protecting, and the answer is the same for everyone.
+        // Listed after the rule above so it wins for this one route.
+        source: "/api/parts-image",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
         ],
       },
     ];

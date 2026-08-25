@@ -7,7 +7,7 @@ export interface ElectricalDiagnosticInfo {
     boxLocation: string; // e.g. "علبة فيوزات حوض المحرك (الرئيسية)" أو "علبة الفيوزات الداخلية (تحت التابلو)"
     fuseNumber: string; // e.g. "F14" أو "F02" أو "ENG-15A"
     rating: string; // e.g. "15A (أزرق)" أو "20A (أصفر)" أو "30A (أخضر)"
-    relayName?: string; // e.g. "كتاوت تغذية المحرك الرئيسية (Main Relay)" أو "كتاوت طرمبة البنزين"
+    relayName?: string | null; // e.g. "كتاوت تغذية المحرك الرئيسية (Main Relay)" أو "كتاوت طرمبة البنزين"
     circuitDescription: string; // e.g. "تغذية حساسات المحرك والـ ECM"
   };
   sensorLocation: {
@@ -20,7 +20,7 @@ export interface ElectricalDiagnosticInfo {
     powerPin: string; // e.g. "12V خط الكهرباء الثابت/مع السويتش (Pin 1)"
     groundPin: string; // e.g. "أقل من 0.1V خط الأرضي الشاسي (Pin 2)"
     signalPin: string; // e.g. "0.5V - 4.5V خط الإشارة الراجع للكمبيوتر (Pin 3)"
-    referenceVoltage?: string; // e.g. "5.0V مرجعي ثابت من الـ ECM"
+    referenceVoltage?: string | null; // e.g. "5.0V مرجعي ثابت من الـ ECM"
     testingTipLibyan: string; // e.g. "حط الأفوميتر على وضع V DC، شغل السويتش بدون تشغيل الموتوري، واقرا الفولتية بين خط الأرضي والكهرباء."
   };
 }
@@ -121,6 +121,27 @@ export interface KashifDiagnosticReport {
   passedSystems: PassedSystem[];
   sparePartsRequired: SparePartItem[];
   workshopChecklist: DiagnosticStep[];
+}
+
+/**
+ * The slice of a report the assistant actually reads.
+ *
+ * The chat panel used to POST the entire report on every message — every
+ * fault's symptoms, root causes and electrical pinouts included — even though
+ * the prompt only ever quotes the vehicle, the headline summary, the fault
+ * codes and the part names. This type is what gets sent instead.
+ */
+export interface ChatReportContext {
+  vehicle: KashifDiagnosticReport["vehicle"];
+  summary: Pick<
+    KashifDiagnosticReport["summary"],
+    "overallHealthScore" | "severityStatus" | "briefSummaryArabic"
+  >;
+  faultCategories: {
+    criticalFaults: { code: string; libyanTerm: string }[];
+    moderateFaults: { code: string; libyanTerm: string }[];
+  };
+  sparePartsRequired: { partNameLibyan: string; oemPartNumber: string | null }[];
 }
 
 export interface ChatMessage {

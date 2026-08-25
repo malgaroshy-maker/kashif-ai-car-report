@@ -1,8 +1,33 @@
 /**
- * High-Accuracy Online Automotive Spare Parts Image Search Engine (Multi-Tier Architecture)
- * Dynamically queries live automotive image catalogs, search engines & open registries
- * to find the exact genuine product photo matching vehicle make, model, year, and OEM part number.
+ * Part photo lookup for the spare-parts list.
+ *
+ * This never runs inside /api/analyze. It is called one part at a time from
+ * /api/parts-image after the report has already rendered, because the previous
+ * arrangement enriched every part *before* returning the analysis and turned a
+ * ~10s diagnosis into a ~41s one.
+ *
+ * Two sources, in order, and both are ones we are allowed to use:
+ *   1. A curated registry of known-good photos, matched by part name. It is
+ *      hand-checked and costs no round trip, so it goes first.
+ *   2. Wikimedia Commons — a public API, hotlinking permitted — for anything
+ *      the registry does not cover, subject to the relevance check below.
+ *
+ * A third tier used to scrape DuckDuckGo's internal `i.js` endpoint with a
+ * spoofed Chrome user agent and a lifted `vqd` token. It was against their
+ * terms, it broke whenever the token format moved, it cost 4-8s per part, and
+ * it returned images from arbitrary hosts — which is why the CSP had to allow
+ * every https origin. It is gone.
  */
+
+import { isAllowedPartImage } from "./part-image-hosts";
+
+/** Only the two shapes we read out of the Commons API. */
+interface CommonsSearchResult {
+  query?: { search?: { title?: string }[] };
+}
+interface CommonsImageInfo {
+  query?: { pages?: Record<string, { imageinfo?: { url?: string }[] }> };
+}
 
 // In-memory cache for fast response and deduplication
 const imageSearchCache = new Map<string, string>();
@@ -87,9 +112,38 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
 ];
 
 /**
- * Searches Wikimedia Commons Automotive catalog (100% CORS & hotlinking allowed)
+ * Is this Commons result actually the part we asked for?
+ *
+ * Commons search is full text over the whole archive, and it always returns
+ * its best guess rather than nothing. Asking it for "Toyota Engine Air Filter"
+ * came back with a scan of the Guantanamo Bay Gazette — a confident, wholly
+ * unrelated photograph presented on a card labelled "فيلتر هواء المحرك".
+ *
+ * The file title has to contain a real word from the part name, matched on a
+ * word boundary. Short words are ignored, because "air" and "oil" match half
+ * the archive on their own; boundaries matter because a substring test on
+ * "engine" accepted a photo captioned "Falls City engineer".
  */
-async function searchWikimediaCommons(query: string): Promise<string> {
+function titleMatchesPart(title: string, partName: string): boolean {
+  const haystack = title.toLowerCase();
+  const words = partName
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 3);
+  if (words.length === 0) return false;
+  return words.some((w) => new RegExp(String.raw`\b${w}\b`).test(haystack));
+}
+
+/**
+ * Searches Wikimedia Commons (a public API; hotlinking is permitted).
+ *
+ * `partName` is passed separately from `query` so the result can be checked
+ * against what was actually asked for.
+ */
+async function searchWikimediaCommons(
+  query: string,
+  partName: string
+): Promise<string> {
   try {
     const listUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
       query + " auto part"
@@ -101,10 +155,14 @@ async function searchWikimediaCommons(query: string): Promise<string> {
     });
 
     if (!res.ok) return "";
-    const data = await res.json();
+    const data = (await res.json()) as CommonsSearchResult;
 
-    if (data.query?.search && data.query.search.length > 0) {
-      const title = data.query.search[0].title;
+    // Look past the top hit: the best *relevant* result is often second.
+    const title = (data.query?.search ?? [])
+      .map((r) => r.title)
+      .find((t): t is string => !!t && titleMatchesPart(t, partName));
+
+    if (title) {
       const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(
         title
       )}&prop=imageinfo&iiprop=url&format=json&origin=*`;
@@ -115,77 +173,13 @@ async function searchWikimediaCommons(query: string): Promise<string> {
       });
 
       if (!infoRes.ok) return "";
-      const infoData = await infoRes.json();
-      const pages: any = Object.values(infoData.query?.pages || {});
-
-      if (pages[0]?.imageinfo?.[0]?.url) {
-        return pages[0].imageinfo[0].url;
-      }
+      const infoData = (await infoRes.json()) as CommonsImageInfo;
+      const page = Object.values(infoData.query?.pages ?? {})[0];
+      const url = page?.imageinfo?.[0]?.url;
+      if (typeof url === "string") return url;
     }
   } catch {
     // Continue to next tier
-  }
-  return "";
-}
-
-/**
- * Searches DuckDuckGo live automotive images
- */
-async function searchDuckDuckGoImages(query: string): Promise<string> {
-  try {
-    const tokenUrl = `https://duckduckgo.com/?q=${encodeURIComponent(query)}&iax=images&ia=images`;
-    const tokenRes = await fetch(tokenUrl, {
-      signal: AbortSignal.timeout(4000),
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      },
-    });
-
-    if (!tokenRes.ok) return "";
-
-    const tokenHtml = await tokenRes.text();
-    const vqdMatch =
-      tokenHtml.match(/vqd=([\d-]+)/) ||
-      tokenHtml.match(/vqd="([\d-]+)"/) ||
-      tokenHtml.match(/vqd='([\d-]+)'/) ||
-      tokenHtml.match(/data-vqd="([\d-]+)"/);
-
-    if (vqdMatch && vqdMatch[1]) {
-      const vqd = vqdMatch[1];
-      const searchUrl = `https://duckduckgo.com/i.js?l=us-en&o=json&q=${encodeURIComponent(
-        query
-      )}&vqd=${vqd}&f=,,,type:photo,&p=1`;
-
-      const searchRes = await fetch(searchUrl, {
-        signal: AbortSignal.timeout(4000),
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-          Referer: "https://duckduckgo.com/",
-        },
-      });
-
-      if (searchRes.ok) {
-        const searchData = await searchRes.json();
-        if (searchData.results && searchData.results.length > 0) {
-          const validItem = searchData.results.find(
-            (r: any) =>
-              r.image &&
-              (r.image.startsWith("https://") || r.image.startsWith("http://")) &&
-              !r.image.includes("lookaside")
-          );
-
-          if (validItem && validItem.image) {
-            // Upgrade HTTP to HTTPS
-            return validItem.image.replace(/^http:\/\//i, "https://");
-          }
-        }
-      }
-    }
-  } catch {
-    // Continue
   }
   return "";
 }
@@ -217,71 +211,33 @@ export async function searchPartImageOnline(
 
   const fullQuery = queryParts.join(" ").trim();
 
-  // Tier 1: DuckDuckGo live parts catalog search
-  let foundUrl = await searchDuckDuckGoImages(fullQuery);
-
-  // Tier 2: Wikimedia Commons Automotive API
-  if (!foundUrl && (cleanOem || partNameEn)) {
-    foundUrl = await searchWikimediaCommons(`${make || ""} ${partNameEn || cleanOem}`);
-  }
-
-  // Tier 3: Curated High-Quality Genuine Automotive Registry
-  if (!foundUrl) {
-    const combinedText = `${partNameEn} ${cleanOem} ${fullQuery}`;
-    for (const item of CURATED_PARTS_PHOTO_REGISTRY) {
-      if (item.pattern.test(combinedText)) {
-        foundUrl = item.url;
-        break;
-      }
+  // Tier 1: the curated registry. Hand-matched, no round trip, and it knows
+  // the Libyan workshop names as well as the English ones.
+  let foundUrl = "";
+  const combinedText = `${partNameEn} ${cleanOem} ${fullQuery}`;
+  for (const item of CURATED_PARTS_PHOTO_REGISTRY) {
+    if (item.pattern.test(combinedText)) {
+      foundUrl = item.url;
+      break;
     }
   }
 
-  if (foundUrl) {
+  // Tier 2: Wikimedia Commons, for parts the registry does not name.
+  if (!foundUrl && partNameEn) {
+    foundUrl = await searchWikimediaCommons(
+      `${make || ""} ${partNameEn}`,
+      partNameEn
+    );
+  }
+
+  // Commons can return a file on an unexpected host, and the registry is
+  // hand-edited. Anything off the allowlist would be blocked by the CSP in the
+  // browser anyway; drop it here so the UI falls back to its vector schematic
+  // instead of rendering a broken image.
+  if (foundUrl && isAllowedPartImage(foundUrl)) {
     imageSearchCache.set(cacheKey, foundUrl);
     return foundUrl;
   }
 
   return "";
-}
-
-/**
- * Enriches all spare parts in a diagnostic report by searching the internet for exact model part photos
- */
-export async function enrichReportWithOnlinePartImages(
-  parts: any[],
-  make?: string,
-  model?: string,
-  year?: string | number
-): Promise<any[]> {
-  if (!parts || !Array.isArray(parts) || parts.length === 0) return [];
-
-  const enriched = await Promise.all(
-    parts.map(async (part) => {
-      try {
-        if (part.partImageUrl && part.partImageUrl.startsWith("https://") && !part.partImageUrl.includes("/parts/")) {
-          return part;
-        }
-
-        const liveImage = await searchPartImageOnline(
-          part.oemPartNumber || "",
-          part.partNameEnglish || part.partNameStandardArabic || part.partNameLibyan || "",
-          make,
-          model,
-          year
-        );
-
-        if (liveImage) {
-          return {
-            ...part,
-            partImageUrl: liveImage,
-          };
-        }
-        return part;
-      } catch {
-        return part;
-      }
-    })
-  );
-
-  return enriched;
 }

@@ -1,16 +1,20 @@
-import fs from "fs";
-import path from "path";
 import { GoogleGenAI } from "@google/genai";
 import { getDictionaryContextForPrompt } from "./dictionary";
 import {
   KashifDiagnosticReport,
+  ChatReportContext,
   DiagnosticCodeDetail,
   SeverityStatus,
   FuelType,
 } from "./types";
 import { KashifError } from "./errors";
 import {
-  DEFAULT_MODEL,
+  parseRawReport,
+  type RawChecklistStep,
+  type RawFault,
+  type RawPart,
+} from "./report-schema";
+import {
   fetchLiveModels,
   KNOWN_MODELS,
   modelsToTry,
@@ -20,45 +24,32 @@ import {
 export type { AvailableModelItem };
 
 /**
- * Resolves the active Gemini API key with strict priority:
- * 1. process.env.GEMINI_API_KEY
- * 2. .env.local file on disk (reads dynamically for live updates)
- * 3. process.env.NEXT_PUBLIC_GEMINI_API_KEY
- * 4. apiKeyOverride (client settings fallback)
+ * Resolves the Gemini API key for one request.
+ *
+ * Kashif is bring-your-own-key: the key the caller typed into Settings is the
+ * one that must be used. The previous version read `.env.local` off disk on
+ * *every* call and returned that first, so a stale server key silently
+ * overrode what the user typed — and the JSDoc claimed the opposite order.
+ * The disk read also pulled `fs` and `path` into a bundle that has no
+ * filesystem.
+ *
+ * Order now, most specific first:
+ *   1. the caller's key (Settings -> `x-gemini-api-key`)
+ *   2. `GEMINI_API_KEY` from the environment (a self-hosted or Worker secret)
+ *
+ * `.env.local` still works in development: Next.js loads it into
+ * `process.env` at startup, which is the supported way to read it.
  */
 export function resolveActiveApiKey(apiKeyOverride?: string): string | null {
-  // 1. Read directly from .env.local on disk first to catch real-time edits immediately
-  try {
-    const envPath = path.join(process.cwd(), ".env.local");
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, "utf-8");
-      const match = content.match(/GEMINI_API_KEY=([^\r\n]+)/);
-      if (match && match[1] && match[1].trim() && !match[1].includes("your_gemini_api_key")) {
-        const keyOnDisk = match[1].trim();
-        if (keyOnDisk.length > 10) {
-          return keyOnDisk;
-        }
-      }
-    }
-  } catch (e) {
-    // Ignore fs errors
-  }
+  return pickKey(apiKeyOverride) ?? pickKey(process.env.GEMINI_API_KEY);
+}
 
-  // 2. Client settings override / header
-  if (apiKeyOverride && apiKeyOverride.trim() && apiKeyOverride.trim().length > 10) {
-    return apiKeyOverride.trim();
-  }
-
-  // 3. Process environment variable fallback
-  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() && !process.env.GEMINI_API_KEY.includes("your_gemini_api_key")) {
-    return process.env.GEMINI_API_KEY.trim();
-  }
-
-  if (process.env.NEXT_PUBLIC_GEMINI_API_KEY && process.env.NEXT_PUBLIC_GEMINI_API_KEY.trim()) {
-    return process.env.NEXT_PUBLIC_GEMINI_API_KEY.trim();
-  }
-
-  return null;
+/** A usable key, or null. Rejects the placeholder shipped in `.env.example`. */
+function pickKey(value: string | undefined | null): string | null {
+  const key = value?.trim();
+  if (!key || key.length <= 10) return null;
+  if (key.includes("your_gemini_api_key")) return null;
+  return key;
 }
 
 export function getGenAIClient(apiKeyOverride?: string): GoogleGenAI | null {
@@ -331,7 +322,7 @@ ${rawInput.vehicleInfo?.make ? `الصانع: ${rawInput.vehicleInfo.make} ${raw
 /**
  * Robust JSON parser that repairs common model output flaws (trailing commas, quotes, control chars)
  */
-export function safeJsonParseOrRepair(rawText: string): any {
+export function safeJsonParseOrRepair(rawText: string): unknown {
   if (!rawText) return null;
   let cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
 
@@ -391,14 +382,16 @@ export function normalizeDiagnosticReport(
   data: unknown,
   rawInput?: RawAnalyzeInput
 ): KashifDiagnosticReport {
-  if (!data || typeof data !== "object") {
-    throw new KashifError("UNREADABLE_RESPONSE", "response was not an object");
+  const d = parseRawReport(data);
+
+  // A response we cannot even read the shape of tells us nothing about this
+  // car. Saying so is the only safe answer.
+  if (!d) {
+    throw new KashifError("UNREADABLE_RESPONSE", "response did not parse");
   }
 
-  const d = data as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-  /** First non-empty value, or null. Never a fabricated placeholder. */
-  const pick = (...values: unknown[]): string | null => {
+  /** First usable value, or null. Never a fabricated placeholder. */
+  const pick = (...values: (string | number | null | undefined)[]): string | null => {
     for (const v of values) {
       if (typeof v === "number") return String(v);
       if (typeof v === "string" && v.trim()) return v.trim();
@@ -432,11 +425,10 @@ export function normalizeDiagnosticReport(
     testTime: pick(d.scannerInfo?.testTime),
   };
 
-  // 3. Faults
-  const asArray = (...candidates: unknown[]): Record<string, any>[] => { // eslint-disable-line @typescript-eslint/no-explicit-any
-    for (const c of candidates) if (Array.isArray(c)) return c;
-    return [];
-  };
+  // 3. Faults. The model puts these under `faultCategories` or at the root
+  // depending on how it read the prompt; both spellings are accepted.
+  const asArray = (...candidates: (RawFault[] | null | undefined)[]): RawFault[] =>
+    candidates.find(Array.isArray) ?? [];
 
   const critical = asArray(d.faultCategories?.criticalFaults, d.criticalFaults);
   const moderate = asArray(d.faultCategories?.moderateFaults, d.moderateFaults);
@@ -446,7 +438,7 @@ export function normalizeDiagnosticReport(
   );
 
   const mapFault = (
-    f: Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+    f: RawFault,
     defaultUrgency: "عالي جداً" | "متوسط" | "منخفض"
   ): DiagnosticCodeDetail => ({
     code: String(f.code || f.dtc || "").trim() || "—",
@@ -458,17 +450,20 @@ export function normalizeDiagnosticReport(
     standardArabicDescription:
       pick(f.standardArabicDescription, f.descriptionArabic) || "",
     // No invented symptoms or causes: an empty list means the model did not say.
-    driverSymptoms: Array.isArray(f.driverSymptoms) ? f.driverSymptoms : [],
-    rootCauses: Array.isArray(f.rootCauses) ? f.rootCauses : [],
-    urgencyLevel: f.urgencyLevel || defaultUrgency,
+    driverSymptoms: f.driverSymptoms ?? [],
+    rootCauses: f.rootCauses ?? [],
+    // The schema has already discarded any value outside these three, so a
+    // fault labelled "very urgent" lands on its list default instead of
+    // reaching the UI with no priority at all.
+    urgencyLevel: f.urgencyLevel ?? defaultUrgency,
     impactOnVehicle: {
-      safety: f.impactOnVehicle?.safety || "متوسط",
-      fuelEconomy: f.impactOnVehicle?.fuelEconomy || "غير متأثر",
-      drivability: f.impactOnVehicle?.drivability || "قيادة طبيعية",
+      safety: f.impactOnVehicle?.safety ?? "متوسط",
+      fuelEconomy: f.impactOnVehicle?.fuelEconomy ?? "غير متأثر",
+      drivability: f.impactOnVehicle?.drivability ?? "قيادة طبيعية",
     },
     recommendedAction: pick(f.recommendedAction) || "",
     recommendedPartId: pick(f.recommendedPartId) || undefined,
-    electricalDiagnostics: f.electricalDiagnostics || undefined,
+    electricalDiagnostics: f.electricalDiagnostics ?? undefined,
   });
 
   const criticalFaults = critical.map((f) => mapFault(f, "عالي جداً"));
@@ -479,7 +474,7 @@ export function normalizeDiagnosticReport(
 
   // 4. Passed systems — an unreported system is unknown, not passed. Claiming
   // the ABS passed when nothing said so is a safety claim we cannot make.
-  const passedSystems = Array.isArray(d.passedSystems) ? d.passedSystems : [];
+  const passedSystems = d.passedSystems ?? [];
 
   // 5. Summary
   const derivedStatus: SeverityStatus =
@@ -489,12 +484,7 @@ export function normalizeDiagnosticReport(
         ? "متوسط / انتبه"
         : "سليم / خفيف";
 
-  const modelScore =
-    typeof d.summary?.overallHealthScore === "number"
-      ? d.summary.overallHealthScore
-      : typeof d.overallHealthScore === "number"
-        ? d.overallHealthScore
-        : null;
+  const modelScore = d.summary?.overallHealthScore ?? d.overallHealthScore ?? null;
 
   const summary = {
     // Derived from the faults actually found when the model gives no score.
@@ -503,31 +493,23 @@ export function normalizeDiagnosticReport(
       modelScore ??
       Math.max(25, 100 - (criticalFaults.length * 20 + moderateFaults.length * 10)),
     isScoreEstimated: modelScore === null,
-    severityStatus: (d.summary?.severityStatus || derivedStatus) as SeverityStatus,
+    severityStatus: d.summary?.severityStatus ?? derivedStatus,
     briefSummaryArabic:
       pick(d.summary?.briefSummaryArabic, d.briefSummaryArabic) || "",
     systemsCheckedCount:
-      typeof d.summary?.systemsCheckedCount === "number"
-        ? d.summary.systemsCheckedCount
-        : totalFaultsCount + passedSystems.length,
-    faultsFoundCount:
-      typeof d.summary?.faultsFoundCount === "number"
-        ? d.summary.faultsFoundCount
-        : totalFaultsCount,
-    passedSystemsCount:
-      typeof d.summary?.passedSystemsCount === "number"
-        ? d.summary.passedSystemsCount
-        : passedSystems.length,
+      d.summary?.systemsCheckedCount ?? totalFaultsCount + passedSystems.length,
+    faultsFoundCount: d.summary?.faultsFoundCount ?? totalFaultsCount,
+    passedSystemsCount: d.summary?.passedSystemsCount ?? passedSystems.length,
   };
 
   // 6. Spare parts — the OEM number, the aftermarket list and the price are
   // commercial claims someone will spend money on. Unknown stays null.
-  const sparePartsRequired = Array.isArray(d.sparePartsRequired)
-    ? d.sparePartsRequired.map((part: Record<string, any>, idx: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        const min = part.estimatedPriceRangeLYD?.min;
-        const max = part.estimatedPriceRangeLYD?.max;
-        const hasPrice = typeof min === "number" && typeof max === "number";
-        return {
+  const sparePartsRequired = (d.sparePartsRequired ?? []).map(
+    (part: RawPart, idx: number) => {
+      // The schema keeps a price range only when both ends are real numbers,
+      // so there is no half-rendered "from 40 to —".
+      const price = part.estimatedPriceRangeLYD;
+      return {
           id: String(part.id || `part-${idx}`),
           relatedCode: pick(part.relatedCode) || "",
           partNameLibyan: pick(part.partNameLibyan) || "قطعة غير مسمّاة",
@@ -535,32 +517,30 @@ export function normalizeDiagnosticReport(
             pick(part.partNameStandardArabic, part.partNameLibyan) || "",
           partNameEnglish: pick(part.partNameEnglish) || "",
           oemPartNumber: pick(part.oemPartNumber),
-          aftermarketReplacements: Array.isArray(part.aftermarketReplacements)
-            ? part.aftermarketReplacements
-            : [],
-          estimatedPriceRangeLYD: hasPrice
+          aftermarketReplacements: part.aftermarketReplacements ?? [],
+          estimatedPriceRangeLYD: price
             ? {
-                min,
-                max,
-                marketNote: pick(part.estimatedPriceRangeLYD?.marketNote) || "",
+                min: price.min,
+                max: price.max,
+                marketNote: pick(price.marketNote) || "",
               }
             : null,
-          diagramCategory: part.diagramCategory || "المحرك",
+          diagramCategory: part.diagramCategory ?? "المحرك",
           partImageUrl: pick(part.partImageUrl) || undefined,
         };
-      })
-    : [];
+    }
+  );
 
   // 7. Checklist — no invented step. Nothing to check is an empty list.
-  const workshopChecklist = Array.isArray(d.workshopChecklist)
-    ? d.workshopChecklist.map((c: Record<string, any>, idx: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
-        stepNumber: typeof c.stepNumber === "number" ? c.stepNumber : idx + 1,
-        targetComponent: pick(c.targetComponent) || "—",
-        actionRequiredLibyan: pick(c.actionRequiredLibyan) || "",
-        toolNeeded: pick(c.toolNeeded) || "",
-        isCompleted: Boolean(c.isCompleted),
-      }))
-    : [];
+  const workshopChecklist = (d.workshopChecklist ?? []).map(
+    (c: RawChecklistStep, idx: number) => ({
+      stepNumber: c.stepNumber ?? idx + 1,
+      targetComponent: pick(c.targetComponent) || "—",
+      actionRequiredLibyan: pick(c.actionRequiredLibyan) || "",
+      toolNeeded: pick(c.toolNeeded) || "",
+      isCompleted: Boolean(c.isCompleted),
+    })
+  );
 
   return {
     reportId: pick(d.reportId) || `kashif-${Date.now()}`,
@@ -580,7 +560,7 @@ export function normalizeDiagnosticReport(
 }
 
 export async function askMechanicAssistant(
-  report: KashifDiagnosticReport,
+  report: ChatReportContext,
   question: string,
   history: { sender: "user" | "assistant"; text: string }[],
   apiKeyOverride?: string,
@@ -627,7 +607,7 @@ ${dictionaryContext}
 `;
 
   try {
-    const contents: any[] = history.map((h) => ({
+    const contents: unknown[] = history.map((h) => ({
       role: h.sender === "user" ? "user" : "model",
       parts: [{ text: h.text }],
     }));

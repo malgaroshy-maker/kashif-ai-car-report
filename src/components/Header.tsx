@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { LIBYAN_DICTIONARY } from "@/lib/dictionary";
 import { DEFAULT_MODEL, KNOWN_MODELS, type AvailableModelItem } from "@/lib/models";
+import { STORAGE_KEYS } from "@/lib/api-client";
+import { removeLocal, useLocalString, writeLocal } from "@/lib/local-store";
 
 interface HeaderProps {
   onNewScanClick?: () => void;
@@ -33,12 +35,23 @@ export const Header: React.FC<HeaderProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("الكل");
 
-  // API Key & Provider State
-  const [provider, setProvider] = useState<"gemini" | "agy">("gemini");
+  // Settings are read straight out of storage during render rather than
+  // hydrated by an effect, so the header shows the saved model on the first
+  // paint and every other reader of these keys stays in step.
+  const storedProvider = useLocalString(STORAGE_KEYS.provider, "gemini");
+  const provider: "gemini" | "agy" = storedProvider === "agy" ? "agy" : "gemini";
+  const storedKey = useLocalString(STORAGE_KEYS.apiKey);
+  const storedModel = useLocalString(STORAGE_KEYS.model, DEFAULT_MODEL);
+
+  // What the user is currently typing, before they press save. `null` means
+  // they have not touched the field, so the stored value shows through.
+  const [draftKey, setDraftKey] = useState<string | null>(null);
+  const [draftModel, setDraftModel] = useState<string | null>(null);
+  const apiKey = draftKey ?? storedKey;
+  const selectedModel = draftModel ?? storedModel;
+
   const [agyStatus, setAgyStatus] = useState<{ available: boolean; cliPath?: string; statusNote?: string } | null>(null);
-  const [apiKey, setApiKey] = useState("");
   const [hasEnvKey, setHasEnvKey] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const [availableModels, setAvailableModels] =
     useState<AvailableModelItem[]>(KNOWN_MODELS);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -46,19 +59,6 @@ export const Header: React.FC<HeaderProps> = ({
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedProvider = localStorage.getItem("kashif_ai_provider") as "gemini" | "agy" | null;
-    if (savedProvider) {
-      setProvider(savedProvider);
-    }
-    const savedKey = localStorage.getItem("kashif_gemini_api_key");
-    if (savedKey) {
-      setApiKey(savedKey);
-    }
-    const savedModel = localStorage.getItem("kashif_gemini_model");
-    if (savedModel) {
-      setSelectedModel(savedModel);
-    }
-
     // Check server env key and AGY CLI status
     fetch("/api/models")
       .then((r) => r.json())
@@ -77,8 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const handleToggleProvider = (newProvider: "gemini" | "agy") => {
-    setProvider(newProvider);
-    localStorage.setItem("kashif_ai_provider", newProvider);
+    writeLocal(STORAGE_KEYS.provider, newProvider);
   };
 
   // Fetch live models from /api/models
@@ -107,22 +106,26 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (isSettingsOpen) {
-      loadLiveModels();
-    }
-  }, [isSettingsOpen]);
+  /** Opening settings is when the live model list is worth a round trip. */
+  const openSettings = () => {
+    setIsSettingsOpen(true);
+    loadLiveModels();
+  };
 
   const handleSaveApiKey = () => {
-    localStorage.setItem("kashif_ai_provider", provider);
+    writeLocal(STORAGE_KEYS.provider, provider);
+    // The model choice is saved whether or not a key is set, so picking a
+    // model without pasting a key no longer silently discards the choice.
+    writeLocal(STORAGE_KEYS.model, selectedModel);
     if (apiKey.trim()) {
-      localStorage.setItem("kashif_gemini_api_key", apiKey.trim());
-      localStorage.setItem("kashif_gemini_model", selectedModel);
+      writeLocal(STORAGE_KEYS.apiKey, apiKey.trim());
       setSavedStatus(`تم الحفظ بنجاح! المحرك: ${provider === "agy" ? "Antigravity CLI" : "Gemini API"}`);
     } else {
-      localStorage.removeItem("kashif_gemini_api_key");
+      removeLocal(STORAGE_KEYS.apiKey);
       setSavedStatus(`تم الحفظ! المحرك: ${provider === "agy" ? "Antigravity CLI" : "Gemini .env"}`);
     }
+    setDraftKey(null);
+    setDraftModel(null);
     setTimeout(() => setSavedStatus(null), 3000);
   };
 
@@ -213,7 +216,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* API Key Settings */}
             <button
-              onClick={() => setIsSettingsOpen(true)}
+              onClick={openSettings}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors cursor-pointer"
             >
               <Key className="w-3.5 h-3.5 text-amber-400" />
@@ -371,7 +374,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
                 <select
                   value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
+                  onChange={(e) => setDraftModel(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500 cursor-pointer"
                 >
                   {availableModels.map((m) => (
@@ -391,7 +394,7 @@ export const Header: React.FC<HeaderProps> = ({
                     type={showKey ? "text" : "password"}
                     placeholder={hasEnvKey ? "المفتاح محمل بالفعل من .env.local" : "AIzaSy..."}
                     value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
+                    onChange={(e) => setDraftKey(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg pr-3 pl-9 py-2 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-blue-500"
                   />
                   <button
@@ -432,7 +435,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <button
                   onClick={() => {
-                    setApiKey("");
+                    setDraftKey("");
                     localStorage.removeItem("kashif_gemini_api_key");
                     setSavedStatus("تمت الإزالة والاعتماد على .env / المحرك المحلي");
                   }}

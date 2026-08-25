@@ -12,6 +12,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { KashifDiagnosticReport, ChatMessage } from "@/lib/types";
+import { askAssistant, messageOf } from "@/lib/api-client";
 
 interface MechanicChatAssistantProps {
   report: KashifDiagnosticReport;
@@ -53,6 +54,13 @@ export const MechanicChatAssistant: React.FC<MechanicChatAssistantProps> = ({
     "أين تتوفر قطع الغيار المعتمدة؟",
   ];
 
+  /** Cancels the in-flight question when the panel closes or another is sent. */
+  const pending = useRef<AbortController | null>(null);
+  useEffect(() => () => pending.current?.abort(), []);
+
+  const stamp = () =>
+    new Date().toLocaleTimeString("ar-LY", { hour: "2-digit", minute: "2-digit" });
+
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputMessage).trim();
     if (!text || isLoading) return;
@@ -61,73 +69,48 @@ export const MechanicChatAssistant: React.FC<MechanicChatAssistantProps> = ({
       id: `user-${Date.now()}`,
       sender: "user",
       text,
-      timestamp: new Date().toLocaleTimeString("ar-LY", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      timestamp: stamp(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
     setInputMessage("");
     setIsLoading(true);
 
+    pending.current?.abort();
+    const controller = new AbortController();
+    pending.current = controller;
+
     try {
-      const storedApiKey = localStorage.getItem("kashif_gemini_api_key") || "";
-      const activeProvider = localStorage.getItem("kashif_ai_provider") || "gemini";
-      const storedModel = localStorage.getItem("kashif_gemini_model") || "";
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        "x-ai-provider": activeProvider,
-      };
-      if (storedApiKey) {
-        headers["x-gemini-api-key"] = storedApiKey;
+      // Only the sender and the text: the ids and display timestamps were
+      // being uploaded with every turn and mean nothing to the model.
+      const history = messages.map((m) => ({ sender: m.sender, text: m.text }));
+      const reply = await askAssistant(report, text, history, controller.signal);
+      setMessages((prev) => [
+        ...prev,
+        { id: `asst-${Date.now()}`, sender: "assistant", text: reply, timestamp: stamp() },
+      ]);
+    } catch (err) {
+      // A cancelled question was replaced by a newer one; saying so would be
+      // noise in the transcript.
+      if (controller.signal.aborted && !(err instanceof DOMException && err.name === "TimeoutError")) {
+        return;
       }
-      if (storedModel) {
-        headers["x-gemini-model"] = storedModel;
-      }
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          report,
-          question: text,
-          history: messages,
-          apiKey: storedApiKey || undefined,
-          model: storedModel || undefined,
-          provider: activeProvider,
-        }),
-      });
-
-      const data = await res.json();
-      const replyText = data.reply || data.answer;
-      if (replyText) {
-        const assistantMsg: ChatMessage = {
-          id: `asst-${Date.now()}`,
+      // The old version answered every failure with "connection problem",
+      // which hid the one that actually matters: no API key set.
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
           sender: "assistant",
-          text: replyText,
-          timestamp: new Date().toLocaleTimeString("ar-LY", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
-      } else {
-        throw new Error(data.error || "تعذر الحصول على الرد");
-      }
-    } catch (err: any) {
-      const errorMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
-        sender: "assistant",
-        text: "تعذر الاتصال حالياً، يرجى إعادة المحاولة.",
-        timestamp: new Date().toLocaleTimeString("ar-LY", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+          text: messageOf(err, "تعذر الاتصال حالياً، يرجى إعادة المحاولة."),
+          timestamp: stamp(),
+        },
+      ]);
     } finally {
-      setIsLoading(false);
+      if (pending.current === controller) {
+        pending.current = null;
+        setIsLoading(false);
+      }
     }
   };
 

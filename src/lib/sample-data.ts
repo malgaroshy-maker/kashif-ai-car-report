@@ -140,7 +140,6 @@ export const SAMPLE_TOYOTA_COROLLA: KashifDiagnosticReport = {
         marketNote: "التجاري الياباني/التايواني يبدأ من 80-120 د.ل، والأصلي دينسو رابش نظيف/جديد 180-230 د.ل في سوق الجمعة أو شارع عمر المختار / رابش الدائري والسواني",
       },
       diagramCategory: "المحرك",
-      partImageUrl: "https://images-cdn.ubuy.co.in/6443fed0dcfefb6ebd3c6365-new-oem-mass-air-flow-meter-maf-sensor.jpg",
     },
     {
       id: "part-air-filter-toyota",
@@ -156,7 +155,6 @@ export const SAMPLE_TOYOTA_COROLLA: KashifDiagnosticReport = {
         marketNote: "متوفر بكثرة في كافة محلات قطع الغيار والسيرفيز السريع",
       },
       diagramCategory: "المحرك",
-      partImageUrl: "https://i.ebayimg.com/images/g/i4EAAOSwhc5f0aQG/s-l1600.jpg",
     },
   ],
   workshopChecklist: [
@@ -436,7 +434,6 @@ export const SAMPLE_BMW_528I: KashifDiagnosticReport = {
         marketNote: "بريما / بوش جديد في محلات بيع قطع الألماني حوالي 140-200 د.ل، أو رابش أصلي 60-90 د.ل في رابش السواني أو الدائري",
       },
       diagramCategory: "المحرك",
-      partImageUrl: "https://cdn11.bigcommerce.com/s-n3p1xqj210/images/stencil/1280x1280/products/874/3876/IMG_20200325_143402__46042.1609973034.jpg?c=2",
     },
     {
       id: "part-bmw-abs-sensor",

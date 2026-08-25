@@ -1,6 +1,6 @@
 # Kashif AI — Rebuild Plan
 
-**Status:** Phases 1, 2 and 4 done and verified. Phases 0, 3, 5-7 outstanding.
+**Status:** Phases 1, 2, 3 and 4 done and verified. Phases 0, 5-7 outstanding.
 **Scope:** full visual redesign, engineering remediation, and a real Cloudflare deployment.
 **Written:** 2026-08-24 · **Product truth:** [PRODUCT.md](PRODUCT.md)
 
@@ -228,11 +228,11 @@ Rewritten: typecheck → lint → `cf:build` as a verify job, then `cf:deploy` g
 
 **F6 · Two copies of the API, already drifted.** — **FIXED**. `src/worker.ts` is deleted; `src/app/api/*` is the only implementation and now actually runs in production. Originally:  `src/worker.ts` (241 lines) reimplements all four routes from `src/app/api/*`. In production the Next routes are dead code. The worker's copy is already missing PDF text extraction, part-image enrichment, and chat history, and it carries a different model list. Every future fix has to be written twice or silently isn't.
 
-**F7 · `gemini.ts` reads `.env.local` off disk on every key resolution.** [gemini.ts:20-53](src/lib/gemini.ts) does `fs.readFileSync(process.cwd() + "/.env.local")` per call, and `worker.ts` imports this module — pulling `fs`/`path` into an edge bundle where it can never work. A filesystem read per request, a secret-handling smell, and a portability landmine.
+**F7 · `gemini.ts` read `.env.local` off disk on every key resolution.** — **FIXED**. `fs` and `path` are gone from the module; `.env.local` still works in development because Next loads it into `process.env` at startup, which is the supported route. Originally: `fs.readFileSync(process.cwd() + "/.env.local")` per call, a filesystem read per request in a bundle that has no filesystem.
 
-**F8 · Key priority is documented backwards.** The JSDoc says env first; the code reads the disk file first, *then* the user's key. Under BYO-key, a stale server key silently overrides what the user typed.
+**F8 · Key priority was documented backwards.** — **FIXED**. The order is now the caller's key first, then `GEMINI_API_KEY` from the environment, and the JSDoc says so. `NEXT_PUBLIC_GEMINI_API_KEY` was removed as a source entirely: anything with that prefix is inlined into the client bundle, so honouring it would have meant publishing a key to every visitor. Nothing else in the repo referenced it.
 
-**F9 · A client component imports a server module.** [Header.tsx:20](src/components/Header.tsx) — `import { AvailableModelItem } from "@/lib/gemini"` without `import type`, reaching into a module that imports `fs`. Move the type to `types.ts`.
+**F9 · A client component imported a server module.** — **FIXED in Phase 1**, when the model catalogue moved to `lib/models.ts`. [Header.tsx](src/components/Header.tsx) imports the type from there now, so the Gemini SDK and the system prompt no longer reach the client bundle.
 
 **F10 · O(n²) base64 in the Worker.**
 
@@ -248,7 +248,9 @@ Quadratic string building over the whole upload. A 5 MB PDF will exhaust the Wor
 
 **F13 · `agy` is a code-execution surface.** — **FIXED** (brought forward from Phase 3, because it broke the deploy). Originally:  [antigravity-cli.ts:96](src/lib/antigravity-cli.ts) spawns the CLI with `--dangerously-skip-permissions` and a prompt built from the request body. `spawn` without a shell means no argument injection, but an HTTP request still drives an agent CLI with permissions disabled on the workshop machine. Confirmed decision: compile it out of production entirely.
 
-**F14 · The API is an open proxy.** `Access-Control-Allow-Origin: *` on every route ([worker.ts:15](src/worker.ts)), no rate limit, no timeout on the upstream Gemini call, no `AbortSignal` on any client fetch.
+**F14 · The API was an open proxy.** — **MOSTLY FIXED**. `Access-Control-Allow-Origin: *` went with `worker.ts` in Phase 2, and the upstream call got a 45s cap per model attempt in Phase 1. Phase 3 adds the client half: [api-client.ts](src/lib/api-client.ts) puts every request under an `AbortSignal.timeout` (120s for an analysis, 60s for a chat turn, 15s for a part photo), so a request that never comes back stops the spinner instead of hanging the page forever. The chat panel also cancels its own in-flight question when a new one is sent or the panel closes.
+
+**Still open:** no rate limit. Under bring-your-own-key each caller spends their own quota, which removes the usual reason for one, but nothing stops a stranger from using the deployment as a free PDF-to-Gemini pipe with a stolen key. Cloudflare's rate-limiting rules are the cheap answer and belong with the deploy, not the code.
 
 ## 2.3 P2 — Correctness and quality
 
@@ -264,9 +266,19 @@ Originally:  `ExportActionBar.handleDownloadHtml` interpolates AI-generated stri
 
 Originally:  `normalizeDiagnosticReport` fills gaps with `vin: "LIBYA-OBD-SCAN"`, `model: "صالون / جيب"`, `year: "2020"`, `overallHealthScore: 70`. Presenting a guessed year as the vehicle's year violates the product's own "never fake certainty" principle. Missing means missing, rendered as "غير محدد".
 
-**F19 · No validation of AI output.** `safeJsonParseOrRepair` returns `any` and it flows into the report untouched. Roughly 170 lines of hand-rolled defaulting stand in for a schema. Replace with Zod; it deletes most of the `any` and gives an honest parse-failure path for F1.
+**F19 · No validation of AI output.** — **FIXED**. [report-schema.ts](src/lib/report-schema.ts) is a Zod schema for what the model sends back, applied before `normalizeDiagnosticReport` sees it. The two jobs that were tangled together are now separate: the schema decides whether a value is the right *kind* of thing, and normalization decides what a missing value means.
 
-**F20 · Empty catch blocks.** [page.tsx:66](src/app/page.tsx), `:75`, [gemini.ts:34](src/lib/gemini.ts).
+It is deliberately lenient about presence and strict about values. An omitted mileage is a fact about the scan we do not have, and the report already says so — rejecting an analysis over it would be worse than useless. A *wrong* value is different: `urgencyLevel: "very urgent"` used to flow straight through `f.urgencyLevel || defaultUrgency` into the UI, where the severity lookup missed and the fault rendered with no priority at all. Those fields use `.catch()`, so an unrecognised value falls to the documented default. The `electricalDiagnostics` block is dropped whole unless every field parses — a malformed one is worse than an absent one, because it puts a marker on the wrong part of the engine bay and prints a pinout for a different circuit.
+
+Every field is `.nullish()` rather than `.optional()`, because a normalized report writes `null` for "the scan did not say" and gets re-normalized on the agy path; treating those nulls as parse failures would have blanked a VIN that was read correctly the first time.
+
+**F20 · Empty catch blocks.** — **FIXED**. All three now log with enough context to be found. Two of them were hiding a failed history write, which is why a report could silently vanish from the list.
+
+The same pass found a worse one next door in [page.tsx](src/app/page.tsx): the history loader did not drop a malformed stored report, it *patched* it — a record with no summary was rendered with a health score of 70 and a status of "متوسط / انتبه". That is the F18 fabrication class, in the one place nobody was looking. A stored report is now validated and dropped if it no longer parses.
+
+[ExportActionBar.tsx](src/components/ExportActionBar.tsx) had two more of the same:
+- the WhatsApp share text fell back to `70% / متوسط / انتبه / تم فحص التقرير بنجاح` — a grade, a severity and a verdict, none of them from this car. It says `غير محدد` now.
+- `scoreNote` was computed and never printed, so the exported certificate — the copy that gets forwarded and printed — showed a derived score with no indication it was derived. The gauge is labelled `الجاهزية (تقديري)` when the score came from arithmetic rather than the scan.
 
 **F21 · Accessibility is effectively absent.** Across 11 components there are **3 total** `aria-*` / `role` / `alt` attributes. Four modals have no `role="dialog"`, no `aria-modal`, no focus trap, no focus restore; only one handles Escape. Every icon-only button is unlabelled. This directly contradicts the workshop-legibility requirement in PRODUCT.md. *(The redesign removes three of the four modals, which fixes much of this structurally.)*
 
@@ -282,9 +294,27 @@ Originally:  `normalizeDiagnosticReport` fills gaps with `vin: "LIBYA-OBD-SCAN"`
 
 **F27 · Unbounded third-party images.** Three raw `<img>` tags load URLs returned by a live web search — no `next/image`, no dimensions, no CLS protection, no domain allowlist.
 
-**F28 · Live scraping inside the request path.** `parts-search.ts` scrapes DuckDuckGo with a spoofed Chrome UA and a `vqd` token ([parts-search.ts:130-190](src/lib/parts-search.ts)) — brittle, against DDG's terms, 4-8s of latency, and `enrichReportWithOnlinePartImages` runs it for *every* part before the analyze response returns. Move to a lazy per-part `/api/parts-image` call after the report renders, cache in KV, and keep the curated registry plus the SVG vector as the honest default.
+**F28 · Live scraping inside the request path.** — **FIXED**, and this was the single biggest thing standing between the app and being usable.
 
-**F29 · Chat is heavy.** The entire report JSON is re-serialised and sent on every message, with full history, no streaming, and no cancel.
+The DuckDuckGo tier is deleted, not moved: it scraped an internal `i.js` endpoint with a spoofed Chrome user agent and a lifted `vqd` token, which is against their terms, broke whenever the token format moved, cost 4-8s per part, and returned images from arbitrary hosts — which is the only reason `img-src` had to allow every https origin. What remains is Wikimedia Commons (a public API, hotlinking permitted) and the curated registry.
+
+`enrichReportWithOnlinePartImages` is gone from all three branches of `/api/analyze`. The client already had the lazy per-part `/api/parts-image` call — the server-side enrichment was pure duplicated latency, filling `partImageUrl` in so the client would skip work it was perfectly capable of doing after the report had rendered. Cards now paint immediately with their vector schematic and a photo swaps in if one turns up.
+
+`/api/parts-image` is the one route carved out of the blanket `no-store` on `/api/*`: it carries no key and no vehicle data worth protecting, and the answer is the same for everyone, so it is `public, max-age=86400`.
+
+**KV is not used.** The plan called for it, but the in-process cache plus a day of browser caching covers the same ground, and adding a namespace to a Worker that otherwise needs no storage is a binding to provision and pay for with nothing to show. Worth revisiting only if the Commons round trip shows up in real numbers.
+
+**F30 · `sensor-locator.ts` invents electrical data for codes it does not know.** — **OPEN, and it needs your call.**
+
+When a fault code is not in its database, [sensor-locator.ts](src/lib/sensor-locator.ts) derives a fuse box, a fuse number, an amperage, a relay name, a sensor position on the engine diagram and a full multimeter pinout from the code's *prefix* — `F15 / ENG-15A`, `15A (أزرق)`, `coordinatePct: { x: 50, y: 50 }`, `5.0V جهد مرجعي ثابت`. Even an exact database hit falls back to those generics for any missing sub-block.
+
+This is the same class as F1 and F18, and arguably the sharpest instance of it: somebody puts a probe on a pin because this screen told them which pin. It was not in the original audit because the module reads as a lookup table until you follow the fallbacks.
+
+I have not touched it, because the fix is a product decision rather than a bug fix — either the derived blocks are dropped and the modal says the wiring for this code is not in the reference, or they stay and are labelled unmistakably as generic guidance rather than this car's wiring. Say which and it is a short change.
+
+**F29 · Chat is heavy.** — **MOSTLY FIXED**. The panel sends `chatContextOf(report)` — the vehicle, the headline summary, the critical and moderate fault codes, and the part names, which is exactly what the prompt quotes. Everything else stayed in the browser: the checklist, every fault's symptoms and root causes, and the whole electrical diagnostics block with its pin voltages and diagram coordinates. Measured on a four-fault report, that is **1.6 KB instead of 9.9 KB, 84% smaller**, on a connection that in Libya is usually a phone's. History is trimmed to the last six turns server-side, and the message objects are stripped to `{sender, text}` — the ids and display timestamps were being uploaded every turn and mean nothing to the model.
+
+**Still open:** no streaming. A reply arrives all at once after ~20s, which is the remaining thing that makes the assistant feel slow. That is a change to the route's response shape and the panel's rendering, and belongs with Phase 5.
 
 ---
 
@@ -411,8 +441,22 @@ Asset payload: **378 MB → 27 MB**, 31 published files.
 
 Not done here: an actual deploy. That needs your Cloudflare credentials and is yours to run — `npm run cf:deploy`, or push the branch once `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set as GitHub secrets.
 
-### Phase 3 — Backend cleanup *(1-2 days)*
-F6-F14, F19, F20, F28, F29. Zod schemas, fixed key priority, `agy` gated to dev, upload caps, chunked base64, timeouts, CORS, part-image search moved off the request path.
+### Phase 3 — Backend cleanup — **DONE**
+F7, F8, F9, F14, F19, F20, F28, F29.
+
+**The headline is F28.** An analysis no longer waits on an image search for every part before it returns, and the DuckDuckGo scrape is deleted rather than relocated.
+
+New modules: [report-schema.ts](src/lib/report-schema.ts) (Zod, F19), [api-client.ts](src/lib/api-client.ts) (the browser's side of the API, with timeouts), [local-store.ts](src/lib/local-store.ts), [part-image-hosts.ts](src/lib/part-image-hosts.ts).
+
+Two things came out of this that were not on the list:
+
+- **`localStorage` was read by effect in three places.** Render empty, then `useEffect` -> `setState` with what was in storage. Besides the wasted render pass, nothing propagated: saving a new API key in Settings did not tell the upload panel, and saving a report did not tell the history list — each held a copy taken at mount. [local-store.ts](src/lib/local-store.ts) moves all of it to `useSyncExternalStore`, with cached snapshots so identity stays stable. Saving a model without pasting a key also used to discard the model choice; it does not now.
+
+- **Three more fabrications**, all described under F20 above: the history loader inventing a 70% score for a broken record, the WhatsApp share text doing the same, and the exported certificate not disclosing a derived score.
+
+**Lint is a hard gate in CI as of this change.** Errors went 27 -> 0. The two remaining warnings are `no-img-element` on the part thumbnails, which is a `next/image` decision for Phase 5. `.open-next` and `.wrangler` are excluded from linting — without that, `npx eslint .` walks the Cloudflare bundle and reports about 35,000 problems in code we did not write.
+
+Verified against the real Worker via `cf:preview` — **27/27**, plus a live analysis: **HTTP 200 in 22.6s**, a genuine VIN, no invented placeholders, every urgency and category value in range, zero parts arriving with a server-fetched photo.
 
 ### Phase 4 — Design system — **DONE**
 Tokens (§1.3), the two fonts (§1.4), light and dark, the print stylesheet as a first-class output, the severity notation, the base primitives, and the direction contract committed as the HTML comment in the root layout. Verified per §1.6. `/design` renders the living spec.
@@ -426,7 +470,7 @@ F21, F24-F27. Then one batched verification round: desktop and mobile screenshot
 ### Phase 7 — Docs *(half a day)*
 `DESIGN.md` written from the built world. README, PRD, and ROADMAP corrected against reality.
 
-**Estimate: 6-9 working days remaining** (Phases 1, 2 and 4 are done). Phase 5 is the largest remaining block; Phase 3 is what makes the app fast enough to use.
+**Estimate: 5-7 working days remaining** (Phases 1, 2, 3 and 4 are done). Phase 5 is the largest remaining block by some distance.
 
 ---
 
@@ -440,7 +484,7 @@ F21, F24-F27. Then one batched verification round: desktop and mobile screenshot
 - [ ] A user with no key sees a clear, explained key step and two working sample reports.
 - [ ] A user's key is accepted, validated with real feedback, and produces a real analysis.
 - [x] An exported report containing `<script>alert(1)</script>` in a fault description opens inert. *(F15)* — the offline-fonts half (F16) is still open.
-- [ ] `eslint` reports zero errors. `tsc --noEmit` is clean.
+- [x] `eslint` reports zero errors. `tsc --noEmit` is clean. *(F19, F20)* — and CI now fails on a lint error rather than warning.
 - [ ] Every interactive element is keyboard-reachable and labelled; every dialog traps and restores focus. *(F21)*
 - [ ] The report is fully legible printed in black and white — severity readable from shape alone.
 - [ ] Lighthouse on a throttled 3G phone profile: LCP under 2.5s, CLS under 0.1, a11y 95 or above.

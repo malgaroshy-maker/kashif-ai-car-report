@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseScannerPdf } from "@/lib/pdf-parser";
 import { analyzeReportWithGemini, normalizeDiagnosticReport, getKashifSystemInstruction } from "@/lib/gemini";
 import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "@/lib/sample-data";
-import { enrichReportWithOnlinePartImages } from "@/lib/parts-search";
 import { tryAgyPrompt, parseAgyJson } from "@/lib/agy";
 import { KashifError, errorPayload } from "@/lib/errors";
 import { resolveModelId } from "@/lib/models";
@@ -44,7 +43,7 @@ export async function POST(req: NextRequest) {
 
       if (isPdf) {
         const parsedPdf = await parseScannerPdf(fileBuffer);
-        let report: any = null;
+        let report: unknown = null;
 
         // Try AGY CLI if selected
         if (provider === "agy") {
@@ -81,20 +80,6 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // Dynamically enrich parts with live internet image search
-        if (report && report.sparePartsRequired && report.sparePartsRequired.length > 0) {
-          try {
-            report.sparePartsRequired = await enrichReportWithOnlinePartImages(
-              report.sparePartsRequired,
-              report?.vehicle?.make ?? undefined,
-              report?.vehicle?.model ?? undefined,
-              report?.vehicle?.year ?? undefined
-            );
-          } catch (e) {
-            console.warn("Could not enrich part images:", e);
-          }
-        }
-
         return NextResponse.json({ success: true, report });
       } else {
         // Image upload (OCR & Vision AI)
@@ -112,19 +97,6 @@ export async function POST(req: NextRequest) {
         );
 
         report = normalizeDiagnosticReport(report);
-
-        if (report && report.sparePartsRequired && report.sparePartsRequired.length > 0) {
-          try {
-            report.sparePartsRequired = await enrichReportWithOnlinePartImages(
-              report.sparePartsRequired,
-              report?.vehicle?.make ?? undefined,
-              report?.vehicle?.model ?? undefined,
-              report?.vehicle?.year ?? undefined
-            );
-          } catch (e) {
-            console.warn("Could not enrich part images:", e);
-          }
-        }
 
         return NextResponse.json({ success: true, report });
       }
@@ -147,7 +119,7 @@ export async function POST(req: NextRequest) {
       throw new KashifError("NO_INPUT");
     }
 
-    let report: any = null;
+    let report: unknown = null;
 
     if (body.provider === "agy" && (body.textReport || body.manualCodes)) {
       const inputData = body.textReport
@@ -183,20 +155,6 @@ export async function POST(req: NextRequest) {
     }
 
     report = normalizeDiagnosticReport(report, body);
-
-    // Dynamically search the internet for part images
-    if (report && report.sparePartsRequired && report.sparePartsRequired.length > 0) {
-      try {
-        report.sparePartsRequired = await enrichReportWithOnlinePartImages(
-          report.sparePartsRequired,
-          report?.vehicle?.make,
-          report?.vehicle?.model,
-          report?.vehicle?.year
-        );
-      } catch (e) {
-        console.warn("Could not enrich part images:", e);
-      }
-    }
 
     return NextResponse.json({ success: true, report });
   } catch (error) {
