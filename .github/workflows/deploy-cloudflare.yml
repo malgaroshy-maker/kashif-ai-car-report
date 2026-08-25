@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Typecheck, lint & build
+    name: Typecheck, lint, test & build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,12 @@ jobs:
       # to wave through. Two `no-img-element` warnings remain and are allowed.
       - name: Lint
         run: npx eslint .
+
+      # These guard the property the whole product rests on: that it never
+      # states a finding about a car it did not read. Every case in the suite
+      # is something a real version of this app once invented.
+      - name: Test
+        run: npm test
 
       - name: Build for Cloudflare
         run: npm run cf:build

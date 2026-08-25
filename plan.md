@@ -1,6 +1,6 @@
 # Kashif AI — Rebuild Plan
 
-**Status:** Phases 1-5 done and verified. Phases 0, 6 and 7 outstanding.
+**Status:** Phases 0-5 done and verified. Phases 6 and 7 outstanding.
 **Scope:** full visual redesign, engineering remediation, and a real Cloudflare deployment.
 **Written:** 2026-08-24 · **Product truth:** [PRODUCT.md](PRODUCT.md)
 
@@ -408,8 +408,23 @@ CSP with `connect-src 'self' https://generativelanguage.googleapis.com`, `img-sr
 
 Each phase ends green: `tsc --noEmit` clean, `eslint` clean, and a working deploy.
 
-### Phase 0 — Safety net *(half a day)*
-Vitest + Testing Library + Playwright. Lock behaviour before touching it: schema validation of both sample reports, the analyze route's success and failure paths, the dictionary matcher, PDF/DTC extraction, and the export escaper. **Write the F1 regression test first** — a malformed AI response must produce an error, never a substituted report.
+### Phase 0 — Safety net — **DONE** (out of order: after the fixes, not before)
+
+Vitest, **35 tests in 3 files**, wired into `npm test` and into CI ahead of the build.
+
+The plan called for writing these first, to lock behaviour before touching it. That is not what happened — the dangerous bugs were fixed first, and until now every one of those fixes was guaranteed only by verification scripts living in a scratch directory. This commit is what makes them durable.
+
+Every case is something a real version of this product once did:
+
+| file | guards |
+|---|---|
+| `no-invention.test.ts` | a failed parse throws instead of returning a report; an unreported VIN, make, model and year stay `null`; no system is claimed as passing; OEM numbers and prices stay `null`; a half-quoted price is dropped whole; a derived score is flagged `isScoreEstimated` |
+| `wiring-provenance.test.ts` | an unknown code yields no fuse number, no amperage, no relay and no diagram coordinate; the seven specific invented strings (`F03 / 15A`, `F10 / ECU-15A`, `5.0V مرجعي ثابت`, …) appear for no code; the honest general guidance survives |
+| `boundaries.test.ts` | the schema drops an out-of-range enum and an off-canvas diagram coordinate but accepts nulls; the export escaper neutralises a `<script>` in a fault description; part photos resolve only to allowlisted origins; the model ladder always has a real model behind an unknown id; the chat context leaves symptoms, causes, coordinates and the checklist in the browser |
+
+Two of the first drafts failed, and **both were the test being wrong, not the product**: `safeFilenamePart` turns spaces into underscores, which is correct for a filename; and `resolveModelId` deliberately passes an unknown-but-plausible `gemini-*` id through rather than rewriting it, because the live catalogue moves faster than the file and the fallback ladder is what makes that safe. Both are now asserted as the contract they actually are.
+
+**Not done:** Playwright. The browser-level behaviour verified by hand this round — contrast in both themes, 375px overflow, focus trap and restore, the provenance banner — is exactly what an end-to-end suite should hold, and it is the obvious next piece of test work.
 
 ### Phase 1 — Stop the bleeding — **DONE**
 F1, F2, F12, F15, F18, plus F10 (the Worker's O(n²) base64, replaced with a chunked encoder while rewriting that handler) and F11 (8 MB cap and a MIME allowlist on both runtimes).
@@ -507,7 +522,7 @@ F21, F24-F27. Then one batched verification round: desktop and mobile screenshot
 ### Phase 7 — Docs *(half a day)*
 `DESIGN.md` written from the built world. README, PRD, and ROADMAP corrected against reality.
 
-**Estimate: 1-2 working days remaining** (Phases 1-5 are done). What is left is Phase 0's test harness, Phase 6's performance and PWA work, and Phase 7's docs.
+**Estimate: about a day remaining** (Phases 0-5 are done). What is left is Phase 6's performance and PWA work, Phase 7's docs, and a Playwright suite for the browser behaviour that is currently verified by hand.
 
 ---
 
