@@ -31,7 +31,7 @@ function Section({
       <div className="rib-heavy pt-[var(--s2)]">
         <h2 className="k-bank uppercase">{title}</h2>
         {note && (
-          <p className="max-w-[var(--measure)] text-[var(--ink-2)]">{note}</p>
+          <p className="max-w-[var(--measure)] text-(color:--ink-2)">{note}</p>
         )}
       </div>
       {children}
@@ -59,7 +59,7 @@ export default function DesignSystemPage() {
             <h1 className="text-[length:var(--t-title)] font-bold">
               نظام التصميم — لوحة الفيوزات
             </h1>
-            <p className="max-w-[var(--measure)] text-[var(--ink-2)]">
+            <p className="max-w-[var(--measure)] text-(color:--ink-2)">
               الألوان ليست اختياراً جمالياً: هي كود ألوان الفيوزات القياسي
               ISO/DIN 72581-3 الموجود في كل سيارة. العمق حافة مصبوبة، مش ظل.
             </p>
@@ -90,7 +90,7 @@ export default function DesignSystemPage() {
                     style={{ backgroundColor: t.tab }}
                     aria-hidden
                   />
-                  <p className="text-[var(--ink-2)]">{t.descriptionAr}</p>
+                  <p className="text-(color:--ink-2)">{t.descriptionAr}</p>
                 </Cell>
               );
             })}
@@ -106,7 +106,7 @@ export default function DesignSystemPage() {
               <div className="font-bold" style={{ color: ACCENT.ink }}>
                 الأزرق التفاعلي
               </div>
-              <p className="text-[var(--ink-2)]">
+              <p className="text-(color:--ink-2)">
                 الروابط، التركيز، الأزرار الأساسية. ممنوع استخدامه لأي حالة.
               </p>
             </div>
@@ -125,7 +125,7 @@ export default function DesignSystemPage() {
                 <span className="k-label uppercase">{SEVERITY[s].shape}</span>
               </div>
             ))}
-            <span className="ms-auto flex items-center gap-[var(--s2)] text-[var(--ink-2)]">
+            <span className="ms-auto flex items-center gap-[var(--s2)] text-(color:--ink-2)">
               <Printer className="size-4" aria-hidden />
               يبقى مقروء بعد ما يختفي اللون
             </span>
@@ -144,7 +144,7 @@ export default function DesignSystemPage() {
                   بوبينة وشمعات السلندر الرابع (البسطوني) — حساس ماف، مزاطوري،
                   براتشو، كونفيرتا، بيانتو.
                 </p>
-                <p className="text-[var(--ink-2)]">
+                <p className="text-(color:--ink-2)">
                   Ignition Coil / Misfire Cylinder 4 — Mass Air Flow Sensor
                 </p>
               </div>
@@ -174,7 +174,7 @@ export default function DesignSystemPage() {
                   >
                     {sample}
                   </span>
-                  <span className="k-label shrink-0 text-[var(--ink-3)]">
+                  <span className="k-label shrink-0 text-(color:--ink-3)">
                     {use}
                   </span>
                 </div>
@@ -198,7 +198,7 @@ export default function DesignSystemPage() {
             </Cell>
             <Cell lifted className="space-y-[var(--s2)]">
               <div className="k-label uppercase">خلية مسحوبة</div>
-              <div className="flex h-[var(--s6)] items-center text-[var(--ink-2)]">
+              <div className="flex h-[var(--s6)] items-center text-(color:--ink-2)">
                 الظل الوحيد
               </div>
             </Cell>
@@ -239,7 +239,7 @@ export default function DesignSystemPage() {
                   بوبينة وشمعات السلندر الرابع (البسطوني)
                 </h3>
               </div>
-              <p className="text-[var(--ink-2)]">
+              <p className="text-(color:--ink-2)">
                 Ignition Coil / Misfire Cylinder 4
               </p>
               <div className="grid gap-[var(--s4)] sm:grid-cols-3">
@@ -278,13 +278,13 @@ export default function DesignSystemPage() {
               التركيز على الحقل تحت.
             </p>
             <input
-              className="w-full max-w-sm border border-[var(--rib)] bg-[var(--cell)] px-[var(--s3)] py-[var(--s2)] text-[var(--ink)] placeholder:text-[var(--ink-3)]"
+              className="w-full max-w-sm border border-[var(--rib)] bg-[var(--cell)] px-[var(--s3)] py-[var(--s2)] text-(color:--ink) placeholder:text-(color:--ink-3)"
               style={{ borderRadius: "var(--radius-input)" }}
               placeholder="P0102, ECM 02"
               aria-label="حقل تجريبي"
             />
             <div className="h-24 overflow-y-auto border border-[var(--rib)] p-[var(--s3)]">
-              <div className="h-48 text-[var(--ink-2)]">
+              <div className="h-48 text-(color:--ink-2)">
                 مرّر هنا عشان تشوف شريط التمرير المربّع.
               </div>
             </div>

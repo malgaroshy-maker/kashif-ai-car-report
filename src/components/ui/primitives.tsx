@@ -111,12 +111,12 @@ export function BankRule({
         {token.labelAr}
       </h2>
       {typeof count === "number" && (
-        <span data-num className="k-label text-[var(--ink-3)]">
+        <span data-num className="k-label text-(color:--ink-3)">
           {count}
         </span>
       )}
       <span className="rib mt-[2px] h-px flex-1" aria-hidden />
-      <span data-num className="k-label text-[var(--ink-3)]">
+      <span data-num className="k-label text-(color:--ink-3)">
         {token.ampRating}
       </span>
     </div>
@@ -125,32 +125,43 @@ export function BankRule({
 
 /* ------------------------------------------------------------------- Field */
 
-/** Label above, value below, hairline under. The universal data pair. */
+/**
+ * Label above, value below, hairline under. The universal data pair.
+ *
+ * `pair` renders the two halves as `<dt>` and `<dd>` for use inside a `<dl>`.
+ * The screens that needed that were wrapping a Field in a `<dd>` and putting a
+ * second, `sr-only` `<dt>` above it — so a screen reader read every field name
+ * twice ("رقم الهيكل، رقم الهيكل، JTDBR42E309SAMPLE").
+ */
 export function Field({
   label,
   value,
   mono = false,
+  pair = false,
   className,
 }: {
   label: string;
   value: React.ReactNode;
   mono?: boolean;
+  pair?: boolean;
   className?: string;
 }) {
   const missing = value === null || value === undefined || value === "";
+  const Label = pair ? "dt" : "div";
+  const Value = pair ? "dd" : "div";
 
   return (
     <div className={cn("pb-[var(--s2)]", className)}>
-      <div className="k-label uppercase">{label}</div>
-      <div
+      <Label className="k-label uppercase">{label}</Label>
+      <Value
         {...(mono ? { "data-num": true } : {})}
         className={cn(
           "border-b border-[var(--rib)] pb-[var(--s1)] pt-[2px]",
-          missing ? "text-[var(--ink-3)] italic" : "text-[var(--ink)]"
+          missing ? "text-(color:--ink-3) italic" : "text-(color:--ink)"
         )}
       >
         {missing ? "غير محدد" : value}
-      </div>
+      </Value>
     </div>
   );
 }
@@ -208,11 +219,11 @@ export function Button({
         "active:translate-y-px",
         "disabled:cursor-not-allowed disabled:opacity-45",
         variant === "primary" &&
-          "border-transparent bg-[var(--amp-15-ink)] text-[var(--cell)] hover:brightness-110",
+          "border-transparent bg-[var(--amp-15-ink)] text-(color:--cell) hover:brightness-110",
         variant === "ghost" &&
-          "border-[var(--rib)] bg-[var(--cell)] text-[var(--ink)] hover:bg-[var(--board-sunk)]",
+          "border-[var(--rib)] bg-[var(--cell)] text-(color:--ink) hover:bg-[var(--board-sunk)]",
         variant === "danger" &&
-          "border-transparent bg-[var(--amp-10-ink)] text-[var(--cell)] hover:brightness-110",
+          "border-transparent bg-[var(--amp-10-ink)] text-(color:--cell) hover:brightness-110",
         className
       )}
       {...rest}

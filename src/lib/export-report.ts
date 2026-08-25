@@ -1,29 +1,33 @@
-"use client";
+import { escapeDeep, escapeHtml, safeFilenamePart } from "./html-escape";
+import { getPartSvg } from "./part-visuals";
+import { getElectricalDiagnosticsForCode } from "./sensor-locator";
+import { orUnknown, type KashifDiagnosticReport } from "./types";
 
-import React from "react";
-import {
-  Printer,
-  Share2,
-  Download,
-} from "lucide-react";
-import { KashifDiagnosticReport, orUnknown } from "@/lib/types";
-import { escapeDeep, escapeHtml, safeFilenamePart } from "@/lib/html-escape";
-import { getPartSvg } from "@/lib/part-visuals";
-import { getElectricalDiagnosticsForCode } from "@/lib/sensor-locator";
+/**
+ * The three ways a report leaves the screen.
+ *
+ * These were 650 lines inside a button bar, so the markup and the document
+ * builder could not be worked on separately — and the button bar was the old
+ * dark-dashboard design. The builder is the part worth keeping: it produces a
+ * file that opens on a workshop laptop with no internet, and it has already
+ * been through the escaping and the no-invented-values passes.
+ */
 
-interface ExportActionBarProps {
-  report: KashifDiagnosticReport;
+/** Hands the page to the browser's print dialog, which is also Save as PDF. */
+export function printReport(): void {
+    window.print();
 }
 
-export const ExportActionBar: React.FC<ExportActionBarProps> = ({ report }) => {
-
-  // 1. Trigger Print to PDF
-  const handlePrint = () => {
-    window.print();
-  };
-
   // 2. Generate and open WhatsApp message
-  const handleWhatsAppShare = () => {
+/**
+ * The short text version, for pasting into WhatsApp.
+ *
+ * This is the copy that actually travels: it gets forwarded to the owner, to
+ * the parts shop, and to whoever is being asked for a second opinion. It says
+ * `غير محدد` where the scan said nothing, because a number invented here is a
+ * number somebody quotes back later as fact.
+ */
+export function shareReportToWhatsApp(report: KashifDiagnosticReport): void {
     const v = report?.vehicle;
     const vehicle = {
       make: orUnknown(v?.make, "مركبة"),
@@ -87,10 +91,16 @@ ${(report.sparePartsRequired || [])
 
     const encoded = encodeURIComponent(text);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
-  };
+}
 
   // 3. Download standalone, highly styled, self-contained HTML report with HD parts SVG
-  const handleDownloadHtml = () => {
+/**
+ * The standalone certificate: one HTML file that opens with no network.
+ *
+ * Every value is escaped on the way in (`escapeDeep`), because a fault
+ * description is model output and this file is opened as a document.
+ */
+export function downloadReportHtml(report: KashifDiagnosticReport): void {
     // Every string below is model output, interpolated into an HTML file the
     // user forwards to their customer. Escaping once at the source is the only
     // enforceable place: the template has hundreds of interpolation points and
@@ -625,48 +635,4 @@ ${(report.sparePartsRequired || [])
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  return (
-    <div className="w-full workbench-panel rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print">
-      <div>
-        <h3 className="text-xs sm:text-sm font-bold text-white font-heading">
-          خيارات التصدير والمشاركة الفنية
-        </h3>
-        <p className="text-[11px] text-slate-400">
-          تصدير تقرير شامل مستقل (Standalone HTML) أو مشاركته مع العميل عبر واتساب
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-        {/* Standalone HTML Export */}
-        <button
-          onClick={handleDownloadHtml}
-          className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-          title="تنزيل ملف تقرير كامل ومستقل يعمل بدون إنترنت"
-        >
-          <Download className="w-3.5 h-3.5" />
-          <span>تنزيل تقرير HTML</span>
-        </button>
-
-        {/* Print / Save PDF */}
-        <button
-          onClick={handlePrint}
-          className="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-        >
-          <Printer className="w-3.5 h-3.5" />
-          <span>طباعة / PDF</span>
-        </button>
-
-        {/* WhatsApp Share */}
-        <button
-          onClick={handleWhatsAppShare}
-          className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-        >
-          <Share2 className="w-3.5 h-3.5" />
-          <span>واتساب</span>
-        </button>
-      </div>
-    </div>
-  );
-};
+}

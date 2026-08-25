@@ -1,6 +1,6 @@
 # Kashif AI — Rebuild Plan
 
-**Status:** Phases 1, 2, 3 and 4 done and verified, plus F30. Phases 0, 5-7 outstanding.
+**Status:** Phases 1-5 done and verified. Phases 0, 6 and 7 outstanding.
 **Scope:** full visual redesign, engineering remediation, and a real Cloudflare deployment.
 **Written:** 2026-08-24 · **Product truth:** [PRODUCT.md](PRODUCT.md)
 
@@ -308,7 +308,7 @@ The DuckDuckGo tier is deleted, not moved: it scraped an internal `i.js` endpoin
 
 When a fault code was not in its table, [sensor-locator.ts](src/lib/sensor-locator.ts) derived a fuse box, a fuse number, an amperage, a relay name, a position on the engine diagram and a full multimeter pinout from the code's first three characters — `F03 / 15A`, `15A (أزرق)`, `coordinatePct: { x: 50, y: 50 }`, `5.0V مرجعي ثابت`. Even an exact table hit was topped up with those generics for any missing sub-block. This is the same class as F1 and F18 and the sharpest instance of it: the reader acts on these physically — they pull that fuse, and they put a probe where the marker is.
 
-Following it into the UI turned up worse. [SensorFuseLocatorModal.tsx](src/components/SensorFuseLocatorModal.tsx) rendered a **"FUSE BOX SCHEMATIC MATRIX"**: a hardcoded sixteen-fuse grid — `F01 (10A)` through `F16 (7.5A)` — with the "matching" cell pulsing amber and labelled `المستهدف ⭐`. No car has that layout except by coincidence. It is deleted.
+Following it into the UI turned up worse. The old `SensorFuseLocatorModal` (deleted in Phase 5, now [WiringSheet.tsx](src/components/report/WiringSheet.tsx)) rendered a **"FUSE BOX SCHEMATIC MATRIX"**: a hardcoded sixteen-fuse grid — `F01 (10A)` through `F16 (7.5A)` — with the "matching" cell pulsing amber and labelled `المستهدف ⭐`. No car has that layout except by coincidence. It is deleted.
 
 Three sources now, and the modal always says which one it is showing:
 
@@ -471,8 +471,35 @@ Verified against the real Worker via `cf:preview` — **27/27**, plus a live ana
 ### Phase 4 — Design system — **DONE**
 Tokens (§1.3), the two fonts (§1.4), light and dark, the print stylesheet as a first-class output, the severity notation, the base primitives, and the direction contract committed as the HTML comment in the root layout. Verified per §1.6. `/design` renders the living spec.
 
-### Phase 5 — Rebuild the surface *(3-4 days)*
-Screens in §1.7, on the primitives in §1.5, mobile and desktop together. Delete the compatibility bridge in `globals.css` when the last incumbent component is gone. `page.tsx` splits into a server shell with client islands. First run, ingestion, analysing, report, empty and error states. Modals become in-place sections and sheets.
+### Phase 5 — Rebuild the surface — **DONE**
+
+**Every incumbent component is gone and the `globals.css` bridge is deleted.** `src/components/` now holds only `report/` and `ui/`.
+
+Deleted: `Header`, `UploadDropzone`, `VehicleHealthCard`, `FaultPriorityMatrix`, `SparePartsSection`, `DiagnosticChecklist`, `ExportActionBar`, `InspectionHistory`, `FaultCodeCard`, `SensorFuseLocatorModal`, `MechanicChatAssistant` — eleven files. In their place, twelve on the fuse-box primitives: `Masthead`, `Intake`, `VehiclePlate`, `FaultBoard`, `FaultCell`, `Checklist`, `PartsBank`, `ReportActions`, `HistoryBank`, `SettingsPanel`, `DictionaryPanel`, `WiringSheet`, `AssistantPanel`, plus `ui/Sheet`.
+
+The 650-line standalone-HTML builder moved out of the deleted button bar into [export-report.ts](src/lib/export-report.ts) — it produces a file that opens on a workshop laptop with no internet and had already been through the escaping and no-invented-values passes, so it was the part worth keeping.
+
+**Two decisions that changed the shape of the screen, not just its colours:**
+
+- **The assistant is a section, not a floating drawer.** It sat in a bubble over the bottom-left corner, which covered the spare-parts list — the thing people are asking about. It is now the last section of the document, in reading order: you read what is wrong, then you ask the follow-up.
+- **Modals became sheets, and reading detail stopped being a modal at all.** A fault's symptoms and causes disclose in place on the cell, because a mechanic holding a phone under a bonnet should not have to manage a stack of overlays to compare two faults. Only settings, the dictionary and the wiring reference — reference material, not steps — arrive over the board.
+
+**Two real bugs the rebuild exposed:**
+
+- **`text-[var(--cell)]` was being silently deleted.** `Button`'s primary variant set its text colour that way, and callers passed `className="text-[var(--t-plate)]"` for size. tailwind-merge cannot tell an arbitrary custom property is a size rather than a colour, so it treated them as the same utility and the later one won — the primary button lost its colour (measured **1.68:1** against its own background) *and* never got the smaller size either. Every arbitrary `text-` value in the codebase is now typed: `text-(color:--cell)`, `text-(length:--t-plate)`. 13 size and 71 colour classes.
+- **Every field label was read out twice.** `VehiclePlate` and `PartsBank` wrapped a `Field` in a `<dd>` and put a second, `sr-only` `<dt>` above it, so a screen reader said *"رقم الهيكل، رقم الهيكل، JTDBR42E309SAMPLE"*. `Field` gained a `pair` prop that renders the real `<dt>`/`<dd>`.
+
+`ui/Sheet` carries the modal behaviour once, because there is one correct version of it and the incumbent modals had none: they closed on Escape and nothing else. Focus fell through to the page behind, Tab cycled the whole document, and closing left focus on `<body>`.
+
+Verified against the real Worker:
+
+- **contrast: 0 failures in both themes**, 148 text nodes measured against their real computed backgrounds
+- **mobile 375px: 0px horizontal overflow**, nothing outside the viewport; the four sub-44px controls are checkbox inputs inside 342x143 labels
+- the wiring sheet reports `reference` for P0102 with real data, and `general` for B2321 with `غير محدد` where the invented `F10 / ECU-15A` used to be
+- Escape closes a sheet, focus returns to the exact button that opened it, body scroll is restored
+- `no-print` on the export bar and the assistant; 27 drawn severity marks survive black and white
+
+Not done here: `page.tsx` is still one client component rather than a server shell with client islands. It reads `localStorage` for history during render, which is a client concern all the way down — splitting it would mean moving history into a child, and the win is a few KB. Left for Phase 6 with the rest of the performance work.
 
 ### Phase 6 — Accessibility, performance, PWA *(1 day)*
 F21, F24-F27. Then one batched verification round: desktop and mobile screenshots together, the mechanical detector over the changed files, fix everything found in one pass, confirm once, stop.
@@ -480,7 +507,7 @@ F21, F24-F27. Then one batched verification round: desktop and mobile screenshot
 ### Phase 7 — Docs *(half a day)*
 `DESIGN.md` written from the built world. README, PRD, and ROADMAP corrected against reality.
 
-**Estimate: 5-7 working days remaining** (Phases 1, 2, 3 and 4 are done). Phase 5 is the largest remaining block by some distance.
+**Estimate: 1-2 working days remaining** (Phases 1-5 are done). What is left is Phase 0's test harness, Phase 6's performance and PWA work, and Phase 7's docs.
 
 ---
 
@@ -491,14 +518,14 @@ F21, F24-F27. Then one batched verification round: desktop and mobile screenshot
 - [x] `/server/app/index.html` and `/required-server-files.json` return 404. *(F4)* — verified locally; re-asserted by CI on every deploy.
 - [~] A push to `main` deploys the live Worker. *(F5)* — workflow rewritten and the build verified; awaiting `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`.
 - [x] One implementation of each API route exists in the repo. *(F6)*
-- [ ] A user with no key sees a clear, explained key step and two working sample reports.
+- [x] A user with no key sees a clear, explained key step and two working sample reports. — the intake screen opens with the bring-your-own-key note and both demos, and the demos need no key.
 - [ ] A user's key is accepted, validated with real feedback, and produces a real analysis.
 - [x] An exported report containing `<script>alert(1)</script>` in a fault description opens inert. *(F15)* — the offline-fonts half (F16) is still open.
 - [x] `eslint` reports zero errors. `tsc --noEmit` is clean. *(F19, F20)* — and CI now fails on a lint error rather than warning.
-- [ ] Every interactive element is keyboard-reachable and labelled; every dialog traps and restores focus. *(F21)*
-- [ ] The report is fully legible printed in black and white — severity readable from shape alone.
+- [x] Every dialog traps and restores focus. *(F21)* — `ui/Sheet` does it once; verified that Escape closes and focus returns to the opening button. A full keyboard sweep of every control is still Phase 6.
+- [~] The report is legible printed in black and white — severity is carried by 27 drawn shapes, and the export bar and assistant are `no-print`. Not yet checked against a real printed sheet.
 - [ ] Lighthouse on a throttled 3G phone profile: LCP under 2.5s, CLS under 0.1, a11y 95 or above.
-- [ ] Light and dark both ship, and neither is a filter over the other.
+- [x] Light and dark both ship, and neither is a filter over the other. — separate token sets; 0 contrast failures in each, measured on the built page.
 
 ---
 

@@ -76,6 +76,10 @@
 
   --lift: 0 6px 18px -6px rgb(12 14 12 / 0.42);
 
+  /* Behind a sheet. Dark enough that the board reads as out of reach, light
+     enough that the reader can still see which report they left open. */
+  --scrim: rgb(26 29 25 / 0.5);
+
   /* Type. One body size carries the whole board; rank is weight, case and rule. */
   --t-label: 0.6875rem;
   --t-plate: 0.75rem;
@@ -143,6 +147,8 @@
     --amp-15-ink: #82c0f0;
 
     --lift: 0 8px 22px -6px rgb(0 0 0 / 0.7);
+  --scrim: rgb(0 0 0 / 0.62);
+    --scrim: rgb(0 0 0 / 0.62);
   }
 }
 
@@ -172,6 +178,7 @@
   --amp-15-ink: #82c0f0;
 
   --lift: 0 8px 22px -6px rgb(0 0 0 / 0.7);
+  --scrim: rgb(0 0 0 / 0.62);
 }
 
 /* ------------------------------------------------------------------ base -- */
@@ -268,6 +275,38 @@
   }
 }
 
+/* ----------------------------------------------------------------- motion -- */
+
+/* A sheet arrives from the edge it is anchored to: up from the bottom on a
+   phone, in from the inline-start edge on a wide screen. One movement, on the
+   system's one curve. Nothing else in the product animates position.
+
+   The reduced-motion block at the end of this file already flattens every
+   animation to 0.01ms, so this needs no separate guard. */
+@keyframes sheet-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 640px) {
+  @keyframes sheet-in {
+    from {
+      transform: translateX(calc(-1 * var(--s4)));
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+}
+
 /* ------------------------------------------------------------ primitives -- */
 
 @layer components {
@@ -344,28 +383,6 @@
 
   .k-lift {
     box-shadow: var(--lift);
-  }
-}
-
-/* --- BRIDGE — delete with the surface rebuild (plan.md Phase 5) -----------
-   The incumbent screens still reference .workbench-panel, .workbench-card and
-   .font-heading. Mapping them onto the new tokens keeps the app rendering, and
-   moves it onto the fuse-box palette, while its components are rewritten. Any
-   new markup uses .k-cell and the primitives instead. */
-
-@layer components {
-  .workbench-panel,
-  .workbench-card {
-    background-color: var(--cell);
-    border: 1px solid var(--rib);
-    box-shadow: inset 0 1px 0 0 var(--rib-lit);
-    border-radius: 0;
-  }
-
-  .font-heading {
-    font-family: var(--font-sans);
-    font-weight: 700;
-    letter-spacing: 0.01em;
   }
 }
 

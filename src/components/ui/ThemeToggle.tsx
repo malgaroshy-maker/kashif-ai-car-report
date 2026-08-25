@@ -73,9 +73,9 @@ export function ThemeToggle({ className }: { className?: string }) {
       }
       className={cn(
         "inline-flex size-[var(--tap)] items-center justify-center",
-        "border border-[var(--rib)] bg-[var(--cell)] text-[var(--ink-2)]",
+        "border border-[var(--rib)] bg-[var(--cell)] text-(color:--ink-2)",
         "transition-colors duration-[var(--dur-mark)] ease-[var(--ease)]",
-        "hover:bg-[var(--board-sunk)] hover:text-[var(--ink)]",
+        "hover:bg-[var(--board-sunk)] hover:text-(color:--ink)",
         className
       )}
     >
