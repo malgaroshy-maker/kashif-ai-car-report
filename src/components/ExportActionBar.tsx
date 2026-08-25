@@ -7,7 +7,7 @@ import {
   Download,
 } from "lucide-react";
 import { KashifDiagnosticReport, orUnknown } from "@/lib/types";
-import { escapeDeep, safeFilenamePart } from "@/lib/html-escape";
+import { escapeDeep, escapeHtml, safeFilenamePart } from "@/lib/html-escape";
 import { getPartSvg } from "@/lib/part-visuals";
 import { getElectricalDiagnosticsForCode } from "@/lib/sensor-locator";
 
@@ -476,6 +476,19 @@ ${(report.sparePartsRequired || [])
         .map(
           (f) => {
             const elec = f.electricalDiagnostics || getElectricalDiagnosticsForCode(f.code, safe.vehicle?.make ?? undefined);
+            // The printed copy is the one that leaves the workshop and gets
+            // acted on with a probe, so it carries the same disclosure the
+            // screen does. A fuse number we do not have is stated as missing,
+            // not filled in.
+            const fuseLine = elec.fuseInfo.fuseNumber
+              ? `${escapeHtml(elec.fuseInfo.fuseNumber)}${elec.fuseInfo.rating ? ` (${escapeHtml(elec.fuseInfo.rating)})` : ""} — ${escapeHtml(elec.fuseInfo.boxLocation)}`
+              : `غير محدد — اقرا الرسم المطبوع على غطاء علبة الفيوزات. ${escapeHtml(elec.fuseInfo.boxLocation)}`;
+            const elecNote =
+              elec.provenance === "general"
+                ? `<div style="color: #FCD34D; margin-top: 4px; font-size: 10px;">إرشاد عام لعائلة هذا الرمز — مش مخطط هذه السيارة.</div>`
+                : elec.provenance === "reference"
+                  ? `<div style="color: #94A3B8; margin-top: 4px; font-size: 10px;">بيانات مرجعية للرمز — تأكد منها على السيارة قبل الفك.</div>`
+                  : "";
             return `
         <div class="fault-card">
           <div class="fault-header">
@@ -493,10 +506,11 @@ ${(report.sparePartsRequired || [])
           </div>
 
           <div style="background: rgba(15,23,42,0.9); border: 1px dashed rgba(59,130,246,0.4); padding: 8px 10px; border-radius: 8px; margin-top: 8px; font-size: 11px;">
-            <div style="color: #60A5FA; font-weight: bold; margin-bottom: 3px;">⚡ مخطط الحساس والفيوز (Pinout & Fuse):</div>
+            <div style="color: #60A5FA; font-weight: bold; margin-bottom: 3px;">⚡ إرشاد الحساس والفيوز:</div>
             <div style="color: #E2E8F0; margin-bottom: 2px;">📍 <strong>موقع الحساس:</strong> ${elec.sensorLocation.areaName}</div>
-            <div style="color: #FCD34D; margin-bottom: 2px;">🔌 <strong>الفيوز المخصص:</strong> ${elec.fuseInfo.fuseNumber} (${elec.fuseInfo.rating}) - ${elec.fuseInfo.boxLocation}</div>
+            <div style="color: #FCD34D; margin-bottom: 2px;">🔌 <strong>الفيوز:</strong> ${fuseLine}</div>
             <div style="color: #A7F3D0;">🔋 <strong>فحص الأفوميتر:</strong> ${elec.multimeterTest.powerPin} | ${elec.multimeterTest.groundPin}</div>
+            ${elecNote}
           </div>
 
           <div style="margin-top: 8px; font-size: 11px; color: #E2E8F0;">

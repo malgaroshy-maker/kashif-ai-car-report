@@ -2,11 +2,31 @@ export type SeverityStatus = "حرج / خطر" | "متوسط / انتبه" | "س
 
 export type FuelType = "بنزين" | "نافطة / ديزل" | "هايبرد" | "كهرباء";
 
+/**
+ * Where a piece of electrical guidance came from.
+ *
+ * This decides how much the reader is entitled to trust it, and the UI has to
+ * say which one it is. Somebody puts a probe on a pin, or pulls a fuse,
+ * because this screen told them which one.
+ *
+ * - `scan`      — read out of this car's own scan by the analysis.
+ * - `reference` — an exact fault-code match in our own lookup table. Correct
+ *                 for the code, but not verified against this exact model year.
+ * - `general`   — inferred from the code's family, nothing more. Workshop
+ *                 practice that happens to be true of most cars. It carries no
+ *                 fuse number, no amperage, no diagram position and no pin
+ *                 number, because those would be inventions about this car.
+ */
+export type ElectricalProvenance = "scan" | "reference" | "general";
+
 export interface ElectricalDiagnosticInfo {
+  provenance: ElectricalProvenance;
   fuseInfo: {
     boxLocation: string; // e.g. "علبة فيوزات حوض المحرك (الرئيسية)" أو "علبة الفيوزات الداخلية (تحت التابلو)"
-    fuseNumber: string; // e.g. "F14" أو "F02" أو "ENG-15A"
-    rating: string; // e.g. "15A (أزرق)" أو "20A (أصفر)" أو "30A (أخضر)"
+    /** null unless the source actually names one. Never a guessed "F15". */
+    fuseNumber: string | null; // e.g. "F14" أو "F02" أو "ENG-15A"
+    /** null unless the source actually names one. Never a guessed "15A". */
+    rating: string | null; // e.g. "15A (أزرق)" أو "20A (أصفر)" أو "30A (أخضر)"
     relayName?: string | null; // e.g. "كتاوت تغذية المحرك الرئيسية (Main Relay)" أو "كتاوت طرمبة البنزين"
     circuitDescription: string; // e.g. "تغذية حساسات المحرك والـ ECM"
   };
@@ -14,7 +34,9 @@ export interface ElectricalDiagnosticInfo {
     areaName: string; // e.g. "مدخل الهواء بعد علبة الفيلترو مباشرة"
     engineZone: "front-air" | "top-manifold" | "exhaust-downpipe" | "transmission" | "wheel-hub" | "fuel-tank" | "cabin";
     accessTip: string; // e.g. "يمكن الوصول إليه بسهولة بفك قفيز خرطوم الهواء دون الحاجة لرفع السيارة"
-    coordinatePct: { x: number; y: number }; // Relative position on top-down engine diagram (0-100%)
+    /** null when nothing located it. The diagram then draws no marker rather
+     *  than dropping one in the middle of the engine bay. */
+    coordinatePct: { x: number; y: number } | null; // Relative position on top-down engine diagram (0-100%)
   };
   multimeterTest: {
     powerPin: string; // e.g. "12V خط الكهرباء الثابت/مع السويتش (Pin 1)"

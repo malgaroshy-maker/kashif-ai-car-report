@@ -463,7 +463,11 @@ export function normalizeDiagnosticReport(
     },
     recommendedAction: pick(f.recommendedAction) || "",
     recommendedPartId: pick(f.recommendedPartId) || undefined,
-    electricalDiagnostics: f.electricalDiagnostics ?? undefined,
+    // The model read this off the scan, so it is about this car — but it is
+    // still a claim, and the modal has to say where it came from.
+    electricalDiagnostics: f.electricalDiagnostics
+      ? { ...f.electricalDiagnostics, provenance: "scan" as const }
+      : undefined,
   });
 
   const criticalFaults = critical.map((f) => mapFault(f, "عالي جداً"));

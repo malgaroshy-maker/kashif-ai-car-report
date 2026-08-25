@@ -13,6 +13,7 @@ import {
   Gauge,
 } from "lucide-react";
 import { DiagnosticCodeDetail } from "@/lib/types";
+import { Info } from "lucide-react";
 import { getElectricalDiagnosticsForCode } from "@/lib/sensor-locator";
 
 interface SensorFuseLocatorModalProps {
@@ -34,7 +35,27 @@ export const SensorFuseLocatorModal: React.FC<SensorFuseLocatorModalProps> = ({
     fault.electricalDiagnostics ||
     getElectricalDiagnosticsForCode(fault.code, vehicleMake);
 
-  const { fuseInfo, sensorLocation, multimeterTest } = diag;
+  const { fuseInfo, sensorLocation, multimeterTest, provenance } = diag;
+
+  // What this screen is allowed to claim. Everything below is drawn from one
+  // of three sources and the reader is told which, because they act on it
+  // physically: they pull a fuse, and they put a probe on a pin.
+  const PROVENANCE = {
+    scan: {
+      label: "من فحص سيارتك",
+      note: "هذه البيانات مستخرجة من تقرير الفحص الخاص بسيارتك.",
+    },
+    reference: {
+      label: "من مرجع الأكواد",
+      note: "بيانات مرجعية للرمز نفسه. تأكد منها على سيارتك قبل الفك أو القياس — الترقيم يختلف بين الموديلات والسنوات.",
+    },
+    general: {
+      label: "إرشاد عام — مش مخطط سيارتك",
+      note: "الرمز مش موجود في المرجع عندنا. اللي تحت إرشاد ورشة عام لعائلة هذا الرمز: ما فيهش رقم فيوز ولا أمبير ولا موقع محدد، لأن دي تختلف من سيارة لسيارة. رقم الفيوز الصحيح مطبوع على غطاء علبة الفيوزات في سيارتك.",
+    },
+  }[provenance];
+
+  const isGeneral = provenance === "general";
 
   return (
     <div
@@ -121,6 +142,26 @@ export const SensorFuseLocatorModal: React.FC<SensorFuseLocatorModalProps> = ({
 
         {/* Tab Content */}
         <div className="p-4 sm:p-6 overflow-y-auto max-h-[65vh] space-y-4">
+          {/* Where this came from. Never hidden behind a tab. */}
+          <div
+            className={`p-3 rounded-xl border flex items-start gap-2 text-xs ${
+              isGeneral
+                ? "bg-amber-950/40 border-amber-700/60 text-amber-100"
+                : "bg-slate-900/80 border-slate-800 text-slate-300"
+            }`}
+          >
+            <Info
+              className={`w-4 h-4 shrink-0 mt-0.5 ${
+                isGeneral ? "text-amber-400" : "text-blue-400"
+              }`}
+            />
+            <span>
+              <strong className={isGeneral ? "text-amber-200" : "text-white"}>
+                {PROVENANCE.label}:{" "}
+              </strong>
+              {PROVENANCE.note}
+            </span>
+          </div>
           {/* TAB 1: Engine Bay Schematic */}
           {activeTab === "engine" && (
             <div className="space-y-4">
@@ -195,22 +236,33 @@ export const SensorFuseLocatorModal: React.FC<SensorFuseLocatorModalProps> = ({
                   </text>
                 </svg>
 
-                {/* Target Pulsating Pin */}
-                <div
-                  className="absolute z-20 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
-                  style={{
-                    left: `${sensorLocation.coordinatePct.x}%`,
-                    top: `${sensorLocation.coordinatePct.y}%`,
-                  }}
-                >
-                  <div className="relative flex items-center justify-center">
-                    <span className="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-blue-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-5 w-5 bg-blue-500 border-2 border-white shadow-lg shadow-blue-500/50" />
+                {/* The marker is drawn only when something actually located
+                    the sensor. It used to default to the middle of the engine
+                    bay, which pointed at a component at random. */}
+                {sensorLocation.coordinatePct ? (
+                  <div
+                    className="absolute z-20 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
+                    style={{
+                      left: `${sensorLocation.coordinatePct.x}%`,
+                      top: `${sensorLocation.coordinatePct.y}%`,
+                    }}
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <span className="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-blue-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-5 w-5 bg-blue-500 border-2 border-white shadow-lg shadow-blue-500/50" />
+                    </div>
+                    <span className="mt-1 px-2 py-0.5 rounded bg-blue-950/90 border border-blue-500 text-blue-200 text-[10px] font-bold whitespace-nowrap shadow-md">
+                      موقع: {fault.code}
+                    </span>
                   </div>
-                  <span className="mt-1 px-2 py-0.5 rounded bg-blue-950/90 border border-blue-500 text-blue-200 text-[10px] font-bold whitespace-nowrap shadow-md">
-                    موقع: {fault.code}
-                  </span>
-                </div>
+                ) : (
+                  <div className="absolute inset-x-0 bottom-0 z-20 p-2 bg-slate-950/85 border-t border-slate-800 text-center pointer-events-none">
+                    <span className="text-[11px] text-slate-300">
+                      رسم عام للتوضيح — ما عندناش موقع محدد لهذا الرمز على هذه
+                      السيارة
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Location Details Card */}
@@ -245,9 +297,15 @@ export const SensorFuseLocatorModal: React.FC<SensorFuseLocatorModalProps> = ({
                       بيانات الفيوز المخصص للمنظومة
                     </span>
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
-                    {fuseInfo.rating}
-                  </span>
+                  {fuseInfo.rating ? (
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                      {fuseInfo.rating}
+                    </span>
+                  ) : (
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-700">
+                      الأمبير غير محدد
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -258,7 +316,13 @@ export const SensorFuseLocatorModal: React.FC<SensorFuseLocatorModalProps> = ({
 
                   <div className="p-3 rounded-lg bg-slate-950 border border-slate-800/80">
                     <span className="text-slate-400 block mb-1">رقم ورمز الفيوز (Fuse ID):</span>
-                    <span className="text-amber-300 font-mono font-bold">{fuseInfo.fuseNumber}</span>
+                    {fuseInfo.fuseNumber ? (
+                      <span className="text-amber-300 font-mono font-bold">{fuseInfo.fuseNumber}</span>
+                    ) : (
+                      <span className="text-slate-400">
+                        غير محدد — اقرا الرسم المطبوع على غطاء علبة الفيوزات
+                      </span>
+                    )}
                   </div>
 
                   {fuseInfo.relayName && (
@@ -274,41 +338,13 @@ export const SensorFuseLocatorModal: React.FC<SensorFuseLocatorModalProps> = ({
                   </div>
                 </div>
 
-                {/* Fuse Box Layout Schematic */}
-                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                  <span className="text-[11px] font-bold text-slate-400 font-mono uppercase">
-                    FUSE BOX SCHEMATIC MATRIX (مخطط ترتيب الفيوزات)
-                  </span>
-
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
-                    {["F01 (10A)", "F02 (20A)", "F03 (15A)", "F04 (7.5A)", "F05 (30A)", "F06 (15A)", "F07 (10A)", "F08 (20A)", "F09 (15A)", "F10 (30A)", "F11 (15A)", "F12 (10A)", "F13 (20A)", "F14 (15A)", "F15 (30A)", "F16 (7.5A)"].map((f, i) => {
-                      const isTarget = f.includes(fuseInfo.fuseNumber.split("/")[0].trim()) || (fuseInfo.fuseNumber.includes("F14") && f.includes("F14")) || (fuseInfo.fuseNumber.includes("F02") && f.includes("F02"));
-                      return (
-                        <div
-                          key={i}
-                          className={`p-2 rounded border text-center transition-all ${
-                            isTarget
-                              ? "bg-amber-500/20 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/20 scale-105 animate-pulse"
-                              : "bg-slate-900 border-slate-800 text-slate-400 text-[10px] font-mono"
-                          }`}
-                        >
-                          <div className="text-[9px] text-slate-500">FUSE</div>
-                          <div className="text-[11px]">{f}</div>
-                          {isTarget && (
-                            <span className="text-[8px] bg-amber-500 text-slate-950 font-bold px-1 rounded block mt-0.5">
-                              المستهدف ⭐
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
                 <div className="p-3 bg-amber-950/40 border border-amber-800/40 rounded-lg text-amber-200 text-xs flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong>تنبيه فني:</strong> قبل شراء أي حساس جديد، افحص الفيوز الموضح أعلاه بواسطة لمبة فحص (Test Light) أو الأفوميتر لتتأكد أنه غير محروق.
+                    <strong>تنبيه فني:</strong> قبل شراء أي حساس جديد، افحص فيوز
+                    الدائرة بلمبة فحص (Test Light) أو الأفوميتر وتأكد أنه مش
+                    محروق. رقم الفيوز وترتيب العلبة مطبوعين على غطاء علبة
+                    الفيوزات في سيارتك — هذا هو المرجع الصحيح.
                   </span>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 # Kashif AI — Rebuild Plan
 
-**Status:** Phases 1, 2, 3 and 4 done and verified. Phases 0, 5-7 outstanding.
+**Status:** Phases 1, 2, 3 and 4 done and verified, plus F30. Phases 0, 5-7 outstanding.
 **Scope:** full visual redesign, engineering remediation, and a real Cloudflare deployment.
 **Written:** 2026-08-24 · **Product truth:** [PRODUCT.md](PRODUCT.md)
 
@@ -304,13 +304,23 @@ The DuckDuckGo tier is deleted, not moved: it scraped an internal `i.js` endpoin
 
 **KV is not used.** The plan called for it, but the in-process cache plus a day of browser caching covers the same ground, and adding a namespace to a Worker that otherwise needs no storage is a binding to provision and pay for with nothing to show. Worth revisiting only if the Commons round trip shows up in real numbers.
 
-**F30 · `sensor-locator.ts` invents electrical data for codes it does not know.** — **OPEN, and it needs your call.**
+**F30 · `sensor-locator.ts` invented electrical data for codes it did not know.** — **FIXED**.
 
-When a fault code is not in its database, [sensor-locator.ts](src/lib/sensor-locator.ts) derives a fuse box, a fuse number, an amperage, a relay name, a sensor position on the engine diagram and a full multimeter pinout from the code's *prefix* — `F15 / ENG-15A`, `15A (أزرق)`, `coordinatePct: { x: 50, y: 50 }`, `5.0V جهد مرجعي ثابت`. Even an exact database hit falls back to those generics for any missing sub-block.
+When a fault code was not in its table, [sensor-locator.ts](src/lib/sensor-locator.ts) derived a fuse box, a fuse number, an amperage, a relay name, a position on the engine diagram and a full multimeter pinout from the code's first three characters — `F03 / 15A`, `15A (أزرق)`, `coordinatePct: { x: 50, y: 50 }`, `5.0V مرجعي ثابت`. Even an exact table hit was topped up with those generics for any missing sub-block. This is the same class as F1 and F18 and the sharpest instance of it: the reader acts on these physically — they pull that fuse, and they put a probe where the marker is.
 
-This is the same class as F1 and F18, and arguably the sharpest instance of it: somebody puts a probe on a pin because this screen told them which pin. It was not in the original audit because the module reads as a lookup table until you follow the fallbacks.
+Following it into the UI turned up worse. [SensorFuseLocatorModal.tsx](src/components/SensorFuseLocatorModal.tsx) rendered a **"FUSE BOX SCHEMATIC MATRIX"**: a hardcoded sixteen-fuse grid — `F01 (10A)` through `F16 (7.5A)` — with the "matching" cell pulsing amber and labelled `المستهدف ⭐`. No car has that layout except by coincidence. It is deleted.
 
-I have not touched it, because the fix is a product decision rather than a bug fix — either the derived blocks are dropped and the modal says the wiring for this code is not in the reference, or they stay and are labelled unmistakably as generic guidance rather than this car's wiring. Say which and it is a short change.
+Three sources now, and the modal always says which one it is showing:
+
+| | means | carries |
+|---|---|---|
+| `scan` | read off this car's scan by the analysis | everything the model gave |
+| `reference` | exact code match in our table | real data, with a note that numbering varies by model year |
+| `general` | inferred from the code family only | no fuse number, no amperage, no relay, no diagram position, no pin number |
+
+What is left in the `general` branches is the part that was always true — which end of the engine bay a sensor family lives in, and how to check a supply and a ground. That is workshop practice, and it is labelled as such in an amber banner: *"الرمز مش موجود في المرجع عندنا … رقم الفيوز الصحيح مطبوع على غطاء علبة الفيوزات في سيارتك."* The engine diagram draws no marker without a coordinate, and says so under the drawing.
+
+The exported certificate carries the same disclosure, because that is the copy that leaves the workshop and gets acted on.
 
 **F29 · Chat is heavy.** — **MOSTLY FIXED**. The panel sends `chatContextOf(report)` — the vehicle, the headline summary, the critical and moderate fault codes, and the part names, which is exactly what the prompt quotes. Everything else stayed in the browser: the checklist, every fault's symptoms and root causes, and the whole electrical diagnostics block with its pin voltages and diagram coordinates. Measured on a four-fault report, that is **1.6 KB instead of 9.9 KB, 84% smaller**, on a connection that in Libya is usually a phone's. History is trimmed to the last six turns server-side, and the message objects are stripped to `{sender, text}` — the ids and display timestamps were being uploaded every turn and mean nothing to the model.
 

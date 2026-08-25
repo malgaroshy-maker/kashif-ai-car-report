@@ -230,142 +230,178 @@ const ELECTRICAL_DATABASE: Record<string, Partial<ElectricalDiagnosticInfo>> = {
 };
 
 /**
- * Generates or retrieves complete electrical diagnostics for any given OBD fault code
+ * The wiring guidance for one fault code.
+ *
+ * Three outcomes, and the caller must show which one it got — see
+ * `ElectricalProvenance`. This used to have only one outcome. When a code was
+ * not in the table it *derived* a fuse box, a fuse number, an amperage, a
+ * relay name, a position on the engine diagram and a full multimeter pinout
+ * from the code's first three characters — `F03 / 15A`, `15A (أزرق)`,
+ * `coordinatePct: { x: 50, y: 50 }`, `5.0V مرجعي ثابت`. Every one of those is a
+ * claim about a specific car, and the reader acts on them physically: they
+ * pull that fuse, and they put a probe where the marker is.
+ *
+ * What is left in the `general` branches is the part that was actually true —
+ * which end of the engine bay a sensor family lives in, and how to check a
+ * supply and a ground with a multimeter. That is workshop practice, not this
+ * car's wiring diagram, and it is labelled as such.
  */
 export function getElectricalDiagnosticsForCode(
   code: string,
   make?: string
 ): ElectricalDiagnosticInfo {
   const normalized = (code || "").toUpperCase().trim();
+  const entry = ELECTRICAL_DATABASE[normalized];
 
-  // 1. Check exact database match
-  if (ELECTRICAL_DATABASE[normalized]) {
-    const data = ELECTRICAL_DATABASE[normalized];
+  if (entry) {
+    // A table hit used to be topped up with the same invented generics for any
+    // sub-block it was missing. Now a missing block falls back to the general
+    // guidance for the code family, and the whole record is marked accordingly
+    // so nothing claims more precision than it has.
+    const base = deriveGeneral(normalized, make);
+    const complete = Boolean(
+      entry.fuseInfo && entry.sensorLocation && entry.multimeterTest
+    );
     return {
-      fuseInfo: data.fuseInfo || {
-        boxLocation: "علبة فيوزات حوض المحرك الرئيسية",
-        fuseNumber: "F15 / ENG-15A",
-        rating: "15A (أزرق)",
-        relayName: "كتاوت التغذية الرئيسية للمنظومة",
-        circuitDescription: "تغذية حساسات المحرك ووحدة التحكم",
-      },
-      sensorLocation: data.sensorLocation || {
-        areaName: "حوض المحرك الرئيسي",
-        engineZone: "top-manifold",
-        accessTip: "افحص الفيشة والتوصيلات السلكية (البيانتو) بحثاً عن أي تآكل أو رخاوة.",
-        coordinatePct: { x: 50, y: 50 },
-      },
-      multimeterTest: data.multimeterTest || {
-        powerPin: "12V جهد التغذية الأساسي مع فتح السويتش",
-        groundPin: "أقل من 0.05V خط الأرضي الشاسي",
-        signalPin: "إشارة تناظرية متغيرة بين 0.5V و 4.5V",
-        referenceVoltage: "5.0V جهد مرجعي ثابت",
-        testingTipLibyan: "حط الأفوميتر على وضع V DC واقرا الفولتية بين خط الأرضي والكهرباء مع فتح السويتش.",
-      },
+      provenance: complete ? "reference" : "general",
+      fuseInfo: entry.fuseInfo ?? base.fuseInfo,
+      sensorLocation: entry.sensorLocation ?? base.sensorLocation,
+      multimeterTest: entry.multimeterTest ?? base.multimeterTest,
     };
   }
 
-  // 2. Derive intelligently based on code prefix and module
-  const isBmw = (make || "").toLowerCase().includes("bmw") || normalized === "02" || normalized === "CB";
-  const isToyota = (make || "").toLowerCase().includes("toyota");
+  return deriveGeneral(normalized, make);
+}
 
+/**
+ * What can honestly be said about a code we do not have on file.
+ *
+ * No fuse number, no amperage, no relay name, no diagram coordinate: the
+ * reader is pointed at the fuse box lid, which is where the real answer is
+ * printed, and at the general area of the engine bay.
+ */
+function deriveGeneral(
+  normalized: string,
+  make?: string
+): ElectricalDiagnosticInfo {
+  const isBmw =
+    (make || "").toLowerCase().includes("bmw") ||
+    normalized === "02" ||
+    normalized === "CB";
+
+  const noFuseNumber = {
+    fuseNumber: null,
+    rating: null,
+    relayName: null,
+  } as const;
+
+  // Air, fuel and temperature sensors.
   if (normalized.startsWith("P01") || normalized.startsWith("P00")) {
-    // Air / Fuel / Temperature Sensor
     return {
+      provenance: "general",
       fuseInfo: {
-        boxLocation: isBmw ? "علبة DME E-Box تحت فلتر المكيف" : "علبة فيوزات حوض المحرك الرئيسية",
-        fuseNumber: isToyota ? "EFI-15A / F14" : "F03 / 15A",
-        rating: "15A (أزرق)",
-        relayName: "كتاوت تغذية منظومة الوقود والهواء",
-        circuitDescription: `دائرة التغذية الكهربائية لحساس (${normalized}) والمانيفولد`,
+        ...noFuseNumber,
+        boxLocation: isBmw
+          ? "عادةً علبة الـ DME (E-Box) في حوض المحرك"
+          : "عادةً علبة فيوزات حوض المحرك",
+        circuitDescription: `دائرة تغذية حساسات الهواء والوقود — الرمز (${normalized}) من عائلة حساسات السحب`,
       },
       sensorLocation: {
-        areaName: "مجرى سحب الهواء وثلاجة المحرك (Intake Manifold)",
+        areaName: "مجرى سحب الهواء بين علبة الفيلترو وبوابة راس الإنجكشن",
         engineZone: "front-air",
-        accessTip: "يمكن الوصول للحساس بسهولة بفك مسامير التثبيت بعد فصل مشبك الفيشة الكهربائية.",
-        coordinatePct: { x: 35, y: 35 },
+        accessTip:
+          "حساسات هذه العائلة عادةً في متناول اليد من فوق، بفك فيشة وبرغيين. افحص الفيشة من الكربون والتمليح قبل ما تشري القطعة.",
+        coordinatePct: null,
       },
       multimeterTest: {
-        powerPin: "12V تغذية السويتش على السلك الرئيسي",
-        groundPin: "أرضي شاسي نظيف أقل من 0.05V",
-        signalPin: "إشارة حساسية متغيرة بين 0.5V إلى 4.5V تتناسب مع تدفق الهواء وحرارة المحرك",
-        referenceVoltage: "5.0V مرجعي ثابت من كمبيوتر المحرك",
-        testingTipLibyan: "قيس سلك التغذية الـ 12V وسلك الـ 5V المرجعي بالأفوميتر مع السويتش مفتوح بدون تشغيل الموتوري.",
+        powerPin: "خط التغذية: 12V مع فتح السويتش",
+        groundPin: "خط الأرضي: أقل من 0.1V على الشاسي",
+        signalPin: "خط الإشارة: فولتية متغيرة تتبع تدفق الهواء أو الحرارة",
+        referenceVoltage: null,
+        testingTipLibyan:
+          "قيس التغذية والأرضي أولاً بالأفوميتر على V DC. أغلب أعطال هذه العائلة بيانتو أو فيشة، مش الحساس نفسه.",
       },
     };
   }
 
-  if (normalized.startsWith("P03") || normalized.startsWith("P02")) {
-    // Ignition & Fuel Injection
+  // Ignition and injection.
+  if (normalized.startsWith("P02") || normalized.startsWith("P03")) {
     return {
+      provenance: "general",
       fuseInfo: {
-        boxLocation: "علبة فيوزات حوض المحرك (بجانب البطارية / البلوك)",
-        fuseNumber: isBmw ? "F02 / IGN-30A" : "IGN-20A / INJ-15A",
-        rating: "20A (أصفر) أو 30A (أخضر)",
-        relayName: "كتاوت منظومة الإشعال والرشاشات الرئيسية",
-        circuitDescription: `تغذية مسار كويلات الإشعال والرشاشات للرمز (${normalized})`,
+        ...noFuseNumber,
+        boxLocation: "عادةً علبة فيوزات حوض المحرك (مسار الإشعال والرشاشات)",
+        circuitDescription: `دائرة البوبينات والرشاشات — الرمز (${normalized}) من عائلة الإشعال والحقن`,
       },
       sensorLocation: {
-        areaName: "أعلى بلوك المحرك (غطاء الصبابات ومسطرة الرشاشات)",
+        areaName: "أعلى بلوك المحرك: غطاء الصبابات ومسطرة الرشاشات",
         engineZone: "top-manifold",
-        accessTip: "تُفك براغي غطاء الحماية للوصول المباشر للبوبينة أو الرشاش المعني.",
-        coordinatePct: { x: 50, y: 45 },
+        accessTip:
+          "تُفك براغي غطاء الحماية للوصول للبوبينات والرشاشات. بدّل البوبينة مع سلندر ثاني وشوف هل العطل مشى معاها — أرخص من التبديل العشوائي.",
+        coordinatePct: null,
       },
       multimeterTest: {
-        powerPin: "12V كهرباء سويتش واصلة للفيشة",
-        groundPin: "أرضي سليم متصل بالبلوك",
-        signalPin: "نبضات قدح سالبة (Ground Trigger Pulse) من الـ ECM",
-        testingTipLibyan: "تأكد من سلامة كتاوت الإشعال والفيوز، وقيس مقاومة الملف بالأوم مع فحص كبل التوصيل.",
+        powerPin: "خط التغذية: 12V واصلة للفيشة مع السويتش",
+        groundPin: "الأرضي على البلوك",
+        signalPin: "نبضة القدح تجي سالبة من الكمبيوتر",
+        referenceVoltage: null,
+        testingTipLibyan:
+          "قيس مقاومة ملف البوبينة بالأوم وقارنها مع بوبينة سليمة من نفس المحرك. افحص الشمعة والكبل قبل الكويل.",
       },
     };
   }
 
+  // Emissions, speed, cruise.
   if (normalized.startsWith("P04") || normalized.startsWith("P05")) {
-    // Emissions / Speed / Cruise
     return {
+      provenance: "general",
       fuseInfo: {
-        boxLocation: "علبة فيوزات حوض المحرك أو أسفل التابلو الداخلي",
-        fuseNumber: "O2-HTR-15A / EMISS-10A",
-        rating: "15A (أزرق) أو 10A (أحمر)",
-        relayName: "كتاوت سخانات العادم والأنظمة المساندة",
-        circuitDescription: `دائرة التحكم في الانبعاثات وسخانات الحساسات (${normalized})`,
+        ...noFuseNumber,
+        boxLocation:
+          "عادةً علبة فيوزات حوض المحرك، وأحياناً العلبة الداخلية تحت التابلو",
+        circuitDescription: `دائرة الانبعاثات وسخانات الحساسات — الرمز (${normalized})`,
       },
       sensorLocation: {
-        areaName: "أنبوب العادم والمقصورة السفلية",
+        areaName: "خط العادم (الشكمان) وأسفل السيارة",
         engineZone: "exhaust-downpipe",
-        accessTip: "يتم فحص الحساس من أسفل السيارة عند خط الشكمان أو حساسات السرعة بالعجلات.",
-        coordinatePct: { x: 65, y: 65 },
+        accessTip:
+          "الفحص من تحت السيارة عند خط الشكمان. الحساس عادةً مربوط بعزم عالي وساخن — سيّبه يبرد.",
+        coordinatePct: null,
       },
       multimeterTest: {
-        powerPin: "12V تغذية سخان الحساس مع السويتش",
-        groundPin: "أرضي الحساس والشاسي",
-        signalPin: "تذبذب إشارة الفولتية بين 0.1V و 0.9V",
-        testingTipLibyan: "قيس مقاومة سلك السخان الداخلي (5 - 15 أوم)، وافحص الفيوز قبل تغيير الحساس.",
+        powerPin: "تغذية سخان الحساس مع السويتش",
+        groundPin: "أرضي الحساس على الشاسي",
+        signalPin: "إشارة حساس المرميطة تتذبذب باستمرار وما تثبتش",
+        referenceVoltage: null,
+        testingTipLibyan:
+          "قيس مقاومة سلك السخان الداخلي بالأوم. حساس ثابت ما يتذبذبش يعني ميت حتى لو التغذية سليمة.",
       },
     };
   }
 
-  // Generic OBD / Network / Chassis
+  // Anything else: network, chassis, body.
   return {
+    provenance: "general",
     fuseInfo: {
-      boxLocation: "علبة فيوزات حوض المحرك الرئيسية (Engine Fuse Center)",
-      fuseNumber: "F10 / ECU-15A",
-      rating: "15A (أزرق)",
-      relayName: "كتاوت المنظومة العامة",
-      circuitDescription: `دائرة تغذية وحماية منظومة (${normalized})`,
+      ...noFuseNumber,
+      boxLocation:
+        "مش محدد لهذا الرمز — راجع الرسم المطبوع على غطاء علبة الفيوزات في سيارتك",
+      circuitDescription: `دائرة تغذية وحماية المنظومة المرتبطة بالرمز (${normalized})`,
     },
     sensorLocation: {
-      areaName: "حوض المحرك وشبكة الأسلاك (البيانتو)",
+      areaName: "غير محدد لهذا الرمز",
       engineZone: "top-manifold",
-      accessTip: "افحص الفيشة الكهربائية للتأكد من عدم وجود كربون أو تمليح أو كسر في الأقفال.",
-      coordinatePct: { x: 50, y: 50 },
+      accessTip:
+        "ابدأ من الفيشة وشبكة الأسلاك (البيانتو): كربون، تمليح، أو قفل مكسور. أغلب أعطال الشبكة توصيلة مش قطعة.",
+      coordinatePct: null,
     },
     multimeterTest: {
-      powerPin: "12V تغذية خط السويتش",
-      groundPin: "أرضي شاسي سليم (< 0.1V)",
-      signalPin: "إشارة اتصال مستقرة مع وحدة التحكم",
-      referenceVoltage: "5.0V مرجعي من وحدة التحكم",
-      testingTipLibyan: "حط الأفوميتر على قياس الفولت DC وتأكد من وصول الكهرباء 12V والأرضي السليم قبل تبديل أي قطعة.",
+      powerPin: "خط التغذية: 12V مع السويتش",
+      groundPin: "خط الأرضي: أقل من 0.1V على الشاسي",
+      signalPin: "غير محدد لهذا الرمز",
+      referenceVoltage: null,
+      testingTipLibyan:
+        "تأكد من وصول 12V ومن سلامة الأرضي قبل تبديل أي قطعة. هذا الفحص عام وينطبق على أغلب الدوائر.",
     },
   };
 }
