@@ -597,9 +597,8 @@ A generated draft arrived with a tagline — *"ELECTRICAL SYSTEMS · PRECISION E
 
 ## What is actually left
 
-1. **The two WhatsApp PDFs.** Removed from the working tree and `.gitignore` now catches `DOC-*.pdf`, but they remain in history and on `origin/main`. Purging them properly rewrites every commit that touched them and invalidates every existing clone — a decision, not a task.
-2. **Streaming the assistant's reply.** The one remaining latency win; a reply currently lands all at once after ~20s.
-3. **Part photographs.** `parts-search.ts` falls back to a generic schematic whenever Wikimedia has nothing, which is most parts.
+1. **Streaming the assistant's reply.** The one remaining latency win; a reply currently lands all at once after ~20s.
+2. **Part photographs.** `parts-search.ts` falls back to a generic schematic whenever Wikimedia has nothing, which is most parts.
 
 ---
 
@@ -623,8 +622,56 @@ A generated draft arrived with a tagline — *"ELECTRICAL SYSTEMS · PRECISION E
 
 ## Open questions
 
-1. **The two WhatsApp PDFs** — delete, or move to private fixtures? Does history need rewriting?
+1. ~~**The two WhatsApp PDFs**~~ — resolved in Phase 11. Purged from history; the answer to "does history need rewriting" was yes, and for more than the PDFs.
 2. **Report sharing** — sharing today means a downloaded HTML file or a WhatsApp text. A short-lived shareable link (Workers KV, expiring) would fit how these reports actually travel, but it means storing customer vehicle data server-side. Out of scope unless you want it.
 3. **Part-image search** — keep scraping DuckDuckGo, or drop to the curated registry plus SVG vectors only? The vectors are honest, instant, offline, and never wrong; the scraped photos are prettier and sometimes show a different part than the one specified.
 4. **Mark** — no logo asset exists. The fuse-box world suggests a moulded or silkscreened mark rather than a drawn logo — a stencilled كاشف on the board, or a blank fuse seat as the icon. Do you want one designed, or is the wordmark set in Readex Pro enough?
 5. **The health score** — `--t-score` is the only large type in the system and nothing uses it yet. On a fuse-box board the natural home is a seat-shaped block at the masthead rather than a gauge. Confirm at Phase 5, or tell me now if you want the score presented differently.
+
+---
+
+## Phase 11 — The privacy purge — **DONE**
+
+The PDFs had been the recorded worry for weeks. The sweep run before purging
+them found they were the *smaller* half of the problem.
+
+**The data had been copied out of the PDFs and into the source.** Removing the
+files from the working tree, which is all that had been done, moved nothing:
+
+| where | what |
+|---|---|
+| `src/lib/sample-data.ts` | both VINs and the scanner serial, in the built-in demo reports **the live site renders for every visitor** |
+| `src/lib/gemini.ts` | one VIN inside the system prompt — **transmitted to Google on every analysis request** |
+| `src/app/design/page.tsx` | one VIN in a specimen row |
+| `e2e/report.spec.ts` | the suite asserted on the other one |
+| `primitives.tsx`, `plan.md` | quoted in comments |
+
+`WBADD6100VBR32540` is a real 1997 BMW 528i, `JTDBR42E309034749` a real 2004
+Corolla, and `9TBC29728913` the workshop scanner that read both. Two customers
+brought a car in; none of them agreed to be the demo.
+
+Replacements keep the prefix that encodes make, model and year — so the samples
+still look like real scans — and end in `SAMPLE`, so no reader can mistake one
+for a vehicle. That is this app's own rule turned on itself: **if it wasn't
+measured, it must not look like it was.**
+
+All 30 commits rewritten with `git filter-repo` (files removed and strings
+replaced in one pass), verified to touch only those six files, then force-pushed.
+
+### Two things worth keeping
+
+- **The scan is the point, not the file deletion.** A `git rm` of a leaked file
+  is theatre if the contents were ever pasted somewhere else. Grep history for
+  the *values*, not the filenames.
+- **`main` is not the whole repo.** After the rewrite a fresh public clone was
+  still dirty: a stale branch, `rebuild/fuse-box-and-safety-fixes`, held the
+  entire original history and was browsable on GitHub. It had zero commits not
+  already in `main` — a strict ancestor, superseded, and still publishing
+  everything the rewrite had just removed. **Enumerate every remote ref before
+  calling a purge done.**
+
+Clean on the other axis: no API keys, tokens or private keys in any of the 263
+blobs in history; `.env.example` ships an empty `GEMINI_API_KEY`.
+
+Old objects on GitHub's servers were left to garbage collection by choice — no
+ref reaches them now.
