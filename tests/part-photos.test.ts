@@ -1,0 +1,128 @@
+import { describe, expect, it } from "vitest";
+import { curatedPhotoFor, titleMatchesPart } from "@/lib/parts-search";
+import { englishTermsFor } from "@/lib/dictionary";
+
+/**
+ * Every case here is a photograph this app actually put on a part card.
+ *
+ * A wrong photo is worse than no photo. The card falls back to a drawn
+ * schematic, which names the part without ever claiming to be a picture of
+ * it — so the bar a real photograph has to clear is "certainly this part",
+ * not "probably related".
+ */
+describe("what may be shown as a photo of a part", () => {
+  it("rejects a mule artillery battery for a car battery", () => {
+    // A 19th-century photograph of soldiers and pack animals on a hillside,
+    // titled "Mule Battery WDL11495". One matching word was all it took.
+    expect(titleMatchesPart("File:Mule Battery WDL11495.png", "Battery")).toBe(false);
+  });
+
+  it("rejects a document about seat belts for a serpentine belt", () => {
+    expect(
+      titleMatchesPart(
+        "File:Safety belt usage among drivers - use of child restraint devices.jpg",
+        "Serpentine Belt"
+      )
+    ).toBe(false);
+  });
+
+  // A known limit, written down rather than asserted away: Québec has a
+  // geological formation called the Serpentine Belt, and its map matches the
+  // words "serpentine" and "belt" exactly as well as a photograph of the belt
+  // on an engine does. No rule over titles can separate them. This is the
+  // reason the curated registry is tier one and Commons is a fallback, and the
+  // reason the fallback must stay conservative: when it is unsure the card
+  // shows the drawn schematic, which is never wrong about what it is.
+
+  it("rejects anything that is not a still picture", () => {
+    // File namespace 6 holds PDFs and scans. One came back as a .pdf URL that
+    // the browser rendered as a broken image.
+    expect(titleMatchesPart("File:Car Radiator.pdf", "Radiator")).toBe(false);
+    expect(titleMatchesPart("File:Car Radiator.djvu", "Radiator")).toBe(false);
+    expect(titleMatchesPart("File:Car Radiator.jpg", "Radiator")).toBe(true);
+  });
+
+  it("still accepts a title that is about the part and nothing else", () => {
+    expect(titleMatchesPart("File:Car Radiator.jpg", "Radiator")).toBe(true);
+    expect(titleMatchesPart("File:Alternator 1.jpg", "Alternator")).toBe(true);
+    expect(titleMatchesPart("File:Thermostat auto.jpg", "Thermostat")).toBe(true);
+  });
+
+  it("needs two words to agree when the part name has two to give", () => {
+    expect(
+      titleMatchesPart("File:Bosch Mass Air Flow Sensor in engine bay.jpg", "Mass Air Flow Sensor")
+    ).toBe(true);
+    // "Sensor" alone is not evidence: half the archive is sensors.
+    expect(
+      titleMatchesPart("File:Pressure sensor on a boiler.jpg", "Mass Air Flow Sensor")
+    ).toBe(false);
+  });
+
+  it("ignores where the part sits when counting evidence", () => {
+    // "Front", "Left" and "Assembly" would otherwise count as agreement.
+    expect(
+      titleMatchesPart("File:Front left assembly of a bicycle.jpg", "Front Left Wheel Assembly")
+    ).toBe(false);
+  });
+});
+
+describe("the curated registry", () => {
+  it("does not answer a shock absorber with an ABS sensor", () => {
+    // `abs` matched inside "shock ABSorber", so the suspension part showed a
+    // wheel-speed sensor.
+    const shock = curatedPhotoFor("Shock Absorber مزاطوري genuine auto part");
+    expect(shock).toContain("mpfer");
+    expect(shock).not.toContain("turnermotorsport");
+  });
+
+  it("still answers a real ABS sensor", () => {
+    expect(curatedPhotoFor("Front Left ABS Wheel Speed Sensor")).toContain(
+      "turnermotorsport"
+    );
+  });
+
+  it("does not answer a muffler or an EGR valve with a lambda probe", () => {
+    // "عادم" is the exhaust and "شكمان" the muffler — neither is the sensor
+    // screwed into them.
+    expect(curatedPhotoFor("EGR Valve بلف العادم")).not.toContain("Lambda");
+    expect(curatedPhotoFor("Muffler شكمان")).not.toContain("Lambda");
+  });
+
+  it("keeps every photo on an allowlisted host", async () => {
+    // A registry edit that adds a new host silently would be blocked by the
+    // CSP in the browser and show a broken image instead of the schematic.
+    const { PART_IMAGE_HOSTS } = await import("@/lib/part-image-hosts");
+    const { isAllowedPartImage } = await import("@/lib/part-image-hosts");
+    const probes = [
+      "Oil Filter", "Fuel Injector", "Timing Chain", "Ball Joint",
+      "Brake Master Cylinder", "Crankshaft Position Sensor", "Clutch Kit",
+      "Battery", "Spark Plug", "Radiator",
+    ];
+    expect(PART_IMAGE_HOSTS.length).toBeGreaterThan(0);
+    for (const p of probes) {
+      const url = curatedPhotoFor(p);
+      if (url) expect(isAllowedPartImage(url)).toBe(true);
+    }
+  });
+});
+
+describe("reading a Libyan part name", () => {
+  it("finds an English name the archive might know", () => {
+    // "براتشو" is a control arm. An English-language archive has never heard
+    // of it, so the photo search had nothing to go on.
+    expect(englishTermsFor("براتشو أمامي يسار").join(" ")).toMatch(/[A-Za-z]/);
+    expect(englishTermsFor("دينمو").join(" ").toLowerCase()).toContain("alternator");
+  });
+
+  it("returns nothing rather than a guess for a name it does not know", () => {
+    expect(englishTermsFor("قطعة ما نعرفهاش")).toEqual([]);
+  });
+
+  it("strips the gloss so the search term is a search term", () => {
+    // Dictionary entries read "Gearbox / transmission (cambio)".
+    for (const t of englishTermsFor("كمبيو")) {
+      expect(t).not.toContain("/");
+      expect(t).not.toContain("(");
+    }
+  });
+});

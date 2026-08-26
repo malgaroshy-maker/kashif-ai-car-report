@@ -153,3 +153,42 @@ export function findMatchingTerm(query: string): DictionaryEntry | undefined {
       item.english.toLowerCase().includes(q)
   );
 }
+
+/**
+ * The English names for a Libyan part name.
+ *
+ * The photo lookup searches an English-language archive, but the report often
+ * names a part only in Libyan — "براتشو", "مزاطوري", "قرسيوني كوبيركو" — and
+ * an English archive has never heard of any of them. This walks the same
+ * dictionary the app already shows the reader and turns the Libyan name into
+ * something searchable.
+ *
+ * Matching runs the other way round from `findMatchingTerm`: there the query
+ * is the fragment, here the part name is the haystack and the dictionary entry
+ * is the fragment. Longest entries first, so "بومبة بنزين" wins over "بومبة".
+ */
+export function englishTermsFor(partName: string): string[] {
+  const haystack = partName.trim();
+  if (!haystack) return [];
+
+  const found: { term: string; english: string }[] = [];
+  for (const entry of LIBYAN_DICTIONARY) {
+    // Entries list their spellings as "شمعات / شمعة"; any of them counts.
+    for (const variant of entry.libyanTerm.split("/")) {
+      const term = variant.trim();
+      if (term.length >= 3 && haystack.includes(term)) {
+        found.push({ term, english: entry.english });
+        break;
+      }
+    }
+  }
+
+  found.sort((a, b) => b.term.length - a.term.length);
+
+  // The English side reads "Gearbox / transmission (cambio)" — a gloss, not a
+  // search term. Take the part before the first slash or bracket.
+  const clean = (english: string) =>
+    english.split("/")[0].replace(/[([].*$/, "").trim();
+
+  return [...new Set(found.map((f) => clean(f.english)).filter(Boolean))];
+}
