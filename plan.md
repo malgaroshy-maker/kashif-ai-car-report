@@ -597,8 +597,8 @@ A generated draft arrived with a tagline — *"ELECTRICAL SYSTEMS · PRECISION E
 
 ## What is actually left
 
-1. **Streaming the assistant's reply.** The one remaining latency win; a reply currently lands all at once after ~20s.
-2. **Part photographs.** `parts-search.ts` falls back to a generic schematic whenever Wikimedia has nothing, which is most parts.
+1. **Four dictionary terms the owner says are not Libyan** — `الزافيترو`, `كاردان`, `كوفية`, `كندنساتوري`. Flagged by the one person here who speaks the dialect. Not replaced, because guessing a Libyan word is precisely what this app forbids everywhere else; they need the real ones from him.
+2. **The streaming happy path has not been driven against a live model.** The reader is covered by seven unit tests and the pre-stream error contract is verified on the built Worker, but the only key on this machine is dead — Google rejects it directly — so no reply has actually been streamed end to end.
 
 ---
 
@@ -675,3 +675,65 @@ blobs in history; `.env.example` ships an empty `GEMINI_API_KEY`.
 
 Old objects on GitHub's servers were left to garbage collection by choice — no
 ref reaches them now.
+
+---
+
+## Phase 12 — Streaming, and the part photographs — **DONE**
+
+### The reply now arrives as it is written
+
+Twenty seconds of spinner told the reader nothing: a slow answer and a dead one
+look identical. The model is no faster, but the wait is legible.
+
+Two decisions worth keeping:
+
+- **The switch to a stream happens at the first token, not before it.**
+  Everything knowable before the model speaks — no key, a rejected key, no
+  quota, no available model — is still reported with a real status code, the
+  way every other route reports it. Once a response has begun the status is
+  already sent and an error can only be a line in the body.
+- **NDJSON, not Server-Sent Events.** The reply is Arabic prose with paragraph
+  breaks, and SSE reserves blank lines as record separators. An answer would be
+  cut in half by its own formatting.
+
+Model fallback survives but decides on the first chunk — once text has left,
+switching models would splice two different answers together.
+
+### Wrong photographs, which were the real problem
+
+Coverage over 32 common parts went from **10 to 16**. The more important half
+is what came off. Two of the original ten were wrong:
+
+| card | what it showed |
+|---|---|
+| Serpentine belt | a PDF about **seat** belt usage among drivers |
+| Car battery | a 19th-century photograph of a **mule artillery battery** |
+| Shock absorber | an ABS sensor — `abs` matched inside "shock ABSorber" |
+| EGR valve, muffler | a lambda probe — "عادم" is the exhaust, not the sensor in it |
+
+**A wrong photo is worse than no photo**, because the fallback is a drawn
+schematic that never claims to be a picture of anything. Four rules now stand
+between Commons and a card: it must be a still picture (namespace 6 holds PDFs
+and scans, and both wrong results above were PDFs the browser drew as broken
+images); two words must agree when the part name has two to give; when it has
+only one, the title must be about that word and nothing else; and registry
+patterns match whole words.
+
+Every added photo was **looked at** before it was written down, and four were
+rejected on sight — a marine turbocharger from a ship's engine room, a 3D
+render of a clutch, an engine bay captioned "car battery", and a cabin filter
+full of dead leaves. A clogged part is the fault state, not the thing you buy.
+
+One limit is written down rather than asserted away: Québec has a geological
+formation called the Serpentine Belt, and no rule over titles separates its map
+from a photo of the belt on an engine.
+
+### A test that caught what the measurement could not
+
+The relevance rule was tightened using a probe that ran the real search — and
+the probe said everything was fine. A unit test then failed on
+`File:Car Radiator.jpg`: Commons returns every result in namespace form, and
+the word **"file"** counted as a subject the title was about, which would have
+rejected every single-word match in production. The probe could not see it
+because those parts are answered by the curated registry before Commons is ever
+asked. Measurement told us the totals; the test told us the mechanism.
