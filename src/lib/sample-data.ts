@@ -95,7 +95,7 @@ export const SAMPLE_TOYOTA_COROLLA: KashifDiagnosticReport = {
         module: "BCM",
         moduleNameArabic: "كمبيوتر الهيكل والراحة (BCM)",
         standardDescriptionEn: "Driver Door Motor ECU Communication Stop (History)",
-        libyanTerm: "موتور باب السائق / السنتر لوك والزافيترو",
+        libyanTerm: "موتور باب السائق / السنتر لوك وسكة المرش",
         standardArabicDescription: "توقف مؤقت في اتصال وحدة محرك باب السائق (كود محفوظ سابقاً)",
         driverSymptoms: [
           "تأخر طفيف سابق في استجابة قفل السنتر لوك من مفتاح الباب",
@@ -112,7 +112,7 @@ export const SAMPLE_TOYOTA_COROLLA: KashifDiagnosticReport = {
           drivability: "قيادة طبيعية",
         },
         recommendedAction:
-          "تصفير الكود بجهاز الكشف (Clear DTC) واختبر عمل الزافيترو وقفل السنتر لوك.",
+          "تصفير الكود بجهاز الكشف (Clear DTC) واختبر عمل سكة المرش وقفل السنتر لوك.",
       },
     ],
   },
