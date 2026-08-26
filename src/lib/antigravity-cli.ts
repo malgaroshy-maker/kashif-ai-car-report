@@ -144,6 +144,33 @@ export async function runAgyPrompt(
 }
 
 /**
+ * Extract human-readable text / chat response from AGY JSON envelope
+ */
+export function extractTextFromAgyResponse(rawOutput: string): string {
+  if (!rawOutput) return "";
+  const trimmed = rawOutput.trim();
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === "object") {
+      if (typeof parsed.response === "string") {
+        return parsed.response.trim();
+      }
+      if (typeof parsed.text === "string") {
+        return parsed.text.trim();
+      }
+      if (typeof parsed.content === "string") {
+        return parsed.content.trim();
+      }
+    }
+  } catch {
+    // Not JSON, return raw output
+  }
+
+  return trimmed;
+}
+
+/**
  * Parse JSON report returned by AGY or fallback
  */
 export function extractJsonFromAgyResponse(rawOutput: string): unknown {

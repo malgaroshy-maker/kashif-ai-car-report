@@ -49,7 +49,8 @@ export async function tryAgyPrompt(
     const status = await mod.getAgyCliStatus();
     if (!status.available) return null;
     const out = await mod.runAgyPrompt(prompt, timeoutMs);
-    return out?.trim() ? out : null;
+    if (!out?.trim()) return null;
+    return mod.extractTextFromAgyResponse(out);
   } catch (err) {
     console.warn("[agy] unavailable, falling back to Gemini:", err);
     return null;
