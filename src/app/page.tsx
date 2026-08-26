@@ -122,7 +122,7 @@ export default function HomePage() {
         onOpenDictionary={() => setDictionaryOpen(true)}
       />
 
-      <main className="mx-auto w-full max-w-[1180px] flex-1 px-[var(--s4)] py-[var(--s5)]">
+      <main id="main" className="mx-auto w-full max-w-[1180px] flex-1 px-[var(--s4)] py-[var(--s5)]">
         {activeReport ? (
           <div className="space-y-[var(--s5)]">
             <VehiclePlate report={activeReport} />

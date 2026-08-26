@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="كاشف">
+  <!--
+    A 15A blade fuse, seated.
+
+    The mark is the product's own amp rating — 15A blue is the one colour in
+    the system that is not a status, because Kashif is the thing that reads the
+    box, not one of the faults in it. Drawn, not photographed: the two blades,
+    the moulded body, and the element bridging them.
+  -->
+  <rect width="64" height="64" fill="#d5d7cf"/>
+
+  <!-- The slot the fuse sits in -->
+  <rect x="14" y="10" width="36" height="8" fill="#a9ada5"/>
+
+  <!-- Blades -->
+  <rect x="20" y="12" width="7" height="16" fill="#8a8f88"/>
+  <rect x="37" y="12" width="7" height="16" fill="#8a8f88"/>
+
+  <!-- Moulded body -->
+  <rect x="14" y="24" width="36" height="30" rx="2" fill="#2e7fc4"/>
+  <!-- Lit crest and shaded groove: the system's depth rule, at icon scale -->
+  <rect x="14" y="24" width="36" height="2" fill="#82c0f0"/>
+  <rect x="14" y="52" width="36" height="2" fill="#0f5288"/>
+
+  <!-- The element, visible through the body -->
+  <path d="M23 33 L29 39 L35 33 L41 39" fill="none" stroke="#f4f4f0" stroke-width="3"
+        stroke-linecap="square" stroke-linejoin="miter"/>
+
+  <!-- Rating, stamped -->
+  <text x="32" y="50" fill="#f4f4f0" font-family="ui-monospace, monospace"
+        font-size="9" font-weight="700" text-anchor="middle">15A</text>
+</svg>

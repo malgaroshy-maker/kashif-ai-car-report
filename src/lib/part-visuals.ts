@@ -49,9 +49,39 @@ export function getPartVisualType(partName: string = "", oem: string = ""): stri
   return "GENERIC_PART";
 }
 
-export function getPartSvg(partName: string = "", oem: string = ""): string {
-  const type = getPartVisualType(partName, oem);
+/**
+ * A schematic that is safe to write into the document.
+ *
+ * The only way to get one is `getPartSvg`, which returns a string literal from
+ * the switch below and interpolates nothing. The branding is what stops a
+ * caller passing an arbitrary string to `dangerouslySetInnerHTML` — the tag
+ * cannot be forged outside this module.
+ */
+export type SafeSvg = string & { readonly __safeSvg: unique symbol };
 
+/**
+ * Nothing in this file interpolates a value, so nothing here can carry model
+ * output. This is the belt to that brace: if a future edit ever adds a
+ * template hole, the schematic is dropped rather than written into the page.
+ *
+ * Checked at the boundary rather than trusted, because the consequence of
+ * being wrong is script execution in the report.
+ */
+const UNSAFE = /<script|\son\w+\s*=|javascript:|<foreignObject|<iframe/i;
+
+/** The empty drawing, for a part we have no schematic for. */
+const NO_SVG = "" as SafeSvg;
+
+export function getPartSvg(partName: string = "", oem: string = ""): SafeSvg {
+  const svg = partSvgFor(getPartVisualType(partName, oem));
+  if (UNSAFE.test(svg)) {
+    console.error("[part-visuals] a schematic contained active content");
+    return NO_SVG;
+  }
+  return svg as SafeSvg;
+}
+
+function partSvgFor(type: string): string {
   switch (type) {
     case "OXYGEN_SENSOR":
       return `<svg viewBox="0 0 240 180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" class="part-svg">
@@ -392,14 +422,9 @@ export function getPartSvg(partName: string = "", oem: string = ""): string {
         <circle cx="170" cy="90" r="2" fill="#00F0FF"/>
         <circle cx="170" cy="100" r="2" fill="#00F0FF"/>
 
-        <!-- Microchip Spec Label -->
-        <rect x="75" y="58" width="35" height="14" rx="3" fill="#00F0FF" fill-opacity="0.15"/>
-        <text x="92" y="68" fill="#00F0FF" font-family="monospace" font-size="8" font-weight="bold" text-anchor="middle">OEM SPEC</text>
-
-        <!-- Badge -->
-        <rect x="12" y="12" width="88" height="20" rx="6" fill="#00F0FF" fill-opacity="0.15" stroke="#00F0FF" stroke-width="1"/>
-        <text x="56" y="26" fill="#00F0FF" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">AUTO COMPONENT</text>
-        <text x="228" y="26" fill="#10B981" font-family="monospace" font-size="9" font-weight="bold" text-anchor="end">GENUINE OEM</text>
       </svg>`;
   }
+  // A part we have no drawing for. The card shows its name and numbers, which
+  // is what the reader needs; a wrong schematic would be worse than none.
+  return "";
 }

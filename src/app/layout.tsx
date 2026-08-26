@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Readex_Pro, Azeret_Mono } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * Readex Pro is an Arabic-first variable family — not a Latin face with Arabic
@@ -25,8 +26,15 @@ const azeret = Azeret_Mono({
   display: "swap",
 });
 
+const TITLE = "كاشف AI | فاحص أعطال السيارات الذكي بالمصطلحات الليبية";
+const DESCRIPTION =
+  "يقرا تقرير جهاز الفحص (OBD-II) ويترجمه لمصطلحات الورش الليبية، بأرقام قطع الغيار الأصلية والفحص المطلوب قبل الشراء.";
+
 export const metadata: Metadata = {
-  title: "كاشف AI | فاحص أعطال السيارات الذكي بالمصطلحات الليبية",
+  // Without metadataBase every og:image and canonical resolves against
+  // localhost, so a link shared from the workshop previewed as nothing.
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
   description:
     "وكيل ذكاء اصطناعي تفاعلي لتحليل تقارير أجهزة فحص السيارات (OBD-II Scanners) واستخراج الأعطال وأرقام قطع الغيار الأصلية بالمصطلحات الدارجة في ورش الصيانة الليبية.",
   keywords: [
@@ -38,13 +46,45 @@ export const metadata: Metadata = {
     "Ediag",
     "قطع غيار ليبيا",
   ],
+  applicationName: "كاشف",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/icon.svg",
+  },
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "ar_LY",
+    siteName: "كاشف",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/",
+  },
+  twitter: { card: "summary", title: TITLE, description: DESCRIPTION },
+  robots: { index: true, follow: true },
+  formatDetection: {
+    // A VIN and an OEM part number are both long digit runs, and iOS turns
+    // them into phone links you cannot select to copy.
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
+  // The board's own colour, so the phone's chrome continues the lid instead of
+  // sitting on it as a separate object.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#c9cbc4" },
+    { media: "(prefers-color-scheme: light)", color: "#d5d7cf" },
     { media: "(prefers-color-scheme: dark)", color: "#17191a" },
   ],
+  // The report is dense and gets read at arm's length in daylight. Pinch-zoom
+  // has to keep working, so no maximum-scale and no user-scalable: false.
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 /**
@@ -84,6 +124,9 @@ export default function RootLayout({
           the finish review, the verdict, DESIGN.md, and every shipping raster
           carrying its provenance.
         */}
+        <a href="#main" className="k-skip">
+          تخطَّ إلى التقرير
+        </a>
         {children}
       </body>
     </html>

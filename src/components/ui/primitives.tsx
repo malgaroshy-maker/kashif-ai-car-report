@@ -64,7 +64,8 @@ export function Cell({
   lifted?: boolean;
   as?: React.ElementType;
   className?: string;
-  children: React.ReactNode;
+  /** Optional: an empty cell is a legitimate placeholder while loading. */
+  children?: React.ReactNode;
 } & React.HTMLAttributes<HTMLElement>) {
   return (
     <Tag

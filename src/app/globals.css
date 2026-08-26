@@ -381,6 +381,27 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* The skip link. Off-screen until focused, then a real target at the top of
+     the board — a keyboard user should not tab the masthead on every load. */
+  .k-skip {
+    position: absolute;
+    inset-inline-start: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: var(--s3) var(--s4);
+    min-height: var(--tap);
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--amp-15-ink);
+    color: var(--cell);
+    font-weight: 600;
+  }
+
+  .k-skip:focus-visible {
+    inset-inline-start: var(--s3);
+    top: var(--s3);
+  }
+
   .k-lift {
     box-shadow: var(--lift);
   }
