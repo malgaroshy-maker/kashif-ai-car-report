@@ -569,7 +569,7 @@ export function normalizeDiagnosticReport(
  * Split out of the old `askMechanicAssistant` so the streaming and buffered
  * paths cannot drift apart — they must send the model the same instructions.
  */
-function assistantPrompt(report: ChatReportContext): string {
+export function assistantPrompt(report: ChatReportContext): string {
   const dictionaryContext = getDictionaryContextForPrompt();
 
   const safeMake = report.vehicle?.make || "السيارة";

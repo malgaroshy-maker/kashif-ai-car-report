@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { streamMechanicAssistant } from "@/lib/gemini";
+import { streamMechanicAssistant, assistantPrompt } from "@/lib/gemini";
 import { tryAgyPrompt } from "@/lib/agy";
 import { ChatReportContext } from "@/lib/types";
 import { KashifError, errorPayload } from "@/lib/errors";
@@ -48,13 +48,24 @@ export async function POST(req: NextRequest) {
     const recentHistory = Array.isArray(history) ? history.slice(-MAX_HISTORY) : [];
 
     if (provider === "agy") {
-      const prompt = `أنت "الأسطى كاشف"، فني ميكانيكا وخبير فحص سيارات ليبي.
-سياق السيارة الحالية: ${report.vehicle.make} ${report.vehicle.model} (${report.vehicle.year})، رقم الهيكل: ${report.vehicle.vin}.
-الأعطال المسجلة: ${report.faultCategories.criticalFaults.concat(report.faultCategories.moderateFaults).map(f => `${f.code}: ${f.libyanTerm}`).join("، ")}.
-سؤال المستخدم: "${question}".
-أجب بلهجة ليبية فنية محترفة ودقيقة وقدم خطوات عملية فورية:`;
+      const systemInstruction = assistantPrompt(report);
+      const historyText =
+        recentHistory.length > 0
+          ? "\nسجل المحادثة السابق:\n" +
+            recentHistory
+              .map(
+                (h) =>
+                  `${h.sender === "user" ? "المستخدم" : "الأسطى كاشف"}: ${h.text}`
+              )
+              .join("\n")
+          : "";
 
-      const reply = await tryAgyPrompt(prompt, 15_000);
+      const prompt = `${systemInstruction}
+${historyText}
+المستخدم: "${question}"
+الأسطى كاشف (أجب بلهجة ليبية فنية محترفة ودقيقة مع مصطلحات الورش الليبية المعتمدة):`;
+
+      const reply = await tryAgyPrompt(prompt, 60_000);
       if (reply) {
         // agy answers all at once, so there is nothing to stream. It still
         // goes out in the streaming envelope: one shape for the client to
