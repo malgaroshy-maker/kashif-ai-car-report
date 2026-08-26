@@ -21,33 +21,33 @@ export interface AvailableModelItem {
 }
 
 /** What the app advertises, and what every runtime must actually use. */
-export const DEFAULT_MODEL = "gemini-3.7-flash";
+export const DEFAULT_MODEL = "gemini-3.6-flash";
 
 /**
  * Tried in order when a model is unavailable (503 high demand, 429 quota).
- * Not a quality ranking — a availability ladder, newest and fastest first.
+ * Availability ladder: newest and fastest active 3.x models first.
  */
 export const MODEL_FALLBACK_CHAIN = [
   DEFAULT_MODEL,
-  "gemini-3.6-flash",
+  "gemini-3.7-flash",
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
   "gemini-3.1-flash-lite",
-  "gemini-2.5-flash",
+  "gemini-3.1-pro-preview",
 ] as const;
 
 /** Shown when there is no key to query the live endpoint with. */
 export const KNOWN_MODELS: AvailableModelItem[] = [
   {
-    id: "gemini-3.7-flash",
-    displayName: "Gemini 3.7 Flash",
-    description: "النموذج الافتراضي — الأحدث والأعلى كفاءة في التحليل",
+    id: "gemini-3.6-flash",
+    displayName: "Gemini 3.6 Flash",
+    description: "النموذج الافتراضي — معالجة سريعة ودقيقة للتقارير والأعطال",
     isRecommended: true,
   },
   {
-    id: "gemini-3.6-flash",
-    displayName: "Gemini 3.6 Flash",
-    description: "معالجة متعددة الوسائط سريعة",
+    id: "gemini-3.7-flash",
+    displayName: "Gemini 3.7 Flash",
+    description: "استنتاج متقدم ومعالجة شاملة للتقارير المعقدة",
   },
   {
     id: "gemini-3.5-flash",
@@ -68,16 +68,6 @@ export const KNOWN_MODELS: AvailableModelItem[] = [
     id: "gemini-3.1-pro-preview",
     displayName: "Gemini 3.1 Pro (Preview)",
     description: "الاستنتاج الهندسي المتقدم للتقارير المعقدة",
-  },
-  {
-    id: "gemini-2.5-flash",
-    displayName: "Gemini 2.5 Flash",
-    description: "معالجة سريعة للمستندات",
-  },
-  {
-    id: "gemini-2.5-pro",
-    displayName: "Gemini 2.5 Pro",
-    description: "الجيل السابق — استنتاج متقدم",
   },
 ];
 
