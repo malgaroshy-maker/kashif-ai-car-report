@@ -181,6 +181,12 @@ ${dictionaryContext}
 - Oil Sump / Pan -> ستاقوبا
 - Radiator / Hoses -> رداتوري + مناكوطي / توبو
 
+2-ب. منظومة القطعة (diagramCategory) لازم تكون واحدة من هذي بالضبط:
+"المحرك" | "الفرامل" | "الفرامل والعادم" | "التعليق والصالة" | "الكهرباء" | "التبريد والتكييف" | "الهيكل والمقصورة" | "الهيكل" | "الأمان والوسائد الهوائية" | "نقل الحركة"
+- قطع الإيرباق والـ SRS (شريط الدومان / Clock Spring، طقطوقة حزام الأمان، حساس وزن الكرسي، الإيرباق الجانبي، كمبيوتر الـ SRS) منظومتها "الأمان والوسائد الهوائية" — موش "المحرك".
+- قطع الكمبيو والكونفيرتا منظومتها "نقل الحركة".
+- إذا ما كنتش متأكد من المنظومة، حط null. ممنوع تحط "المحرك" كقيمة افتراضية.
+
 3. يجب أن يكون ردك بصيغة JSON مطابقة تماماً للهيكل التالي:
 {
   "reportId": "kashif-123456",
@@ -397,13 +403,28 @@ export function normalizeDiagnosticReport(
     return null;
   };
 
+  /**
+   * A reading that says it has no reading is not a reading.
+   *
+   * A real Camry scan left the mileage field empty and the model wrote
+   * "غير محدد (0 ميل)" — the report then printed "unspecified" and a number
+   * in the same breath, and a mechanic reads the number.
+   */
+  const readingOrNull = (value: string | null): string | null => {
+    if (!value) return null;
+    if (/غير محدد|غير معروف|not specified|unknown|n\/a/i.test(value)) return null;
+    // "0", "0 ميل", "0 كم", "0.0" — an odometer that reads zero was not read.
+    if (/^0[\s.,0]*(كم|ميل|km|mi(les)?)?$/i.test(value.trim())) return null;
+    return value;
+  };
+
   // 1. Vehicle — every field may legitimately be unknown.
   const vehicle = {
     vin: pick(d.vehicle?.vin, d.vin, rawInput?.vehicleInfo?.vin),
     make: pick(d.vehicle?.make, d.make, rawInput?.vehicleInfo?.make),
     model: pick(d.vehicle?.model, d.model, rawInput?.vehicleInfo?.model),
     year: pick(d.vehicle?.year, d.year, rawInput?.vehicleInfo?.year),
-    mileage: pick(d.vehicle?.mileage, d.mileage),
+    mileage: readingOrNull(pick(d.vehicle?.mileage, d.mileage)),
     engineSpecs: {
       displacement: pick(d.vehicle?.engineSpecs?.displacement),
       fuelType: (d.vehicle?.engineSpecs?.fuelType || null) as FuelType | null,
@@ -527,7 +548,7 @@ export function normalizeDiagnosticReport(
                 marketNote: pick(price.marketNote) || "",
               }
             : null,
-          diagramCategory: part.diagramCategory ?? "المحرك",
+          diagramCategory: part.diagramCategory ?? null,
           partImageUrl: pick(part.partImageUrl) || undefined,
         };
     }

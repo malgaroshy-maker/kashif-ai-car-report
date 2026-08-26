@@ -83,7 +83,27 @@ export interface SparePartItem {
     max: number;
     marketNote: string;
   } | null;
-  diagramCategory: "المحرك" | "الفرامل" | "الفرامل والعادم" | "التعليق والصالة" | "الكهرباء" | "التبريد والتكييف" | "الهيكل والمقصورة" | "الهيكل";
+  /**
+   * The system the part belongs to. `null` when the model did not name one.
+   *
+   * This used to default to "المحرك" whenever the field was missing, and the
+   * union had no safety system in it at all — so a real Camry report filed a
+   * clock spring, a side airbag, an occupant weight sensor and a seat-belt
+   * buckle under "Engine", all four of them. A wrong system label sends a
+   * mechanic to the wrong part of the car; no label sends him to the part name.
+   */
+  diagramCategory:
+    | "المحرك"
+    | "الفرامل"
+    | "الفرامل والعادم"
+    | "التعليق والصالة"
+    | "الكهرباء"
+    | "التبريد والتكييف"
+    | "الهيكل والمقصورة"
+    | "الهيكل"
+    | "الأمان والوسائد الهوائية"
+    | "نقل الحركة"
+    | null;
   partImageUrl?: string;
 }
 

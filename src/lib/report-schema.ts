@@ -64,6 +64,8 @@ export const DIAGRAM_CATEGORY = [
   "التبريد والتكييف",
   "الهيكل والمقصورة",
   "الهيكل",
+  "الأمان والوسائد الهوائية",
+  "نقل الحركة",
 ] as const;
 export const ENGINE_ZONE = [
   "front-air",
