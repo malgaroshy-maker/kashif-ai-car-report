@@ -67,3 +67,9 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Real scanner reports. These are somebody's car: a VIN, a plate, a mileage.
+# Sample data for the app lives in src/lib/sample-data.ts, which is invented
+# on purpose. Nothing from a real customer belongs in the repo.
+DOC-*.pdf
+*_WA0*.pdf
