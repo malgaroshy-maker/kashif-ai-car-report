@@ -290,9 +290,24 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     .parts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; }
     .part-visual-container {
       background: var(--board); border: 1px solid var(--rule);
-      /* Fixed box: the schematic must not resize the card as it draws. */
-      width: 104px; height: 104px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; padding: 6px;
+      /* Fixed box: the schematic must not resize the card as it draws. It runs
+         the full width of the card because 104px is not enough to recognise a
+         part from, and recognising it is the only reason it is drawn. */
+      position: relative;
+      width: 100%; aspect-ratio: 4 / 3; max-height: 168px;
+      margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: center; padding: 8px;
+      color: var(--ink-2);
+    }
+    /* The photo sits on top of the schematic, and removing it on error
+       simply reveals the drawing underneath. The fallback used to be the SVG
+       itself interpolated into the onerror attribute — the SVG's own quotes
+       closed the attribute early, so it never ran and its tail printed as
+       visible text beside the photo. */
+    .part-photo {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: contain;
+      background: var(--board); padding: 6px;
     }
 
     .check-step { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--rule); }
@@ -302,11 +317,43 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     .signoff-box { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
     .sign-line { border-bottom: 1px dashed var(--ink-3); min-width: 160px; height: 22px; display: inline-block; }
 
-    @page { margin: 14mm; }
+    /* An LTR run inside an RTL line: a part number must not break across a
+       line with its tail orphaned on the next one. */
+    .ltr-chunk { unicode-bidi: isolate; white-space: nowrap; }
+
+    /* Screen: the footer is the sheet identifier, and there are no sheets. */
+    .print-footer { display: none; }
+
+    /* Bottom margin leaves the band the running footer sits in. */
+    @page { margin: 14mm 14mm 24mm; }
 
     @media print {
-      body { background: var(--paper); padding: 0; font-size: 11pt; }
+      html, body {
+        background: var(--paper);
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body { padding: 0; font-size: 11pt; }
       .top-actions { display: none !important; }
+      /* A single line of a paragraph stranded on its own sheet reads as a
+         different finding than the one it belongs to. */
+      p, li, div { orphans: 3; widows: 3; }
+      /* Fixed position in paged media repeats on every sheet. Without it,
+         pages 2..n carry no vehicle at all and loose printouts cannot be
+         matched back to the car they were taken from. */
+      .print-footer {
+        display: block;
+        position: fixed;
+        /* Inside the page content box, not in the @page margin: Chrome clips
+           what sits outside it. The bottom margin below is widened instead so
+           this band has room, and the footer paints its own paper behind it. */
+        bottom: 0; left: 0; right: 0;
+        font-size: 8pt; color: var(--ink-2);
+        background: var(--paper);
+        border-top: 1px solid var(--rule);
+        padding: 3px 0 2px;
+        text-align: center;
+      }
       /* Keep a finding whole across a page break. A fault split down the
          middle of a sheet is how a symptom gets read against the wrong code. */
       .fault-card, .part-card, .matrix-card, .check-step, .signoff-box {
@@ -355,7 +402,6 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
             <div class="telemetry-chip">الممشى: <strong>${orUnknown(safe.vehicle.mileage)}</strong></div>
             <div class="telemetry-chip">المحرك: <strong>${orUnknown(safe.vehicle.engineSpecs?.displacement)}</strong></div>
             <div class="telemetry-chip">تاريخ الفحص: <strong>${safe.generatedAt.slice(0, 10)}</strong></div>
-            <div class="telemetry-chip">الفاحص: <strong>غير محدد</strong></div>
           </div>
         </div>
 
@@ -406,7 +452,11 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
       <div class="matrix-card passed">
         <span class="matrix-badge" style="background: var(--amp-30);">منظومات سليمة (${safe.passedSystems.length})</span>
         <div style="font-size: 11px; color: var(--ink-2);">
-          ${safe.passedSystems.map((s) => s.systemNameArabic).join(" • ")}
+          ${
+            safe.passedSystems.length === 0
+              ? "جهاز الفحص ما ذكرش منظومات طلعت سليمة في هذا الفحص"
+              : safe.passedSystems.map((s) => s.systemNameArabic).join(" • ")
+          }
         </div>
       </div>
     </div>
@@ -431,6 +481,24 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
                 : elec.provenance === "reference"
                   ? `<div style="color: var(--ink-2); margin-top: 4px; font-size: 10px;">بيانات مرجعية للرمز — تأكد منها على السيارة قبل الفك.</div>`
                   : "";
+            // Four lines that all say غير محدد read, at a glance, like a
+            // wiring sheet for this car. On a Camry whose codes are all B-codes
+            // that block printed identically on all seven faults and was the
+            // largest thing on every card. When there is nothing on file, say
+            // so once, in the type weight of a footnote.
+            const haveSheet = Boolean(elec.fuseInfo.fuseNumber) || elec.provenance === "reference";
+            const elecBlock = haveSheet
+              ? `<div style="background: var(--board); border: 1px dashed var(--rule); padding: 8px 10px; margin-top: 8px; font-size: 11px;">
+            <div style="color: var(--amp-15); font-weight: bold; margin-bottom: 3px;">⚡ فحص الفيوز والفيشة:</div>
+            <div style="color: var(--ink); margin-bottom: 2px;">📍 <strong>موقع الحساس:</strong> ${elec.sensorLocation.areaName}</div>
+            <div style="color: var(--amp-20); margin-bottom: 2px;">🔌 <strong>الفيوز:</strong> ${fuseLine}</div>
+            <div style="color: var(--amp-30);">🔋 <strong>فحص الأفوميتر:</strong> ${elec.multimeterTest.powerPin} | ${elec.multimeterTest.groundPin}</div>
+            ${elecNote}
+          </div>`
+              : `<div style="margin-top: 8px; font-size: 10px; color: var(--ink-3); line-height: 1.5;">
+            ⚡ ما عندناش مخطط فيوز وفيشة لهذا الرمز — اقرا الرسم المطبوع على غطا علبة الفيوزات في سيارتك.
+            قاعدة عامة بالأفوميتر: ${elec.multimeterTest.powerPin} | ${elec.multimeterTest.groundPin}
+          </div>`;
             return `
         <div class="fault-card">
           <div class="fault-header">
@@ -447,13 +515,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
             ${f.driverSymptoms.map((s) => `• ${s}`).join("<br>")}
           </div>
 
-          <div style="background: var(--board); border: 1px dashed var(--rule); padding: 8px 10px; margin-top: 8px; font-size: 11px;">
-            <div style="color: var(--amp-15); font-weight: bold; margin-bottom: 3px;">⚡ فحص الفيوز والفيشة:</div>
-            <div style="color: var(--ink); margin-bottom: 2px;">📍 <strong>موقع الحساس:</strong> ${elec.sensorLocation.areaName}</div>
-            <div style="color: var(--amp-20); margin-bottom: 2px;">🔌 <strong>الفيوز:</strong> ${fuseLine}</div>
-            <div style="color: var(--amp-30);">🔋 <strong>فحص الأفوميتر:</strong> ${elec.multimeterTest.powerPin} | ${elec.multimeterTest.groundPin}</div>
-            ${elecNote}
-          </div>
+          ${elecBlock}
 
           <div style="margin-top: 8px; font-size: 11px; color: var(--ink);">
             <strong style="color: var(--amp-30);">التوجيه:</strong> ${f.recommendedAction}
@@ -474,17 +536,18 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
         <div class="part-card">
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 11px; color: var(--amp-15); font-weight: 600;">منظومة ${p.diagramCategory}</span>
+              <span style="font-size: 11px; color: var(--amp-15); font-weight: 600;">${p.diagramCategory ? `منظومة ${p.diagramCategory}` : ""}</span>
               <span style="font-size: 10px; font-family: monospace; color: var(--amp-20);">كود: ${p.relatedCode}</span>
             </div>
 
             <div class="part-visual-container">
+              ${p.svg}
               ${
                 p.partImageUrl &&
                 (p.partImageUrl.startsWith("http://") || p.partImageUrl.startsWith("https://")) &&
                 !p.partImageUrl.includes("/parts/")
-                  ? `<img src="${p.partImageUrl}" alt="${p.partNameLibyan}" referrerpolicy="no-referrer" loading="lazy" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" onerror="this.parentElement.innerHTML = \`${p.svg.replace(/`/g, "\\`")}\`;">`
-                  : p.svg
+                  ? `<img class="part-photo" src="${p.partImageUrl}" alt="${p.partNameLibyan}" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">`
+                  : ""
               }
             </div>
 
@@ -493,13 +556,13 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
 
             <div style="background: var(--board); padding: 8px 10px; border: 1px solid var(--rule); margin-bottom: 8px;">
               <div style="font-size: 10px; color: var(--ink-2);">رقم الوكالة (OEM):</div>
-              <div style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--amp-20);">${p.oemPartNumber}</div>
+              <div class="ltr-chunk" style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--amp-20);">${p.oemPartNumber}</div>
             </div>
 
             ${
               p.aftermarketReplacements.length > 0
                 ? `<div style="font-size: 10px; color: var(--ink-2); margin-bottom: 8px;">
-                    <strong>بدائل مقترحة:</strong> ${p.aftermarketReplacements.join(", ")}
+                    <strong>بدائل مقترحة:</strong> ${p.aftermarketReplacements.map((a) => `<span class="ltr-chunk">${a}</span>`).join("، ")}
                    </div>`
                 : ""
             }
@@ -553,6 +616,14 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
 
     <div style="text-align: center; margin-top: 20px; font-size: 10px; color: var(--ink-2);">
       كاشف — تشخيص أعطال السيارات بمصطلحات الورش الليبية
+    </div>
+
+    <!-- Repeats on every printed sheet. Screen never shows it. -->
+    <div class="print-footer">
+      ${orUnknown(safe.vehicle.make, 'سيارة')} ${orUnknown(safe.vehicle.model, '')}
+      — VIN <span class="ltr-chunk">${orUnknown(safe.vehicle.vin)}</span>
+      — فحص ${safe.generatedAt.slice(0, 10)}
+      — كاشف
     </div>
   </div>
 </body>
