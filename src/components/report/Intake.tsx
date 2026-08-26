@@ -40,7 +40,9 @@ export function Intake({
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = React.useState(false);
 
-  const hasKey = Boolean(readSettings().apiKey);
+  const settings = readSettings();
+  const isAgy = settings.provider === "agy";
+  const hasKey = isAgy || Boolean(settings.apiKey);
 
   /** Every entry point funnels through here so the states cannot diverge. */
   const run = async (
@@ -306,9 +308,9 @@ function Fault({ message }: { message: string }) {
 function NoKeyNotice() {
   return (
     <Cell className="p-[var(--s4)]">
-      <div className="k-label uppercase">المفتاح</div>
+      <div className="k-label uppercase">المفتاح أو المحرك</div>
       <p className="mt-[var(--s1)] leading-relaxed text-(color:--ink)">
-        كاشف يخدم بمفتاح Google AI Studio امتاعك — يتخزّن في متصفحك وما
+        كاشف يخدم بمفتاح Google AI Studio امتاعك أو محرك Antigravity CLI (agy) المحلي — يتخزّن في متصفحك وما
         يمشيش لأي سيرفر غير Google. حطه من <CodePlate>الإعدادات</CodePlate> فوق،
         والتقارير الجاهزة لوطا تخدم من غير مفتاح.
       </p>

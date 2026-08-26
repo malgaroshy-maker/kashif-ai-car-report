@@ -24,17 +24,25 @@ import { DEFAULT_MODEL, KNOWN_MODELS, type AvailableModelItem } from "@/lib/mode
 export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const storedKey = useLocalString(STORAGE_KEYS.apiKey);
   const storedModel = useLocalString(STORAGE_KEYS.model, DEFAULT_MODEL);
+  const storedProvider = useLocalString(STORAGE_KEYS.provider, "gemini");
 
   // `null` means untouched, so the saved value shows through.
   const [draftKey, setDraftKey] = React.useState<string | null>(null);
   const [draftModel, setDraftModel] = React.useState<string | null>(null);
+  const [draftProvider, setDraftProvider] = React.useState<string | null>(null);
   const [reveal, setReveal] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
   const [models, setModels] = React.useState<AvailableModelItem[]>(KNOWN_MODELS);
   const [hasServerKey, setHasServerKey] = React.useState(false);
+  const [agyStatus, setAgyStatus] = React.useState<{
+    available: boolean;
+    engineName: string;
+    statusNote?: string;
+  } | null>(null);
 
   const apiKey = draftKey ?? storedKey;
   const model = draftModel ?? storedModel;
+  const provider = draftProvider ?? storedProvider;
 
   // The live catalogue, so the list is not a hardcoded one that drifts. It is
   // fetched when the panel opens because that is the only time it is read.
@@ -46,12 +54,25 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
 
     fetch("/api/models", { headers, signal: controller.signal })
       .then((r) => r.json())
-      .then((data: { models?: AvailableModelItem[]; hasEnvKey?: boolean }) => {
-        if (Array.isArray(data.models) && data.models.length > 0) {
-          setModels(data.models);
+      .then(
+        (data: {
+          models?: AvailableModelItem[];
+          hasEnvKey?: boolean;
+          agyStatus?: {
+            available: boolean;
+            engineName: string;
+            statusNote?: string;
+          };
+        }) => {
+          if (Array.isArray(data.models) && data.models.length > 0) {
+            setModels(data.models);
+          }
+          setHasServerKey(Boolean(data.hasEnvKey));
+          if (data.agyStatus) {
+            setAgyStatus(data.agyStatus);
+          }
         }
-        setHasServerKey(Boolean(data.hasEnvKey));
-      })
+      )
       .catch(() => {
         // Offline, or no key yet. KNOWN_MODELS is a correct list either way.
       });
@@ -71,8 +92,10 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     // Saved whether or not there is a key. The old panel wrote the model only
     // inside the `if (key)` branch, so choosing a model first threw it away.
     writeLocal(STORAGE_KEYS.model, model);
+    writeLocal(STORAGE_KEYS.provider, provider);
     setDraftKey(null);
     setDraftModel(null);
+    setDraftProvider(null);
     setSaved(true);
   };
 
@@ -92,11 +115,95 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="space-y-[var(--s5)]">
-        <section>
+        {/* محرك الذكاء الاصطناعي */}
+        {agyStatus && (
+          <section>
+            <h3 className="k-label uppercase">محرك التحليل</h3>
+            <p className="mt-[var(--s2)] leading-relaxed text-(color:--ink-2)">
+              اختر محرك الذكاء الاصطناعي المستخدم لتحليل التقارير والمحادثة.
+            </p>
+
+            <div className="mt-[var(--s3)] space-y-[var(--s2)]">
+              <label
+                className={`flex cursor-pointer items-start gap-[var(--s3)] border p-[var(--s3)] transition-colors duration-[var(--dur-mark)] ${
+                  provider === "gemini"
+                    ? "border-[var(--amp-15-ink)] bg-[var(--board-sunk)]"
+                    : "border-[var(--rib)] hover:bg-[var(--board-sunk)]"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="kashif-provider"
+                  value="gemini"
+                  checked={provider === "gemini"}
+                  onChange={() => {
+                    setDraftProvider("gemini");
+                    setSaved(false);
+                  }}
+                  className="mt-[3px] h-[16px] w-[16px] shrink-0 accent-[var(--amp-15-ink)]"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-[var(--s2)]">
+                    <span className="font-semibold text-(color:--ink)">
+                      Google Gemini
+                    </span>
+                    <CodePlate>سحابي / معتمد</CodePlate>
+                  </span>
+                  <span className="k-label normal-case mt-[2px] block">
+                    المحرك السحابي الأساسي، يدعم البث الحي للأجوبة ويتطلب مفتاح AI Studio.
+                  </span>
+                </span>
+              </label>
+
+              <label
+                className={`flex cursor-pointer items-start gap-[var(--s3)] border p-[var(--s3)] transition-colors duration-[var(--dur-mark)] ${
+                  provider === "agy"
+                    ? "border-[var(--amp-15-ink)] bg-[var(--board-sunk)]"
+                    : "border-[var(--rib)] hover:bg-[var(--board-sunk)]"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="kashif-provider"
+                  value="agy"
+                  checked={provider === "agy"}
+                  onChange={() => {
+                    setDraftProvider("agy");
+                    setSaved(false);
+                  }}
+                  className="mt-[3px] h-[16px] w-[16px] shrink-0 accent-[var(--amp-15-ink)]"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-[var(--s2)]">
+                    <span className="font-semibold text-(color:--ink)">
+                      Antigravity CLI (agy)
+                    </span>
+                    <CodePlate>محلي / بيئة التطوير</CodePlate>
+                    {agyStatus.available ? (
+                      <span className="inline-flex items-center text-xs font-semibold text-[var(--amp-30-ink)]">
+                        ● جاهز ونشط
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center text-xs font-semibold text-[var(--ink-2)]">
+                        ○ غير متصل
+                      </span>
+                    )}
+                  </span>
+                  <span className="k-label normal-case mt-[2px] block">
+                    {agyStatus.statusNote || "تشغيل محلي مباشر عبر وكيل agy على جهازك."}
+                  </span>
+                </span>
+              </label>
+            </div>
+          </section>
+        )}
+
+        <section className={agyStatus ? "rib pt-[var(--s4)]" : ""}>
           <h3 className="k-label uppercase">مفتاح Google AI Studio</h3>
           <p className="mt-[var(--s2)] leading-relaxed text-(color:--ink-2)">
-            كاشف ما يوفّرش مفتاح مشترك. مفتاحك يتخزّن في متصفحك أنت، وما
-            يمشيش لأي جهة غير Google وقت التحليل.
+            {provider === "agy"
+              ? "مفتاح Google AI Studio مطلوب فقط عند استخدام محرك Gemini السحابي."
+              : "كاشف ما يوفّرش مفتاح مشترك. مفتاحك يتخزّن في متصفحك أنت، وما يمشيش لأي جهة غير Google وقت التحليل."}
           </p>
 
           <div className="mt-[var(--s3)] flex gap-[var(--s2)]">
