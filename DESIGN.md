@@ -214,10 +214,40 @@ others. 43 unit tests and 28 end-to-end tests hold the line.
 
 ---
 
+## Identity
+
+The mark is a **seated 15A blade fuse** (ATO/ATC standard), hand-drawn with its
+moulded polymer body, zinc terminal blades, and intact S-element bridge.
+
+- **Why the fuse**: The product's metaphor is the fuse-box lid. "كاشف" means the
+  uncoverer / revealer. An intact S-element bridge is the universal automotive
+  sign of unbroken electrical integrity — it tells at a glance whether the circuit
+  is sound or blown, which is exactly what Kashif does for the car.
+- **Colour**: Exclusively **15A blue** (`--amp-15-tab` / `--amp-15-ink`). It never
+  takes 10A red, 20A yellow, or 30A green. 15A blue is the interactive brand ink;
+  the mark represents the instrument reading the board, not a fault tier on it.
+- **Scale and legibility**: Tested down to **16px** (browser tab favicon). At 16px,
+  the silhouette of the two terminal blades, the 15A blue housing, and the
+  high-contrast central bridge element survive without blurring.
+- **Lockup**: RTL-correct. The mark sits on the **inline-start (right) edge** of
+  the Arabic wordmark, leading the eye into the name.
+- **What not to do**:
+  - Never round the corners. `--radius-plate: 1px` is the ceiling.
+  - Never add drop shadows, lighting flares, or radial glows.
+  - Never show a blown (severed) element in the identity mark — a broken fuse is
+    the fault state, not the brand.
+  - Never render the mark in a severity status colour.
+
+---
+
 ## Files
 
 | | |
 |---|---|
+| `public/icon.svg` | the primary 15A blade fuse mark, square |
+| `public/icon-maskable.svg` | the maskable mark inside the 80% safe zone |
+| `public/logo.svg` | the RTL horizontal wordmark lockup |
+| `public/og.svg` | the 1200×630 WhatsApp social preview |
 | `src/app/globals.css` | tokens, both themes, `.rib`, `.k-cell`, `.k-plate`, `.k-seat`, print |
 | `src/lib/design/severity.ts` | the severity notation, single source |
 | `src/components/ui/primitives.tsx` | `Cell`, `CodePlate`, `BankRule`, `Field`, `SeverityLegend`, `Button` |

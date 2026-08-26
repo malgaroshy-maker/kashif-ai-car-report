@@ -1,32 +1,68 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="كاشف">
   <!--
-    A 15A blade fuse, seated.
+    Kashif AI — Primary Mark (15A Blade Fuse)
 
-    The mark is the product's own amp rating — 15A blue is the one colour in
-    the system that is not a status, because Kashif is the thing that reads the
-    box, not one of the faults in it. Drawn, not photographed: the two blades,
-    the moulded body, and the element bridging them.
+    The mark is a seated 15A blade fuse. 15A blue is the only chromatic value
+    in the system that is not a status tier, because Kashif is the instrument
+    that reads the fuse box, not one of the faults in it.
+
+    Hand-drawn to the system's geometric laws:
+    - No rounding (radius <= 1px, clean miter joints)
+    - Moulded depth via lit crest (#82c0f0) and dark groove (#0f5288), never shadows
+    - High-contrast intact S-element bridge visible through the window
   -->
-  <rect width="64" height="64" fill="#d5d7cf"/>
+  <defs>
+    <style>
+      :root {
+        --board-bg: #d5d7cf;
+        --blade-fill: #8a8f88;
+        --blade-hole: #d5d7cf;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --board-bg: #17191a;
+          --blade-fill: #686e6a;
+          --blade-hole: #17191a;
+        }
+      }
+    </style>
+  </defs>
 
-  <!-- The slot the fuse sits in -->
-  <rect x="14" y="10" width="36" height="8" fill="#a9ada5"/>
+  <!-- Board background -->
+  <rect width="64" height="64" fill="#d5d7cf" style="fill: var(--board-bg, #d5d7cf)"/>
 
-  <!-- Blades -->
-  <rect x="20" y="12" width="7" height="16" fill="#8a8f88"/>
-  <rect x="37" y="12" width="7" height="16" fill="#8a8f88"/>
+  <!-- Terminal Blades (Metal) -->
+  <path d="M18 36 H27 V51 L24 54 H21 L18 51 Z" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
+  <rect x="21" y="44" width="3" height="3" fill="#d5d7cf" style="fill: var(--blade-hole, #d5d7cf)"/>
 
-  <!-- Moulded body -->
-  <rect x="14" y="24" width="36" height="30" rx="2" fill="#2e7fc4"/>
-  <!-- Lit crest and shaded groove: the system's depth rule, at icon scale -->
-  <rect x="14" y="24" width="36" height="2" fill="#82c0f0"/>
-  <rect x="14" y="52" width="36" height="2" fill="#0f5288"/>
+  <path d="M37 36 H46 V51 L43 54 H40 L37 51 Z" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
+  <rect x="40" y="44" width="3" height="3" fill="#d5d7cf" style="fill: var(--blade-hole, #d5d7cf)"/>
 
-  <!-- The element, visible through the body -->
-  <path d="M23 33 L29 39 L35 33 L41 39" fill="none" stroke="#f4f4f0" stroke-width="3"
+  <!-- Moulded Body (15A Blue) -->
+  <path d="M10 10 H54 V22 L52 24 V38 H12 V24 L10 22 Z" fill="#2e7fc4"/>
+
+  <!-- Moulded Ribs: Lit Crest & Dark Groove -->
+  <rect x="10" y="10" width="44" height="2" fill="#82c0f0"/>
+  <rect x="12" y="36" width="40" height="2" fill="#0f5288"/>
+
+  <!-- Test Probe Apertures -->
+  <rect x="19" y="10" width="6" height="2" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
+  <rect x="39" y="10" width="6" height="2" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
+
+  <!-- Stamped Rating on Top Crest -->
+  <text x="32" y="13.5" fill="#f4f4f0" font-family="ui-monospace, monospace"
+        font-size="3.5" font-weight="700" text-anchor="middle" letter-spacing="0.5">15A</text>
+
+  <!-- Central Element Cavity (Translucent Window) -->
+  <rect x="16" y="15" width="32" height="18" fill="#0f5288"/>
+  <rect x="16" y="15" width="32" height="1" fill="#083254"/>
+  <rect x="16" y="32" width="32" height="1" fill="#2e7fc4"/>
+
+  <!-- Internal Terminal Posts -->
+  <rect x="16" y="25" width="6" height="8" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
+  <rect x="42" y="25" width="6" height="8" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
+
+  <!-- Stamped S-Element (Intact Bridge) -->
+  <path d="M19 28 H23 V19 H30 L34 29 H41 V28" fill="none" stroke="#f4f4f0" stroke-width="2.5"
         stroke-linecap="square" stroke-linejoin="miter"/>
-
-  <!-- Rating, stamped -->
-  <text x="32" y="50" fill="#f4f4f0" font-family="ui-monospace, monospace"
-        font-size="9" font-weight="700" text-anchor="middle">15A</text>
 </svg>

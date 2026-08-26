@@ -308,9 +308,9 @@ function NoKeyNotice() {
     <Cell className="p-[var(--s4)]">
       <div className="k-label uppercase">المفتاح</div>
       <p className="mt-[var(--s1)] leading-relaxed text-(color:--ink)">
-        كاشف يخدم بمفتاح Google AI Studio الخاص بيك — يتخزّن في متصفحك بس، وما
-        يمشيش لأي خادم غير Google. حطه من <CodePlate>الإعدادات</CodePlate> فوق.
-        التقارير الجاهزة تحت تخدم بدون مفتاح.
+        كاشف يخدم بمفتاح Google AI Studio امتاعك — يتخزّن في متصفحك وما
+        يمشيش لأي سيرفر غير Google. حطه من <CodePlate>الإعدادات</CodePlate> فوق،
+        والتقارير الجاهزة لوطا تخدم من غير مفتاح.
       </p>
     </Cell>
   );

@@ -208,7 +208,17 @@ test.describe("the page holds together", () => {
 
 test.describe("the deployment surface", () => {
   test("is installable and crawlable, and publishes no build internals", async ({ request }) => {
-    for (const path of ["/manifest.webmanifest", "/robots.txt", "/sitemap.xml", "/icon.svg"]) {
+    for (const path of [
+      "/manifest.webmanifest",
+      "/robots.txt",
+      "/sitemap.xml",
+      "/icon.svg",
+      "/icon-maskable.svg",
+      "/logo.svg",
+      // The social card must be the raster. An SVG og:image shows no preview
+      // at all in WhatsApp, which is how a link to this actually travels.
+      "/og.png",
+    ]) {
       expect((await request.get(path)).status(), path).toBe(200);
     }
     // The leak this whole migration exists to close.

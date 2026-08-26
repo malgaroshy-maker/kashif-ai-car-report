@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40" role="img" aria-label="كاشف — تقرير فحص الأعطال">
+  <!--
+    Kashif AI — Horizontal Wordmark Lockup (RTL)
+
+    RTL-correct: the 15A blade fuse mark sits on the inline-start (right) side,
+    leading into the Arabic name "كاشف" and the mono data tag "OBD REPORT".
+
+    Inks use currentColor for typography so it renders at full contrast across
+    both the light board (#d5d7cf) and the dark lid (#17191a).
+  -->
+  <g transform="translate(124, 4)">
+    <!-- Terminal Blades -->
+    <path d="M7 19 H13 V29 L11.5 31 H10 L8.5 29 H7 V19 Z" fill="#8a8f88"/>
+    <rect x="9" y="24" width="2" height="2" fill="currentColor" opacity="0.2"/>
+
+    <path d="M19 19 H25 V29 L23.5 31 H22 L20.5 29 H19 V19 Z" fill="#8a8f88"/>
+    <rect x="21" y="24" width="2" height="2" fill="currentColor" opacity="0.2"/>
+
+    <!-- Moulded Body in 15A Blue -->
+    <path d="M3 3 H29 V11 L28 12 V20 H4 V12 L3 11 Z" fill="#2e7fc4"/>
+    <rect x="3" y="3" width="26" height="1.5" fill="#82c0f0"/>
+    <rect x="4" y="18.5" width="24" height="1.5" fill="#0f5288"/>
+
+    <!-- Test Probe Apertures -->
+    <rect x="8" y="3" width="4" height="1.5" fill="#8a8f88"/>
+    <rect x="20" y="3" width="4" height="1.5" fill="#8a8f88"/>
+
+    <!-- Central Cavity & Stamped Element -->
+    <rect x="6" y="6" width="20" height="10" fill="#0f5288"/>
+    <rect x="6" y="12" width="4" height="4" fill="#8a8f88"/>
+    <rect x="22" y="12" width="4" height="4" fill="#8a8f88"/>
+    <path d="M8 14 H10 V9 H15 L17 15 H22 V14" fill="none" stroke="#f4f4f0" stroke-width="1.8"
+          stroke-linecap="square" stroke-linejoin="miter"/>
+  </g>
+
+  <!-- Stamped Arabic Wordmark & Data Subtitle (RTL, anchored from mark on right) -->
+  <text x="116" y="22" text-anchor="end" fill="currentColor"
+        font-family="'Readex Pro', -apple-system, 'Segoe UI', system-ui, sans-serif"
+        font-size="17" font-weight="700" letter-spacing="-0.02em">كاشف</text>
+
+  <text x="116" y="33" text-anchor="end" fill="currentColor" opacity="0.65"
+        font-family="'Azeret Mono', ui-monospace, 'Cascadia Mono', monospace"
+        font-size="7.5" font-weight="600" letter-spacing="0.1em">OBD REPORT</text>
+</svg>

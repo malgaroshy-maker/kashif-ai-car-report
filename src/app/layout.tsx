@@ -63,8 +63,26 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     url: "/",
+    // PNG, not the SVG it is drawn from: WhatsApp — which is how a link to
+    // this actually travels — ignores an SVG og:image completely, and so do
+    // Facebook and Twitter, so an SVG here means no preview at all.
+    // Regenerate with `npm run og` after editing public/og.svg.
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        type: "image/png",
+        alt: "كاشف — يقرا تقرير جهاز الفحص ويترجمه لمصطلحات الورش الليبية",
+      },
+    ],
   },
-  twitter: { card: "summary", title: TITLE, description: DESCRIPTION },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/og.png"],
+  },
   robots: { index: true, follow: true },
   formatDetection: {
     // A VIN and an OEM part number are both long digit runs, and iOS turns
