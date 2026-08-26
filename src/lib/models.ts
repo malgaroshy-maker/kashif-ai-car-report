@@ -21,7 +21,7 @@ export interface AvailableModelItem {
 }
 
 /** What the app advertises, and what every runtime must actually use. */
-export const DEFAULT_MODEL = "gemini-3.6-flash";
+export const DEFAULT_MODEL = "gemini-3.7-flash";
 
 /**
  * Tried in order when a model is unavailable (503 high demand, 429 quota).
@@ -29,7 +29,7 @@ export const DEFAULT_MODEL = "gemini-3.6-flash";
  */
 export const MODEL_FALLBACK_CHAIN = [
   DEFAULT_MODEL,
-  "gemini-3.7-flash",
+  "gemini-3.6-flash",
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
   "gemini-3.1-flash-lite",
@@ -39,15 +39,15 @@ export const MODEL_FALLBACK_CHAIN = [
 /** Shown when there is no key to query the live endpoint with. */
 export const KNOWN_MODELS: AvailableModelItem[] = [
   {
-    id: "gemini-3.6-flash",
-    displayName: "Gemini 3.6 Flash",
-    description: "النموذج الافتراضي — معالجة سريعة ودقيقة للتقارير والأعطال",
+    id: "gemini-3.7-flash",
+    displayName: "Gemini 3.7 Flash",
+    description: "النموذج الافتراضي — استنتاج متقدم ومعالجة شاملة للتقارير المعقدة",
     isRecommended: true,
   },
   {
-    id: "gemini-3.7-flash",
-    displayName: "Gemini 3.7 Flash",
-    description: "استنتاج متقدم ومعالجة شاملة للتقارير المعقدة",
+    id: "gemini-3.6-flash",
+    displayName: "Gemini 3.6 Flash",
+    description: "معالجة سريعة ودقيقة للتقارير والأعطال",
   },
   {
     id: "gemini-3.5-flash",
