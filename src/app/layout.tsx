@@ -117,7 +117,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" className={`${readex.variable} ${azeret.variable}`}>
+    <html
+      lang="ar"
+      dir="rtl"
+      className={`${readex.variable} ${azeret.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

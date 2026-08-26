@@ -8,7 +8,9 @@ import {
   loadSampleReport,
   messageOf,
   readSettings,
+  STORAGE_KEYS,
 } from "@/lib/api-client";
+import { useLocalString } from "@/lib/local-store";
 import { SEVERITY } from "@/lib/design/severity";
 import type { KashifDiagnosticReport } from "@/lib/types";
 
@@ -40,9 +42,10 @@ export function Intake({
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = React.useState(false);
 
-  const settings = readSettings();
-  const isAgy = settings.provider === "agy";
-  const hasKey = isAgy || Boolean(settings.apiKey);
+  const storedKey = useLocalString(STORAGE_KEYS.apiKey);
+  const storedProvider = useLocalString(STORAGE_KEYS.provider, "gemini");
+  const isAgy = storedProvider === "agy";
+  const hasKey = isAgy || Boolean(storedKey.trim());
 
   /** Every entry point funnels through here so the states cannot diverge. */
   const run = async (

@@ -79,9 +79,7 @@ export async function fetchAvailableGeminiModels(
  * A model swap is the ONLY kind of fallback allowed in this file. If every
  * model refuses, this throws — it never returns substitute findings.
  */
-/** Upper bound on a single model call. Without this an empty or degenerate
- *  prompt can leave the request hanging until the platform kills it. */
-const MODEL_TIMEOUT_MS = 45_000;
+const MODEL_TIMEOUT_MS = 30_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
