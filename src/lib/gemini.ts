@@ -563,20 +563,14 @@ export function normalizeDiagnosticReport(
   };
 }
 
-export async function askMechanicAssistant(
-  report: ChatReportContext,
-  question: string,
-  history: { sender: "user" | "assistant"; text: string }[],
-  apiKeyOverride?: string,
-  modelId?: string
-): Promise<string> {
-  const ai = getGenAIClient(apiKeyOverride);
+/**
+ * The assistant's system prompt for one report.
+ *
+ * Split out of the old `askMechanicAssistant` so the streaming and buffered
+ * paths cannot drift apart — they must send the model the same instructions.
+ */
+function assistantPrompt(report: ChatReportContext): string {
   const dictionaryContext = getDictionaryContextForPrompt();
-
-  // The assistant used to answer a missing key with canned mechanic advice
-  // ("check the fuse and the wiring first"), which reads exactly like a real
-  // diagnosis of this car. Say there is no key instead.
-  if (!ai) throw new KashifError("NO_API_KEY");
 
   const safeMake = report.vehicle?.make || "السيارة";
   const safeModel = report.vehicle?.model || "";
@@ -589,7 +583,7 @@ export async function askMechanicAssistant(
   const safeMod = report.faultCategories?.moderateFaults?.map((f) => `${f.code}: ${f.libyanTerm}`).join("، ") || "لا توجد";
   const safeParts = report.sparePartsRequired?.map((p) => `${p.partNameLibyan} (OEM: ${p.oemPartNumber})`).join("، ") || "لا توجد";
 
-  const systemInstruction = `
+  return `
 أنت "الأسطى كاشف" - كبير الفنيين والمهندسين في مركز صيانة سيارات حديث في طرابلس وتاجوراء/بنغازي/مصراتة.
 تتحدث بلهجة ليبية فنية محترمة، ودودة، ومبسطة جداً، وتعتمد في مصطلحاتك على:
 ${dictionaryContext}
@@ -609,27 +603,115 @@ ${dictionaryContext}
 3. أعط نصائح عملية واقعية عن السوق الليبي (الأسعار بالدينار، الورش، محلات قطع الغيار، الرابش في السواني / الدائري / تاجوراء).
 4. ركز على السلامة والأمان.
 `;
+}
 
+/** The conversation, newest question last. */
+function assistantContents(
+  history: { sender: "user" | "assistant"; text: string }[],
+  question: string
+): unknown[] {
+  const contents: unknown[] = history.map((h) => ({
+    role: h.sender === "user" ? "user" : "model",
+    parts: [{ text: h.text }],
+  }));
+  contents.push({ role: "user", parts: [{ text: question }] });
+  return contents;
+}
+
+/**
+ * Starts a stream, falling back to another model if this one will not start.
+ *
+ * The buffered path can try the next model on any failure because nothing has
+ * been sent yet. A stream cannot: once a chunk has left, switching models
+ * would splice two different answers together. So the decision is made on the
+ * **first chunk** — it is pulled here, under the same timeout the buffered
+ * path uses, and only once it arrives is the stream handed back. After that
+ * point a failure is a failure, not a reason to retry.
+ */
+async function streamWithModelFallback(
+  ai: GoogleGenAI,
+  params: { systemInstruction: string; contents: unknown[]; model?: string }
+): Promise<AsyncGenerator<string>> {
+  const candidates = modelsToTry(params.model || process.env.GEMINI_MODEL);
+  let lastError: unknown = null;
+
+  for (const model of candidates) {
+    try {
+      const stream = await withTimeout(
+        ai.models.generateContentStream({
+          model,
+          config: { systemInstruction: params.systemInstruction },
+          contents: params.contents as never,
+        }),
+        MODEL_TIMEOUT_MS
+      );
+
+      // Time to first token, not time to the whole answer: a long reply must
+      // not be killed at 45s just because it is long.
+      const first = await withTimeout(stream.next(), MODEL_TIMEOUT_MS);
+      if (first.done) {
+        lastError = new KashifError("UNREADABLE_RESPONSE");
+        continue;
+      }
+      return replayFrom(first.value?.text ?? "", stream);
+    } catch (err) {
+      if (err instanceof KashifError && err.code !== "MODEL_UNAVAILABLE") throw err;
+      const status = (err as { status?: number; code?: number })?.status;
+      console.warn(
+        `[Gemini] ${model} would not stream (${status ?? "error"}), trying next candidate`
+      );
+      if (status && status >= 400 && status < 500 && status !== 429) {
+        throw new KashifError("INVALID_API_KEY", String(status));
+      }
+      lastError = err;
+    }
+  }
+
+  const status = (lastError as { status?: number })?.status;
+  if (status === 429) throw new KashifError("QUOTA_EXCEEDED");
+  throw new KashifError("MODEL_UNAVAILABLE", String(status ?? lastError));
+}
+
+/** Puts the already-pulled first chunk back at the head of the stream. */
+async function* replayFrom(
+  first: string,
+  rest: AsyncGenerator<{ text?: string }>
+): AsyncGenerator<string> {
+  if (first) yield first;
+  for await (const chunk of rest) {
+    if (chunk?.text) yield chunk.text;
+  }
+}
+
+/**
+ * The assistant's answer, streamed a piece at a time.
+ *
+ * A reply runs twenty seconds or more, and it used to land all at once at the
+ * end — twenty seconds of a spinner and no way to tell a slow answer from a
+ * dead one. Streaming does not make the model faster; it makes the wait
+ * legible, which on a workshop phone connection is the part that matters.
+ */
+export async function* streamMechanicAssistant(
+  report: ChatReportContext,
+  question: string,
+  history: { sender: "user" | "assistant"; text: string }[],
+  apiKeyOverride?: string,
+  modelId?: string
+): AsyncGenerator<string> {
+  const ai = getGenAIClient(apiKeyOverride);
+
+  // The assistant used to answer a missing key with canned mechanic advice
+  // ("check the fuse and the wiring first"), which reads exactly like a real
+  // diagnosis of this car. Say there is no key instead.
+  if (!ai) throw new KashifError("NO_API_KEY");
+
+  let stream: AsyncGenerator<string>;
   try {
-    const contents: unknown[] = history.map((h) => ({
-      role: h.sender === "user" ? "user" : "model",
-      parts: [{ text: h.text }],
-    }));
-
-    contents.push({
-      role: "user",
-      parts: [{ text: question }],
-    });
-
-    const response = await generateWithModelFallback(ai, {
-      systemInstruction,
-      contents,
+    stream = await streamWithModelFallback(ai, {
+      systemInstruction: assistantPrompt(report),
+      contents: assistantContents(history, question),
       model: modelId,
     });
-
-    const reply = response?.text?.trim();
-    if (!reply) throw new KashifError("UNREADABLE_RESPONSE");
-    return reply;
   } catch (err) {
     // A model-availability failure is already a KashifError. Anything else is
     // reported as one — never answered with invented advice about this car.
@@ -637,5 +719,11 @@ ${dictionaryContext}
     console.error("[chat] unexpected", err);
     throw new KashifError("UPSTREAM_ERROR");
   }
-}
 
+  let sawText = false;
+  for await (const piece of stream) {
+    sawText = true;
+    yield piece;
+  }
+  if (!sawText) throw new KashifError("UNREADABLE_RESPONSE");
+}

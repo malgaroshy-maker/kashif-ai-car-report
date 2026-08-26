@@ -194,43 +194,103 @@ export async function analyzeCodes(input: {
 }
 
 /**
- * A question for the assistant.
+ * A question for the assistant, answered a piece at a time.
  *
  * `report` is trimmed to what the prompt actually reads before it leaves the
  * browser — see `chatContextOf`. The full report used to be re-serialised and
  * uploaded on every single message.
+ *
+ * The reply arrives as newline-delimited JSON. Anything that fails before the
+ * first token still comes back as an ordinary JSON error with a status code,
+ * so the key and quota messages are unchanged; the content type is what tells
+ * the two apart.
  */
-export async function askAssistant(
+export async function* streamAssistant(
   report: KashifDiagnosticReport,
   question: string,
   history: { sender: "user" | "assistant"; text: string }[],
   signal?: AbortSignal
-): Promise<string> {
+): AsyncGenerator<string> {
   const settings = readSettings();
-  const data = await post(
-    "/api/chat",
-    {
-      headers: { "Content-Type": "application/json", ...settingsHeaders(settings) },
-      body: JSON.stringify({
-        report: chatContextOf(report),
-        question,
-        history,
-        apiKey: settings.apiKey || undefined,
-        model: settings.model || undefined,
-        provider: settings.provider,
-      }),
-    },
-    CHAT_TIMEOUT_MS,
-    signal
-  );
-  if (!data.reply) throw new ApiError("لم يصل رد من المساعد.");
-  return data.reply;
+  const timeout = AbortSignal.timeout(CHAT_TIMEOUT_MS);
+
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...settingsHeaders(settings) },
+    body: JSON.stringify({
+      report: chatContextOf(report),
+      question,
+      history,
+      apiKey: settings.apiKey || undefined,
+      model: settings.model || undefined,
+      provider: settings.provider,
+    }),
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+  });
+
+  if (!res.headers.get("content-type")?.includes("ndjson")) {
+    const raw = await res.text();
+    let data: ApiEnvelope;
+    try {
+      data = JSON.parse(raw) as ApiEnvelope;
+    } catch {
+      throw new ApiError(
+        res.ok
+          ? "تعذر قراءة رد الخادم."
+          : `تعذر إكمال الطلب (${res.status}). تحقق من إعدادات المفتاح في الإعدادات.`
+      );
+    }
+    throw new ApiError(data.error || "تعذر إكمال الطلب.");
+  }
+
+  if (!res.body) throw new ApiError("لم يصل رد من المساعد.");
+
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  let sawText = false;
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += value;
+
+      // A chunk boundary lands anywhere, including the middle of a multi-byte
+      // Arabic character or halfway through a JSON object. Only complete
+      // lines are parsed; the remainder waits for the next read.
+      let cut = buffer.indexOf("\n");
+      while (cut !== -1) {
+        const raw = buffer.slice(0, cut).trim();
+        buffer = buffer.slice(cut + 1);
+        cut = buffer.indexOf("\n");
+        if (!raw) continue;
+
+        let event: { delta?: string; error?: string; done?: boolean };
+        try {
+          event = JSON.parse(raw);
+        } catch {
+          continue;
+        }
+        if (event.error) throw new ApiError(event.error);
+        if (event.delta) {
+          sawText = true;
+          yield event.delta;
+        }
+      }
+    }
+  } finally {
+    // Leaving the loop early — the caller stopped reading, or the question was
+    // superseded — must not leave the body open.
+    await reader.cancel().catch(() => {});
+  }
+
+  if (!sawText) throw new ApiError("لم يصل رد من المساعد.");
 }
 
 /**
  * The slice of a report the assistant prompt reads.
  *
- * `askMechanicAssistant` uses the vehicle, the summary, the critical and
+ * The assistant prompt uses the vehicle, the summary, the critical and
  * moderate fault codes, and the part names — and nothing else. Sending the
  * whole report meant every message carried the full checklist, every fault's
  * symptoms and root causes, and the entire electrical diagnostics block with

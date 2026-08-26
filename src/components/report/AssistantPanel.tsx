@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Button, Cell } from "@/components/ui/primitives";
-import { askAssistant, messageOf } from "@/lib/api-client";
+import { streamAssistant, messageOf } from "@/lib/api-client";
 import { ACCENT } from "@/lib/design/severity";
 import type { ChatMessage, KashifDiagnosticReport } from "@/lib/types";
 
@@ -41,6 +41,13 @@ export function AssistantPanel({ report }: { report: KashifDiagnosticReport }) {
   const stamp = () =>
     new Date().toLocaleTimeString("ar-LY", { hour: "2-digit", minute: "2-digit" });
 
+  // "Preparing the reply" belongs to the gap before the first word, not to the
+  // whole answer. Once text is arriving the text itself is the progress, and
+  // leaving the notice up under a reply already being written says the app has
+  // not noticed what it is doing.
+  const waiting =
+    busy && messages[messages.length - 1]?.text === "";
+
   const send = async (text: string) => {
     const question = text.trim();
     if (!question || busy) return;
@@ -51,7 +58,23 @@ export function AssistantPanel({ report }: { report: KashifDiagnosticReport }) {
       text: question,
       timestamp: stamp(),
     };
-    setMessages((prev) => [...prev, asked]);
+
+    // The answer's line is added empty and filled in as the text arrives, so
+    // the reply appears where it will finally sit rather than jumping into
+    // place at the end.
+    const answerId = `a-${Date.now()}`;
+    const blank: ChatMessage = {
+      id: answerId,
+      sender: "assistant",
+      text: "",
+      timestamp: stamp(),
+    };
+
+    // Sender and text only. The ids and display timestamps were being
+    // uploaded on every turn and mean nothing to the model.
+    const history = messages.map((m) => ({ sender: m.sender, text: m.text }));
+
+    setMessages((prev) => [...prev, asked, blank]);
     setInput("");
     setBusy(true);
 
@@ -59,34 +82,45 @@ export function AssistantPanel({ report }: { report: KashifDiagnosticReport }) {
     const controller = new AbortController();
     pending.current = controller;
 
+    let received = "";
     try {
-      // Sender and text only. The ids and display timestamps were being
-      // uploaded on every turn and mean nothing to the model.
-      const history = messages.map((m) => ({ sender: m.sender, text: m.text }));
-      const reply = await askAssistant(report, question, history, controller.signal);
-      setMessages((prev) => [
-        ...prev,
-        { id: `a-${Date.now()}`, sender: "assistant", text: reply, timestamp: stamp() },
-      ]);
+      for await (const delta of streamAssistant(
+        report,
+        question,
+        history,
+        controller.signal
+      )) {
+        received += delta;
+        const soFar = received;
+        setMessages((prev) =>
+          prev.map((m) => (m.id === answerId ? { ...m, text: soFar } : m))
+        );
+      }
     } catch (err) {
       // A question that was replaced by a newer one is not worth a line in the
       // transcript.
       const superseded =
         controller.signal.aborted &&
         !(err instanceof DOMException && err.name === "TimeoutError");
-      if (superseded) return;
+      if (superseded) {
+        setMessages((prev) => prev.filter((m) => m.id !== answerId));
+        return;
+      }
 
       // The old panel answered every failure with "connection problem", which
       // hid the one that actually matters: no API key set.
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `e-${Date.now()}`,
-          sender: "assistant",
-          text: messageOf(err, "تعذر الاتصال حالياً، جرب مرة ثانية."),
-          timestamp: stamp(),
-        },
-      ]);
+      const said = messageOf(err, "تعذر الاتصال حالياً، جرب مرة ثانية.");
+
+      // Text that already arrived is kept. An answer that broke off three
+      // quarters of the way through is still worth more than the error alone,
+      // and throwing it away to show a message is the wrong trade.
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === answerId
+            ? { ...m, text: received ? `${received}\n\n— ${said}` : said }
+            : m
+        )
+      );
     } finally {
       if (pending.current === controller) {
         pending.current = null;
@@ -147,7 +181,7 @@ export function AssistantPanel({ report }: { report: KashifDiagnosticReport }) {
           </ol>
         )}
 
-        {busy && (
+        {waiting && (
           <p className="k-label normal-case mt-[var(--s3)]" role="status" aria-live="polite">
             جاري إعداد الرد…
           </p>
