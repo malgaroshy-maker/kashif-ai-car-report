@@ -1,65 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="كاشف">
-  <!--
-    Kashif AI — Maskable Icon (80% Safe Zone)
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="كاشف">
+<!--
+  كاشف / KASHIF — maskable app icon
 
-    Android crops a maskable icon to whatever shape the launcher uses — circle,
-    squircle, teardrop — and only the middle 80% is guaranteed to survive. The
-    mark is scaled into that safe zone so blades and top crest are never clipped.
-  -->
-  <defs>
-    <style>
-      :root {
-        --board-bg: #d5d7cf;
-        --blade-fill: #8a8f88;
-        --blade-hole: #d5d7cf;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --board-bg: #17191a;
-          --blade-fill: #686e6a;
-          --blade-hole: #17191a;
-        }
-      }
-    </style>
-  </defs>
+  The ش of كاشف is an automotive blade fuse. The word does not read without
+  it: the fuse is not an ornament beside the name, it IS the letter. That is
+  why it survives every reduction, down to the favicon and the printed report.
 
-  <!-- Full bleed board background -->
-  <rect width="64" height="64" fill="#d5d7cf" style="fill: var(--board-bg, #d5d7cf)"/>
+  The letterforms are real Readex Pro outlines — the family the app already
+  ships — shaped with HarfBuzz so the letters join correctly, then converted to
+  paths. Hand-drawing Arabic is how you get a wordmark that reads as subtly
+  wrong to everyone who speaks the language.
 
-  <g transform="translate(32 32) scale(0.72) translate(-32 -32)">
-    <!-- Terminal Blades (Metal) -->
-    <path d="M18 36 H27 V51 L24 54 H21 L18 51 Z" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
-    <rect x="21" y="44" width="3" height="3" fill="#d5d7cf" style="fill: var(--blade-hole, #d5d7cf)"/>
+  Rebuilt by the scripts recorded in DESIGN.md § Identity.
+-->
 
-    <path d="M37 36 H46 V51 L43 54 H40 L37 51 Z" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
-    <rect x="40" y="44" width="3" height="3" fill="#d5d7cf" style="fill: var(--blade-hole, #d5d7cf)"/>
-
-    <!-- Moulded Body (15A Blue) -->
-    <path d="M10 10 H54 V22 L52 24 V38 H12 V24 L10 22 Z" fill="#2e7fc4"/>
-
-    <!-- Moulded Ribs: Lit Crest & Dark Groove -->
-    <rect x="10" y="10" width="44" height="2" fill="#82c0f0"/>
-    <rect x="12" y="36" width="40" height="2" fill="#0f5288"/>
-
-    <!-- Test Probe Apertures -->
-    <rect x="19" y="10" width="6" height="2" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
-    <rect x="39" y="10" width="6" height="2" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
-
-    <!-- Stamped Rating on Top Crest -->
-    <text x="32" y="13.5" fill="#f4f4f0" font-family="ui-monospace, monospace"
-          font-size="3.5" font-weight="700" text-anchor="middle" letter-spacing="0.5">15A</text>
-
-    <!-- Central Element Cavity (Translucent Window) -->
-    <rect x="16" y="15" width="32" height="18" fill="#0f5288"/>
-    <rect x="16" y="15" width="32" height="1" fill="#083254"/>
-    <rect x="16" y="32" width="32" height="1" fill="#2e7fc4"/>
-
-    <!-- Internal Terminal Posts -->
-    <rect x="16" y="25" width="6" height="8" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
-    <rect x="42" y="25" width="6" height="8" fill="#8a8f88" style="fill: var(--blade-fill, #8a8f88)"/>
-
-    <!-- Stamped S-Element (Intact Bridge) -->
-    <path d="M19 28 H23 V19 H30 L34 29 H41 V28" fill="none" stroke="#f4f4f0" stroke-width="2.5"
-          stroke-linecap="square" stroke-linejoin="miter"/>
+  <rect width="64" height="64" fill="#d5d7cf"/>
+  <g transform="translate(-47.50 45.03) scale(0.0492 -0.0492)">
+    <path d="M1380 150 h140 V-68 l-42 -42 h-56 l-42 42 Z" fill="#8a8f88"/>
+      <path d="M1715 150 h140 V-68 l-42 -42 h-56 l-42 42 Z" fill="#8a8f88"/>
+      <rect x="1268" y="150" width="699" height="490" fill="#2e7fc4"/>
+      <rect x="1268" y="601" width="699" height="39" fill="#8fc7f0"/>
+      <rect x="1268" y="150" width="699" height="39" fill="#0b3f6b"/>
+      <rect x="1373" y="228" width="490" height="225" fill="#0b3f6b"/>
+      <polyline points="1402 282 1520 282 1520 400 1666 400 1735 282 1833 282" fill="none" stroke="#f2f8fd" stroke-width="49" stroke-linecap="square" stroke-linejoin="miter"/>
   </g>
 </svg>

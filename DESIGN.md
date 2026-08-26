@@ -216,27 +216,51 @@ others. 43 unit tests and 28 end-to-end tests hold the line.
 
 ## Identity
 
-The mark is a **seated 15A blade fuse** (ATO/ATC standard), hand-drawn with its
-moulded polymer body, zinc terminal blades, and intact S-element bridge.
+**The ش of كاشف is an automotive blade fuse.**
 
-- **Why the fuse**: The product's metaphor is the fuse-box lid. "كاشف" means the
-  uncoverer / revealer. An intact S-element bridge is the universal automotive
-  sign of unbroken electrical integrity — it tells at a glance whether the circuit
-  is sound or blown, which is exactly what Kashif does for the car.
-- **Colour**: Exclusively **15A blue** (`--amp-15-tab` / `--amp-15-ink`). It never
-  takes 10A red, 20A yellow, or 30A green. 15A blue is the interactive brand ink;
-  the mark represents the instrument reading the board, not a fault tier on it.
-- **Scale and legibility**: Tested down to **16px** (browser tab favicon). At 16px,
-  the silhouette of the two terminal blades, the 15A blue housing, and the
-  high-contrast central bridge element survive without blurring.
-- **Lockup**: RTL-correct. The mark sits on the **inline-start (right) edge** of
-  the Arabic wordmark, leading the eye into the name.
-- **What not to do**:
-  - Never round the corners. `--radius-plate: 1px` is the ceiling.
-  - Never add drop shadows, lighting flares, or radial glows.
-  - Never show a blown (severed) element in the identity mark — a broken fuse is
-    the fault state, not the brand.
-  - Never render the mark in a severity status colour.
+Not a mark beside the name — the fuse *is* the letter. Cover it and the word
+stops reading. That is the constraint the whole identity is built around: the
+fuse has to survive every reduction, down to a 16px favicon and a
+black-and-white printed report, because losing it loses the name.
+
+The sheen's three dots are kept and lifted clear of the body. They are letter,
+not ornament, and they are what still says **ش** above the component.
+
+**Why the fuse.** The product's metaphor is the fuse-box lid. The element
+bridging a fuse's two blades is the part a mechanic actually looks at to tell a
+good fuse from a blown one — which is precisely what Kashif does for a car. The
+body is stamped **15A**: the app's own rating, the one chromatic value in the
+system that is not a status, and the only number on the mark.
+
+**The letterforms are real.** They are Readex Pro outlines — the family the app
+already ships — shaped with HarfBuzz so the letters join correctly
+(`ك.init` `ا.fina` `ش.init` `ف.fina`) and then converted to paths. Arabic drawn
+by hand or by an image model reads as subtly wrong to everyone who speaks the
+language; this does not.
+
+**Two treatments, one drawing.**
+
+| file | what it is |
+|---|---|
+| `public/logo.svg` | the hero lockup, brushed steel, transparent ground — signage, social, print |
+| `public/logo-flat.svg` | the reduction: `currentColor`, no gradients, themes with the board |
+| `public/icon.svg` | the fuse alone, square. It is both the distinctive mark and a letter of the name |
+| `public/icon-maskable.svg` | the same inside the centre-80% safe zone, so a round launcher does not crop the blades |
+| `public/og.svg` → `og.png` | the share card. `npm run og` reprints the raster |
+
+The Latin `KASHIF` sits beneath the Arabic, letterspaced, at 26% of its size.
+The Arabic leads because the reader does.
+
+**What not to do:**
+
+- Never draw the element severed. A blown fuse is the fault state, not the brand.
+- Never render the mark in a severity colour — 10A red, 20A yellow, 30A green
+  all mean something specific, and the mark is not a finding.
+- Never round the corners. `--radius-plate: 1px` is the ceiling.
+- Never add a shadow, a glow, or a bevel to the flat reduction.
+- Never add a tagline. An early generated draft carried
+  *"ELECTRICAL SYSTEMS • PRECISION ENGINEERING"* — Kashif is neither, and a
+  logo is not the place to claim a business it does not run.
 
 ---
 
