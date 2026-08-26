@@ -37,12 +37,12 @@ export function VehiclePlate({ report }: { report: KashifDiagnosticReport }) {
     <Cell as="section" className="p-[var(--s5)]" aria-labelledby="vehicle-plate">
       <div className="flex flex-col gap-[var(--s4)] md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <div className="k-label uppercase">المركبة المفحوصة</div>
+          <div className="k-label uppercase">بيانات السيارة</div>
           <h1
             id="vehicle-plate"
             className="mt-[2px] text-(length:--t-title) font-bold leading-tight text-(color:--ink)"
           >
-            {name || "مركبة غير محددة"}
+            {name || "سيارة غير محددة"}
             {vehicle.year && (
               <span data-num className="ms-[var(--s2)] text-(length:--t-body) font-semibold text-(color:--ink-2)">
                 {vehicle.year}

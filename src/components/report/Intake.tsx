@@ -63,9 +63,9 @@ export function Intake({
 
   const upload = (file: File) =>
     run(
-      "جاري استخراج الأكواد ومطابقتها بالقاموس الفني…",
+      "جاري استخراج الأكواد ومطابقتها بالقاموس…",
       () => analyzeFile(file),
-      "تعذر تحليل الملف المرفوع"
+      "تعذر قراءة الملف المرفوع"
     );
 
   return (
@@ -77,8 +77,8 @@ export function Intake({
         </h1>
         <p className="mt-[var(--s1)] text-(color:--ink-2)">
           ملف PDF أو صورة شاشة من Launch X431 أو Autel أو Ediag أو ThinkDiag —
-          يطلع تقرير بالمصطلحات المعتمدة في الورش الليبية، بأرقام القطع والفحص
-          المطلوب قبل الشراء.
+          يطلعلك تقرير بمصطلحات الورش الليبية، بأرقام قطع الغيار والفحص
+          المطلوب قبل ما تشري.
         </p>
       </div>
 
@@ -135,13 +135,13 @@ export function Intake({
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!codes.trim()) {
-                  setError("اكتب كود عطل واحد على الأقل — مثل P0102.");
+                  setError("اكتب كود عطل واحد على الأقل — زي P0102.");
                   return;
                 }
                 run(
-                  "جاري تحليل الأكواد واستخراج أرقام القطع…",
+                  "جاري فحص الأكواد واستخراج أرقام القطع…",
                   () => analyzeCodes({ manualCodes: codes, vin, makeModel }),
-                  "تعذر تحليل الأكواد المدخلة"
+                  "تعذر قراءة الأكواد المدخلة"
                 );
               }}
             >
@@ -163,7 +163,7 @@ export function Intake({
                 />
                 <TextInput
                   id="makemodel"
-                  label="الصانع والموديل (اختياري)"
+                  label="نوع وموديل السيارة (اختياري)"
                   value={makeModel}
                   onChange={setMakeModel}
                 />
@@ -267,7 +267,7 @@ function Analysing({ status }: { status: string }) {
         </span>
         <p className="text-(color:--ink)">{status || "جاري التحليل…"}</p>
         <p className="k-label normal-case">
-          التحليل عادةً يستغرق من 15 إلى 40 ثانية حسب حجم التقرير.
+          التحليل ياخذ عادةً من 15 إلى 40 ثانية حسب حجم التقرير.
         </p>
       </div>
     </Cell>
@@ -308,9 +308,9 @@ function NoKeyNotice() {
     <Cell className="p-[var(--s4)]">
       <div className="k-label uppercase">المفتاح</div>
       <p className="mt-[var(--s1)] leading-relaxed text-(color:--ink)">
-        كاشف يشتغل بمفتاح Google AI Studio حقّك أنت — يتخزّن في متصفحك بس، وما
-        يوصلش لأي خادم غير Google. حطّه من <CodePlate>الإعدادات</CodePlate> فوق.
-        التقارير الجاهزة تحت تشتغل بدون مفتاح.
+        كاشف يخدم بمفتاح Google AI Studio الخاص بيك — يتخزّن في متصفحك بس، وما
+        يمشيش لأي خادم غير Google. حطه من <CodePlate>الإعدادات</CodePlate> فوق.
+        التقارير الجاهزة تحت تخدم بدون مفتاح.
       </p>
     </Cell>
   );

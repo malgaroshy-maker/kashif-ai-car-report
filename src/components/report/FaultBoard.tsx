@@ -52,7 +52,7 @@ export function FaultBoard({
 
       {totalFaults === 0 && report.passedSystems.length === 0 && (
         <Cell className="p-[var(--s5)] text-center text-(color:--ink-2)">
-          التقرير ما فيهش أعطال مسجلة ولا منظومات ناجحة. راجع ملف الفحص الأصلي.
+          التقرير ما فيهش أعطال مسجلة ولا منظومات سليمة. راجع ملف الفحص الأصلي.
         </Cell>
       )}
 

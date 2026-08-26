@@ -21,7 +21,7 @@ import type { ChatMessage, KashifDiagnosticReport } from "@/lib/types";
 export function AssistantPanel({ report }: { report: KashifDiagnosticReport }) {
   const vehicleName =
     [report.vehicle.make, report.vehicle.model].filter(Boolean).join(" ") ||
-    "هذه المركبة";
+    "السيارة";
 
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [input, setInput] = React.useState("");
@@ -196,6 +196,6 @@ export function AssistantPanel({ report }: { report: KashifDiagnosticReport }) {
 /** Openers, phrased the way somebody standing at the counter would ask. */
 const SUGGESTIONS = [
   "شنو أخطر عطل عندي؟",
-  "السيارة تمشي بيها ولا لأ؟",
-  "شنو أفحص قبل ما نشري القطع؟",
+  "السيارة تمشي بيها ولا لا؟",
+  "شنو نفحص قبل ما نشري القطع؟",
 ];

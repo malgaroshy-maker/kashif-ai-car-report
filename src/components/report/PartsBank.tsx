@@ -112,7 +112,7 @@ function PartCell({
 
       {part.aftermarketReplacements.length > 0 && (
         <div className="mt-[var(--s3)]">
-          <div className="k-label uppercase">بدائل معتمدة</div>
+          <div className="k-label uppercase">بدائل مقترحة</div>
           <ul className="mt-[var(--s1)] flex flex-wrap gap-[var(--s2)]">
             {part.aftermarketReplacements.map((alt, i) => (
               <li key={i}>

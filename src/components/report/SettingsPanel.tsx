@@ -95,8 +95,8 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
         <section>
           <h3 className="k-label uppercase">مفتاح Google AI Studio</h3>
           <p className="mt-[var(--s2)] leading-relaxed text-(color:--ink-2)">
-            كاشف ما يشحنش مفتاح مشترك. المفتاح حقك يتخزن في متصفحك أنت، وما
-            يتبعتش لأي جهة غير Google وقت التحليل.
+            كاشف ما يوفّرش مفتاح مشترك. مفتاحك يتخزّن في متصفحك أنت، وما
+            يمشيش لأي جهة غير Google وقت التحليل.
           </p>
 
           <div className="mt-[var(--s3)] flex gap-[var(--s2)]">
@@ -124,7 +124,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           </div>
 
           <p className="k-label normal-case mt-[var(--s2)]">
-            تجيبه من{" "}
+            تاخذه من{" "}
             <a
               href="https://aistudio.google.com/apikey"
               target="_blank"
@@ -139,8 +139,8 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
 
           {hasServerKey && (
             <p className="k-label normal-case mt-[var(--s2)]">
-              فيه مفتاح مضبوط على الخادم كمان. لو حطيت مفتاحك هنا، مفتاحك هو
-              اللي ينستعمل.
+              فيه مفتاح مضبوط على الخادم. لو حطيت مفتاحك هنا، مفتاحك هو
+              اللي حينستعمل.
             </p>
           )}
         </section>

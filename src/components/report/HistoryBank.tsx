@@ -35,7 +35,7 @@ export function HistoryBank({
     <section className="space-y-[var(--s3)]" aria-labelledby="history-heading">
       <div className="rib-heavy flex items-center gap-[var(--s2)] pt-[var(--s2)]">
         <h2 id="history-heading" className="k-bank uppercase text-(color:--ink)">
-          فحوصات محفوظة على هذا الجهاز
+          تقارير محفوظة على هذا الجهاز
         </h2>
         <span className="rib mt-[2px] h-px flex-1" aria-hidden />
         <span data-num className="k-label">
@@ -53,7 +53,7 @@ export function HistoryBank({
 
       <div className="flex flex-wrap items-center gap-[var(--s3)]">
         <p className="k-label normal-case flex-1">
-          محفوظة في هذا المتصفح فقط — ما فيش نسخة على أي خادم.
+          محفوظة في متصفحك بس — ما فيش نسخة على أي خادم.
         </p>
 
         {confirming ? (
@@ -104,7 +104,7 @@ function HistoryRow({
 
       <span className="min-w-0 flex-1">
         <span className="block truncate font-semibold text-(color:--ink)">
-          {name || "مركبة غير محددة"}
+          {name || "سيارة غير محددة"}
           {vehicle.year && (
             <span data-num className="ms-[var(--s2)] font-normal text-(color:--ink-2)">
               {vehicle.year}
@@ -113,7 +113,7 @@ function HistoryRow({
         </span>
         <span className="k-label mt-[2px] block normal-case">
           {orUnknown(vehicle.vin, "بدون رقم هيكل")} ·{" "}
-          {faults > 0 ? `${faults} عطل` : "بدون أعطال نشطة"}
+          {faults > 0 ? `${faults} عطل` : "بدون أعطال"}
         </span>
       </span>
 

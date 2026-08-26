@@ -29,7 +29,7 @@ export function ReportActions({ report }: { report: KashifDiagnosticReport }) {
       aria-label="تصدير التقرير"
     >
       <p className="k-label normal-case flex-1">
-        الملف المنزّل يشتغل بدون إنترنت — افتحه على أي جهاز في الورشة.
+        الملف المنزّل يخدم بدون نت — افتحه على أي جهاز في الورشة.
       </p>
 
       <div className="flex flex-wrap gap-[var(--s2)]">

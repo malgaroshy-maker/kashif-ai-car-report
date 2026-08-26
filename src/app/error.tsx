@@ -35,8 +35,8 @@ export default function Error({
           صار خلل ووقف العرض
         </h1>
         <p className="mt-[var(--s3)] leading-relaxed text-(color:--ink-2)">
-          هذا خلل في كاشف نفسه، مش في سيارتك ولا في تقرير الفحص. جرّب تعيد
-          المحاولة — لو تكرر، حدّث الصفحة وارفع التقرير من جديد.
+          الخلل في كاشف نفسه، مش في سيارتك ولا في تقرير الفحص. جرّب مرة
+          ثانية — ولو تكرر، حدّث الصفحة وارفع التقرير من جديد.
         </p>
 
         {error.digest && (
@@ -48,7 +48,7 @@ export default function Error({
 
         <div className="mt-[var(--s5)] flex flex-wrap gap-[var(--s2)]">
           <Button variant="primary" onClick={reset}>
-            حاول مرة ثانية
+            جرّب مرة ثانية
           </Button>
           {/* Navigating home remounts the tree that threw, which is the other
               way out when reset() lands on the same error again. */}

@@ -30,7 +30,7 @@ export function printReport(): void {
 export function shareReportToWhatsApp(report: KashifDiagnosticReport): void {
     const v = report?.vehicle;
     const vehicle = {
-      make: orUnknown(v?.make, "مركبة"),
+      make: orUnknown(v?.make, "سيارة"),
       model: orUnknown(v?.model, ""),
       year: orUnknown(v?.year, ""),
       vin: orUnknown(v?.vin),
@@ -55,15 +55,15 @@ export function shareReportToWhatsApp(report: KashifDiagnosticReport): void {
       .map((f) => `• [${f.code}] ${f.libyanTerm}`)
       .join("\n");
 
-    const text = `*تقرير فحص فني معتمد - كاشف AI*
+    const text = `*تقرير فحص فني - كاشف*
 ----------------------------------
-المركبة: ${vehicle.make} ${vehicle.model} (${vehicle.year})
+السيارة: ${vehicle.make} ${vehicle.model} (${vehicle.year})
 رقم الهيكل VIN: ${vehicle.vin}
 مؤشر الجاهزية: ${scoreLine}
 الممشى: ${vehicle.mileage}
 جهاز الفحص: ${report.scannerInfo?.toolName || "جهاز OBD"}
 
-ملخص التقييم الفني:
+ملخص الفحص:
 ${summary.briefSummaryArabic}
 
 ${
@@ -72,10 +72,10 @@ ${
     : ""
 }${
       (faultCategories.moderateFaults || []).length > 0
-        ? `أعطال تتطلب صيانة:\n${modFaults}\n`
+        ? `أعطال متوسطة:\n${modFaults}\n`
         : ""
     }
-قطع الغيار والـ OEM التقديرية:
+قطع الغيار المطلوبة وأرقام الوكالة (OEM):
 ${(report.sparePartsRequired || [])
   .map(
     (p) =>
@@ -87,7 +87,7 @@ ${(report.sparePartsRequired || [])
   )
   .join("\n")}
 
-تم الفحص عبر منظومة كاشف AI للتشخيص الرقمي`;
+تم استخراج التقرير عبر كاشف`;
 
     const encoded = encodeURIComponent(text);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, "_blank");
@@ -154,7 +154,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تقرير فحص فني معتمد - ${orUnknown(safe.vehicle.make, 'مركبة')} ${orUnknown(safe.vehicle.model, '')} (${orUnknown(safe.vehicle.year, '')})</title>
+  <title>تقرير فحص فني - ${orUnknown(safe.vehicle.make, 'سيارة')} ${orUnknown(safe.vehicle.model, '')} (${orUnknown(safe.vehicle.year, '')})</title>
   <style>
     /*
       No @font-face and no <link>. This file's whole reason for existing is
@@ -322,8 +322,8 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     <!-- Action Bar -->
     <div class="top-actions">
       <div>
-        <span style="font-weight: 700; color: var(--amp-15);">كاشف الذكي (Kashif AI)</span>
-        <span style="font-size: 11px; color: var(--ink-2); margin-right: 6px;">منظومة التشخيص الفني الرقمي</span>
+        <span style="font-weight: 700; color: var(--amp-15);">كاشف</span>
+        <span style="font-size: 11px; color: var(--ink-2); margin-right: 6px;">تشخيص أعطال السيارات</span>
       </div>
       <button class="btn-action" onclick="window.print()">
         طباعة التقرير / حفظ PDF
@@ -336,26 +336,26 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
         <div class="brand-group">
           <div class="logo-badge font-latin">K</div>
           <div>
-            <h1 style="font-size: 18px; font-weight: 800; color: inherit;">مركز الفحص والتشخيص الفني المعتمد</h1>
-            <p style="font-size: 11px; color: var(--ink-2);">تقرير فحص وتشخيص إلكتروني معتمد بالمصطلحات الفنية الميدانية</p>
+            <h1 style="font-size: 18px; font-weight: 800; color: inherit;">تقرير فحص وتشخيص الأعطال</h1>
+            <p style="font-size: 11px; color: var(--ink-2);">تشخيص أعطال بمصطلحات ورش الصيانة الليبية</p>
           </div>
         </div>
 
         <div class="workshop-seal">
-          <span>فحص إلكتروني موثق</span>
+          <span>فحص كمبيوتر</span>
           <span>• جهاز ${orUnknown(safe.scannerInfo.toolName)}</span>
         </div>
       </div>
 
       <div class="hero-content">
         <div>
-          <div class="car-title">${orUnknown(safe.vehicle.make, 'مركبة')} ${orUnknown(safe.vehicle.model, '')} (${orUnknown(safe.vehicle.year, '')})</div>
+          <div class="car-title">${orUnknown(safe.vehicle.make, 'سيارة')} ${orUnknown(safe.vehicle.model, '')} (${orUnknown(safe.vehicle.year, '')})</div>
           <div class="car-vin">VIN: ${orUnknown(safe.vehicle.vin)}</div>
           <div class="telemetry-row">
             <div class="telemetry-chip">الممشى: <strong>${orUnknown(safe.vehicle.mileage)}</strong></div>
             <div class="telemetry-chip">المحرك: <strong>${orUnknown(safe.vehicle.engineSpecs?.displacement)}</strong></div>
             <div class="telemetry-chip">تاريخ الفحص: <strong>${safe.generatedAt.slice(0, 10)}</strong></div>
-            <div class="telemetry-chip">الفني الفاحص: <strong>م. أحمد الفرجاني</strong></div>
+            <div class="telemetry-chip">الفاحص: <strong>غير محدد</strong></div>
           </div>
         </div>
 
@@ -370,12 +370,12 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
 
     <!-- Executive Summary -->
     <div class="summary-card">
-      <div class="summary-title">ملخص التقييم الفني للمركبة:</div>
+      <div class="summary-title">ملخص حالة السيارة:</div>
       <p class="summary-text">${safe.summary.briefSummaryArabic}</p>
     </div>
 
     <!-- Fault Priority Matrix -->
-    <h2 class="section-title">مصفوفة تصنيف الأنظمة والأعطال</h2>
+    <h2 class="section-title">تصنيف الأعطال والمنظومات</h2>
     <div class="matrix-grid">
       <div class="matrix-card critical">
         <span class="matrix-badge" style="background: var(--amp-10);">أعطال حرجة (${safe.faultCategories.criticalFaults.length})</span>
@@ -391,7 +391,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
       </div>
 
       <div class="matrix-card moderate">
-        <span class="matrix-badge" style="background: var(--amp-20);">أعطال متوسطة للصيانة (${safe.faultCategories.moderateFaults.length})</span>
+        <span class="matrix-badge" style="background: var(--amp-20);">أعطال متوسطة (${safe.faultCategories.moderateFaults.length})</span>
         <div style="font-size: 11px; color: var(--ink-2);">
           ${
             report.faultCategories.moderateFaults.length === 0
@@ -404,7 +404,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
       </div>
 
       <div class="matrix-card passed">
-        <span class="matrix-badge" style="background: var(--amp-30);">أنظمة سليمة واجتازت الفحص (${safe.passedSystems.length})</span>
+        <span class="matrix-badge" style="background: var(--amp-30);">منظومات سليمة (${safe.passedSystems.length})</span>
         <div style="font-size: 11px; color: var(--ink-2);">
           ${safe.passedSystems.map((s) => s.systemNameArabic).join(" • ")}
         </div>
@@ -412,7 +412,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     </div>
 
     <!-- Detailed DTC Faults -->
-    <h2 class="section-title">تفاصيل الأعطال المشخصة والأسباب ومخطط الفيوزات (${allFaults.length})</h2>
+    <h2 class="section-title">تفاصيل الأعطال المشخصة والأسباب (${allFaults.length})</h2>
     <div class="fault-grid">
       ${allFaults
         .map(
@@ -424,10 +424,10 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
             // not filled in.
             const fuseLine = elec.fuseInfo.fuseNumber
               ? `${escapeHtml(elec.fuseInfo.fuseNumber)}${elec.fuseInfo.rating ? ` (${escapeHtml(elec.fuseInfo.rating)})` : ""} — ${escapeHtml(elec.fuseInfo.boxLocation)}`
-              : `غير محدد — اقرا الرسم المطبوع على غطاء علبة الفيوزات. ${escapeHtml(elec.fuseInfo.boxLocation)}`;
+              : `غير محدد — اقرا الرسم المطبوع على غطا علبة الفيوزات. ${escapeHtml(elec.fuseInfo.boxLocation)}`;
             const elecNote =
               elec.provenance === "general"
-                ? `<div style="color: var(--amp-20); margin-top: 4px; font-size: 10px;">إرشاد عام لعائلة هذا الرمز — مش مخطط هذه السيارة.</div>`
+                ? `<div style="color: var(--amp-20); margin-top: 4px; font-size: 10px;">إرشاد عام لعائلة هذا الرمز — مش مخطط سيارتك.</div>`
                 : elec.provenance === "reference"
                   ? `<div style="color: var(--ink-2); margin-top: 4px; font-size: 10px;">بيانات مرجعية للرمز — تأكد منها على السيارة قبل الفك.</div>`
                   : "";
@@ -443,12 +443,12 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
           <p style="font-size: 11px; color: var(--ink-2);">${f.standardArabicDescription}</p>
 
           <div class="fault-box">
-            <strong style="color: var(--amp-20); display: block; margin-bottom: 2px;">الأعراض الملاحظة:</strong>
+            <strong style="color: var(--amp-20); display: block; margin-bottom: 2px;">الأعراض عند السائق:</strong>
             ${f.driverSymptoms.map((s) => `• ${s}`).join("<br>")}
           </div>
 
           <div style="background: var(--board); border: 1px dashed var(--rule); padding: 8px 10px; margin-top: 8px; font-size: 11px;">
-            <div style="color: var(--amp-15); font-weight: bold; margin-bottom: 3px;">⚡ إرشاد الحساس والفيوز:</div>
+            <div style="color: var(--amp-15); font-weight: bold; margin-bottom: 3px;">⚡ فحص الفيوز والفيشة:</div>
             <div style="color: var(--ink); margin-bottom: 2px;">📍 <strong>موقع الحساس:</strong> ${elec.sensorLocation.areaName}</div>
             <div style="color: var(--amp-20); margin-bottom: 2px;">🔌 <strong>الفيوز:</strong> ${fuseLine}</div>
             <div style="color: var(--amp-30);">🔋 <strong>فحص الأفوميتر:</strong> ${elec.multimeterTest.powerPin} | ${elec.multimeterTest.groundPin}</div>
@@ -456,7 +456,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
           </div>
 
           <div style="margin-top: 8px; font-size: 11px; color: var(--ink);">
-            <strong style="color: var(--amp-30);">توجيه الفني:</strong> ${f.recommendedAction}
+            <strong style="color: var(--amp-30);">التوجيه:</strong> ${f.recommendedAction}
           </div>
         </div>
       `;
@@ -466,7 +466,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     </div>
 
     <!-- Spare Parts Section -->
-    <h2 class="section-title">دليل قطع الغيار التقديرية وأرقام الـ OEM والصور (${partsWithSvg.length})</h2>
+    <h2 class="section-title">قطع الغيار المطلوبة وأرقام الوكالة (OEM) (${partsWithSvg.length})</h2>
     <div class="parts-grid">
       ${partsWithSvg
         .map(
@@ -492,14 +492,14 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
             <div style="font-size: 11px; color: var(--ink-2); margin-bottom: 8px;">${p.partNameStandardArabic}</div>
 
             <div style="background: var(--board); padding: 8px 10px; border: 1px solid var(--rule); margin-bottom: 8px;">
-              <div style="font-size: 10px; color: var(--ink-2);">رقم القطعة الأصلي (OEM):</div>
+              <div style="font-size: 10px; color: var(--ink-2);">رقم الوكالة (OEM):</div>
               <div style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--amp-20);">${p.oemPartNumber}</div>
             </div>
 
             ${
               p.aftermarketReplacements.length > 0
                 ? `<div style="font-size: 10px; color: var(--ink-2); margin-bottom: 8px;">
-                    <strong>البدائل المعتمدة:</strong> ${p.aftermarketReplacements.join(", ")}
+                    <strong>بدائل مقترحة:</strong> ${p.aftermarketReplacements.join(", ")}
                    </div>`
                 : ""
             }
@@ -507,10 +507,10 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
 
           <div style="border-top: 1px solid var(--rule); padding-top: 8px; margin-top: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 11px; color: var(--ink-2);">السعر التقديري في ليبيا:</span>
+              <span style="font-size: 11px; color: var(--ink-2);">السعر التقديري:</span>
               <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--amp-30);">${p.estimatedPriceRangeLYD ? `${p.estimatedPriceRangeLYD.min} - ${p.estimatedPriceRangeLYD.max} د.ل` : 'غير مسعّرة'}</span>
             </div>
-            <div style="font-size: 10px; color: var(--ink-2);">${p.estimatedPriceRangeLYD?.marketNote || 'ما وصلنا سعر تقديري لهذي القطعة.'}</div>
+            <div style="font-size: 10px; color: var(--ink-2);">${p.estimatedPriceRangeLYD?.marketNote || 'غير مسعّرة في السوق.'}</div>
           </div>
         </div>
       `
@@ -519,7 +519,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     </div>
 
     <!-- Diagnostic Checklist -->
-    <h2 class="section-title">خطوات فحص الأسطى التسلسلية (Checklist)</h2>
+    <h2 class="section-title">ترتيب الفحص قبل الشراء</h2>
     <div class="checklist-card">
       ${safe.workshopChecklist
         .map(
@@ -528,7 +528,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
           <div class="check-box"></div>
           <div style="flex: 1;">
             <div style="font-size: 12px; font-weight: 700; color: inherit; margin-bottom: 2px;">
-              خطوة ${step.stepNumber}: ${step.targetComponent} <span style="font-size: 10px; font-weight: normal; color: var(--ink-2); margin-right: 6px;">(الأداة: ${step.toolNeeded})</span>
+              خطوة ${step.stepNumber}: ${step.targetComponent} <span style="font-size: 10px; font-weight: normal; color: var(--ink-2); margin-right: 6px;">(العدة: ${step.toolNeeded})</span>
             </div>
             <div style="font-size: 11px; color: var(--ink-2);">${step.actionRequiredLibyan}</div>
           </div>
@@ -541,8 +541,8 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     <!-- Official Workshop Sign-off -->
     <div class="signoff-box">
       <div>
-        <div style="font-size: 13px; font-weight: 700; color: inherit; margin-bottom: 2px;">اعتماد وتوثيق مركز الصيانة</div>
-        <p style="font-size: 11px; color: var(--ink-2);">تم فحص هذه المركبة واستخراج التقرير بواسطة فني معتمد</p>
+        <div style="font-size: 13px; font-weight: 700; color: inherit; margin-bottom: 2px;">توقيع الأسطى</div>
+        <p style="font-size: 11px; color: var(--ink-2);">كاشف قرا تقرير جهاز الفحص وترجمه. الاعتماد يجي من الأسطى اللي كشف على السيارة.</p>
       </div>
 
       <div style="display: flex; gap: 20px; font-size: 11px; color: var(--ink-2);">
@@ -552,7 +552,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     </div>
 
     <div style="text-align: center; margin-top: 20px; font-size: 10px; color: var(--ink-2);">
-      منظومة كاشف الذكي (Kashif AI) — التحليل التشخيصي المطور لسيارات السوق الليبي
+      كاشف — تشخيص أعطال السيارات بمصطلحات الورش الليبية
     </div>
   </div>
 </body>
@@ -562,7 +562,7 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `تقرير_كاشف_${safeFilenamePart(report.vehicle.make, 'مركبة')}_${safeFilenamePart(report.vehicle.model, '')}_${safeFilenamePart(report.generatedAt.slice(0, 10))}.html`;
+    a.download = `تقرير_كاشف_${safeFilenamePart(report.vehicle.make, 'سيارة')}_${safeFilenamePart(report.vehicle.model, '')}_${safeFilenamePart(report.generatedAt.slice(0, 10))}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

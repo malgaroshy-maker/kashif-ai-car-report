@@ -108,7 +108,7 @@ export function FaultCell({
                 {fault.standardArabicDescription}
               </p>
             )}
-            <FaultList label="اللي يحسّه السائق" items={fault.driverSymptoms} />
+            <FaultList label="اللي يحس بيه السائق" items={fault.driverSymptoms} />
             <FaultList label="الأسباب المحتملة" items={fault.rootCauses} />
             {fault.recommendedAction && (
               <div
