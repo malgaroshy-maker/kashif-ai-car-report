@@ -25,7 +25,7 @@ const eslintConfig = defineConfig([
     // The suite asserts on values the product must never produce, so it
     // deliberately contains non-null assertions on parse results and long
     // literal strings that were once invented.
-    files: ["tests/**/*.ts"],
+    files: ["tests/**/*.ts", "e2e/**/*.ts"],
     rules: {
       "@typescript-eslint/no-non-null-assertion": "off",
     },

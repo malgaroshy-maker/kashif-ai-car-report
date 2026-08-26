@@ -10,6 +10,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    // e2e/ belongs to Playwright; vitest must not try to run it.
+    exclude: ["e2e/**", "node_modules/**", ".open-next/**"],
   },
   resolve: {
     alias: {

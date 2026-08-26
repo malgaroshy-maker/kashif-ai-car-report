@@ -6,8 +6,8 @@
 [![GitHub Repo](https://img.shields.io/badge/GitHub-malgaroshy--maker%2Fkashif--ai--car--report-black.svg?style=flat&logo=github)](https://github.com/malgaroshy-maker/kashif-ai-car-report)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black.svg?style=flat&logo=next.js)](https://nextjs.org/)
 [![Google Gemini](https://img.shields.io/badge/AI-Gemini%203.7%20Flash-4285F4.svg?style=flat&logo=google)](https://ai.google.dev/)
-[![Antigravity CLI](https://img.shields.io/badge/Agent-Antigravity%20(agy)-8B5CF6.svg?style=flat)](https://antigravity.google/)
 [![Cloudflare Workers](https://img.shields.io/badge/Deploy-Cloudflare%20Workers-F38020.svg?style=flat&logo=cloudflare)](https://kashif.malgaroshy.workers.dev)
+[![Design system](https://img.shields.io/badge/Design-The%20Fuse--Box%20Lid-2e7fc4.svg?style=flat)](DESIGN.md)
 
 ---
 
@@ -118,35 +118,52 @@ npx wrangler secret put GEMINI_API_KEY
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── components/
-│   │   ├── ui/                        # أوليّات نظام التصميم (لوحة الفيوزات)
-│   │   ├── Header.tsx                 # الشريط العلوي ومبدل المحرك والقواميس
-│   │   ├── UploadDropzone.tsx         # منطقة رفع الملفات والإدخال اليدوي
-│   │   ├── VehicleHealthCard.tsx      # بطاقة صحة المركبة والـ Gauge
-│   │   ├── FaultPriorityMatrix.tsx    # مصفوفة تصنيف الأعطال
-│   │   ├── FaultCodeCard.tsx          # بطاقة تفاصيل الكود الهندسي
-│   │   ├── SensorFuseLocatorModal.tsx # مخطط الحساس والفيوز والأفوميتر
-│   │   ├── SparePartsSection.tsx      # دليل قطع الغيار والصور
-│   │   ├── DiagnosticChecklist.tsx    # قائمة مهام الورشة
-│   │   ├── MechanicChatAssistant.tsx  # شات الأسطى كاشف
-│   │   └── ExportActionBar.tsx        # أدوات التصدير والتقرير المستقل
+│   │   ├── ui/                # أوليّات نظام التصميم (لوحة الفيوزات)
+│   │   │   ├── primitives.tsx     # Cell / CodePlate / BankRule / Field / Button
+│   │   │   ├── SeverityMark.tsx   # أشكال الخطورة المرسومة والفيوز في مقعده
+│   │   │   ├── Sheet.tsx          # اللوحة المنزلقة (حصر التركيز، Escape)
+│   │   │   └── ThemeToggle.tsx    # مبدّل الوضع النهاري/الليلي
+│   │   └── report/            # شاشات التقرير
+│   │       ├── Masthead.tsx       # لوحة الاسم العلوية
+│   │       ├── Intake.tsx         # اللوحة الفارغة: رفع، أكواد يدوية، نماذج
+│   │       ├── VehiclePlate.tsx   # لوحة المركبة ومؤشر الجاهزية
+│   │       ├── FaultBoard.tsx     # بنوك الأعطال مرتّبة بالخطورة
+│   │       ├── FaultCell.tsx      # خلية عطل واحد
+│   │       ├── WiringSheet.tsx    # الفيوز والفيشة وقياس الأفوميتر
+│   │       ├── Checklist.tsx      # ترتيب الفحص قبل الشراء
+│   │       ├── PartsBank.tsx      # قطع الغيار وأرقام الوكالة
+│   │       ├── ReportActions.tsx  # تنزيل / طباعة / واتساب
+│   │       ├── HistoryBank.tsx    # الفحوصات المحفوظة على الجهاز
+│   │       ├── SettingsPanel.tsx  # المفتاح والنموذج
+│   │       ├── DictionaryPanel.tsx# قاموس الورشة
+│   │       └── AssistantPanel.tsx # اسأل عن التقرير
 │   ├── lib/
+│   │   ├── design/severity.ts # مرجع الخطورة الوحيد (ألوان الفيوزات وأشكالها)
+│   │   ├── api-client.ts      # جانب المتصفح من الـ API (مهلات، إلغاء)
+│   │   ├── local-store.ts     # قراءة localStorage أثناء العرض بأمان
+│   │   ├── report-schema.ts   # تحقق Zod من مخرجات النموذج
+│   │   ├── export-report.ts   # مولّد التقرير المستقل (يشتغل بدون إنترنت)
+│   │   ├── part-image-hosts.ts# قائمة المصادر المسموح بها لصور القطع
 │   │   ├── antigravity-cli.ts # محرك Antigravity CLI (بيئة التطوير فقط)
 │   │   ├── agy.ts             # بوابة تمنع تحميل agy في الإنتاج
 │   │   ├── errors.ts          # أخطاء مصنّفة برسائل عربية
 │   │   ├── models.ts          # المصدر الوحيد لأسماء نماذج Gemini
 │   │   ├── html-escape.ts     # تهريب HTML لتقرير التصدير المستقل
-│   │   ├── dictionary.ts      # القاموس الفني الليبي المعتمد (200+ مصطلح)
+│   │   ├── dictionary.ts      # القاموس الفني الليبي المعتمد
 │   │   ├── gemini.ts          # محرك Google Gemini 3.7 Flash
 │   │   ├── part-visuals.ts    # رسومات الـ SVG الهندسية لقطع الغيار
-│   │   ├── parts-search.ts    # محرك جلب صور قطع الغيار متعدد الطبقات
+│   │   ├── parts-search.ts    # جلب صور القطع (مرجع منسّق + ويكيميديا)
 │   │   ├── sample-data.ts     # نماذج الفحص الجاهزة (BMW E39 / Corolla)
-│   │   ├── sensor-locator.ts  # قاعدة بيانات مواقع الحساسات والفيوزات
+│   │   ├── sensor-locator.ts  # مرجع مواقع الحساسات والفيوزات
 │   │   └── types.ts           # هياكل البيانات و TypeScript Types
+├── tests/                     # اختبارات الوحدة (Vitest)
+├── e2e/                       # اختبارات الطرف للطرف (Playwright)
 ├── .github/workflows/
 │   └── deploy-cloudflare.yml  # سير عمل النشر التلقائي عبر GitHub Actions
 ├── wrangler.jsonc             # إعدادات Cloudflare Workers & Assets
 ├── open-next.config.ts        # إعدادات محوّل OpenNext
 ├── PRODUCT.md                 # حقائق المنتج الثابتة
+├── DESIGN.md                  # نظام التصميم (لوحة الفيوزات)
 ├── plan.md                    # خطة إعادة البناء والمراجعة الهندسية
 ├── PRD_KASHIF_AI.md           # وثيقة متطلبات المنتج الكاملة
 └── ROADMAP.md                 # خارطة طريق وتوثيق المشروع

@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Typecheck, lint, test & build
+    name: Typecheck, lint, test, build & e2e
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +45,25 @@ jobs:
 
       - name: Build for Cloudflare
         run: npm run cf:build
+
+      # End to end against the built Worker, not against `next dev`. Every bug
+      # this project found at the deployment boundary was invisible in dev:
+      # /api/models returning 500 from an edge-incompatible import, and the
+      # whole build directory being served as public assets. The suite drives
+      # the demo reports, which need no API key.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npx playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
   deploy:
     name: Deploy Worker

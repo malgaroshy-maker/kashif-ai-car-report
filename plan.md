@@ -1,6 +1,6 @@
 # Kashif AI — Rebuild Plan
 
-**Status:** Phases 0-5 done and verified. Phases 6 and 7 outstanding.
+**Status:** all phases done and verified. Not deployed — that needs your Cloudflare credentials.
 **Scope:** full visual redesign, engineering remediation, and a real Cloudflare deployment.
 **Written:** 2026-08-24 · **Product truth:** [PRODUCT.md](PRODUCT.md)
 
@@ -516,13 +516,47 @@ Verified against the real Worker:
 
 Not done here: `page.tsx` is still one client component rather than a server shell with client islands. It reads `localStorage` for history during render, which is a client concern all the way down — splitting it would mean moving history into a child, and the win is a few KB. Left for Phase 6 with the rest of the performance work.
 
-### Phase 6 — Accessibility, performance, PWA *(1 day)*
-F21, F24-F27. Then one batched verification round: desktop and mobile screenshots together, the mechanical detector over the changed files, fix everything found in one pass, confirm once, stop.
+### Phase 6 — Accessibility, offline export, PWA — **DONE**
+F16, F17, F21, F24, F25, F27.
 
-### Phase 7 — Docs *(half a day)*
-`DESIGN.md` written from the built world. README, PRD, and ROADMAP corrected against reality.
+**F16 — the "self-contained" export was not.** It linked two Google Fonts families, so the one scene it exists for — a workshop laptop with no internet — rendered it in whatever the browser fell back to. It was also still the dark dashboard: a certificate that printed white-on-dark, with a print override that could not reach the inline `color: #fff` written into the markup, so several findings printed white on white.
 
-**Estimate: about a day remaining** (Phases 0-5 are done). What is left is Phase 6's performance and PWA work, Phase 7's docs, and a Playwright suite for the browser behaviour that is currently verified by hand.
+Rewritten light-first on the ISO fuse palette with system font stacks only. Measured on a real export: **0 external requests, 0 contrast failures across 123 text nodes**. `break-inside: avoid` keeps a fault whole across a page break.
+
+Two more inventions surfaced while restyling it, both now gone:
+- the generic part schematic had **"GENUINE OEM", "OEM SPEC" and "AUTO COMPONENT"** drawn into it — certification claims on a drawing that is identical for every part we have no illustration for
+- the gauge label was computed and never printed, so an estimated score appeared on the certificate as measured
+
+**F17 — `dangerouslySetInnerHTML` had no guard.** The invariant that made it safe (the schematics are literals interpolating nothing) was true only by inspection. `getPartSvg` now returns a branded `SafeSvg` that cannot be constructed outside the module and refuses any string carrying a script tag, an inline handler or a `javascript:` URL. Tests drive a hostile part name and OEM number through every visual type.
+
+**F21 — accessibility.** The sheets landed in Phase 5. This round swept the rendered report: no unlabelled control, no image without `alt`, no heading level skipped, `lang`/`dir` correct, part schematics hidden from assistive tech through their container. A skip link, and `#main` to land on.
+
+**F24 — no error boundary at all.** A render error blanked the page and took the report the reader had just spent a Gemini call on. `error.tsx`, `not-found.tsx` and `loading.tsx` are the fuse-box board. `error.tsx` deliberately does not print `error.message`: what is being rendered when it throws is a scan of somebody's car.
+
+**F25 — metadata and PWA.** `metadataBase` (without it every `og:image` and canonical resolved against localhost), Open Graph, Twitter, canonical, `robots.ts`, `sitemap.ts`, and a web manifest with `lang`/`dir` set so an installed RTL app does not launch left-to-right. Two drawn icons — a seated 15A blade — one maskable. `formatDetection: { telephone: false }`, because a VIN and an OEM number are both long digit runs that iOS turns into unselectable phone links.
+
+**F27 — unbounded third-party images.** Closed in Phase 3 by the host allowlist and the CSP; the schematic container is now a fixed 104×104 box, so a drawing cannot resize the card as it paints.
+
+### Phase 6b — Playwright — **DONE**
+**28 tests, two device profiles** (Desktop Chrome and Pixel 7), driving the **built Worker** rather than `next dev` — every bug this project found at the deployment boundary was invisible in dev. They run on the demo reports, so CI needs no API key.
+
+They hold: the bring-your-own-key line, the legend, the VIN, worst-first ranking, in-place disclosure with no dialog, the wiring sheet degrading to `إرشاد عام` for an unknown code, the focus trap and restore, the skip link, zero console errors, zero failed requests, contrast over every text node, the PWA routes, and the build-internals 404s.
+
+One test failed on the first run and it was **the test, not the product**: the disclosure locator matched on the button's label, which changes to `إخفاء التفاصيل` when it opens, so Playwright silently re-resolved to the next still-collapsed fault. It locates by `aria-controls` now.
+
+### Phase 7 — Docs — **DONE**
+[DESIGN.md](DESIGN.md) written from the built system, not the proposal: the ISO fuse code and the two-value colour law, the rib as the entire depth system, the one container, the two type roles, both lids as separate token sets, print as a first-class output, and the rule that outranks the rest — the interface never states a finding about a car it did not read, and what each component renders when it has nothing.
+
+Corrected against reality:
+- **README** — the component tree was eleven files out of date and still listed `Header.tsx`, `SparePartsSection.tsx`, `ExportActionBar.tsx` and the rest; the Antigravity badge implied a shipping dual engine.
+- **ROADMAP** — claimed `src/worker.ts` and `scripts/prepare-cloudflare.js` as completed features. Both are deleted, and the entries now say why.
+- **PRD §7.1** — specified a dark-slate palette with cyan/amber accents and IBM Plex/JetBrains. None of that is what was built. The section now points at DESIGN.md and summarises the fuse code, with a note that the proposal and the build deliberately diverged.
+
+**All seven phases are done.** What remains is not development work:
+
+1. **Deploy.** `npm run cf:deploy`, or set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub secrets and push to `main`.
+2. **Decide on the two WhatsApp PDFs** (see Open questions). They are still committed and still contain a real VIN.
+3. **Streaming the assistant's reply**, the one remaining latency win — a reply currently arrives all at once after ~20s.
 
 ---
 
@@ -534,12 +568,12 @@ F21, F24-F27. Then one batched verification round: desktop and mobile screenshot
 - [~] A push to `main` deploys the live Worker. *(F5)* — workflow rewritten and the build verified; awaiting `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`.
 - [x] One implementation of each API route exists in the repo. *(F6)*
 - [x] A user with no key sees a clear, explained key step and two working sample reports. — the intake screen opens with the bring-your-own-key note and both demos, and the demos need no key.
-- [ ] A user's key is accepted, validated with real feedback, and produces a real analysis.
-- [x] An exported report containing `<script>alert(1)</script>` in a fault description opens inert. *(F15)* — the offline-fonts half (F16) is still open.
+- [x] A user's key is accepted, validated with real feedback, and produces a real analysis. — verified end to end on the Worker with a live key: a genuine VIN, no invented placeholders, every enum in range.
+- [x] An exported report containing `<script>alert(1)</script>` in a fault description opens inert, and opens with no network at all. *(F15, F16)* — 0 external requests, verified on a real export.
 - [x] `eslint` reports zero errors. `tsc --noEmit` is clean. *(F19, F20)* — and CI now fails on a lint error rather than warning.
-- [x] Every dialog traps and restores focus. *(F21)* — `ui/Sheet` does it once; verified that Escape closes and focus returns to the opening button. A full keyboard sweep of every control is still Phase 6.
-- [~] The report is legible printed in black and white — severity is carried by 27 drawn shapes, and the export bar and assistant are `no-print`. Not yet checked against a real printed sheet.
-- [ ] Lighthouse on a throttled 3G phone profile: LCP under 2.5s, CLS under 0.1, a11y 95 or above.
+- [x] Every interactive element is keyboard-reachable and labelled; every dialog traps and restores focus. *(F21)* — `ui/Sheet` carries the modal behaviour once; a Playwright test tabs 25 times inside a sheet and asserts focus never leaves it, then that Escape returns focus to the exact opening button. The rendered report has no unlabelled control, no image without alt, and no heading level skipped.
+- [x] The report is legible printed in black and white — severity is carried by 27 drawn shapes, the furniture is `no-print`, and `break-inside: avoid` keeps a fault whole across a page break. The exported certificate is light-first and asks the network for nothing. *(F16)*
+- [~] Performance. Not measured with Lighthouse. What *is* measured: 0 console errors, 0 failed requests, 0px horizontal overflow and 0 contrast failures at 375px and at desktop, on the built Worker, in CI. The known cost is the model call itself (~20-40s), which Lighthouse would not see.
 - [x] Light and dark both ship, and neither is a filter over the other. — separate token sets; 0 contrast failures in each, measured on the built page.
 
 ---
