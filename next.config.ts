@@ -13,12 +13,14 @@ initOpenNextCloudflareForDev();
  * itself and Google's Generative Language API. A key pasted into settings
  * cannot be posted anywhere else by injected script.
  */
+const isDev = process.env.NODE_ENV !== "production";
+
 const csp = [
   "default-src 'self'",
   // Next.js inlines hydration data, and the root layout inlines the
-  // before-paint theme script. Tightening this to a nonce needs middleware —
-  // tracked in plan.md rather than left implied.
-  "script-src 'self' 'unsafe-inline'",
+  // before-paint theme script. In development, React & Turbopack require 'unsafe-eval'
+  // for callstack reconstruction and debugging overlays.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   // Part photos now come from a fixed set of origins, checked again in
@@ -29,7 +31,7 @@ const csp = [
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "upgrade-insecure-requests",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const nextConfig: NextConfig = {
