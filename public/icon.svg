@@ -15,13 +15,14 @@
 -->
 
   <rect width="64" height="64" fill="#d5d7cf"/>
-  <g transform="translate(-78.42 50.09) scale(0.0683 -0.0683)">
-    <path d="M1380 150 h140 V-68 l-42 -42 h-56 l-42 42 Z" fill="#8a8f88"/>
-      <path d="M1715 150 h140 V-68 l-42 -42 h-56 l-42 42 Z" fill="#8a8f88"/>
-      <rect x="1268" y="150" width="699" height="490" fill="#2e7fc4"/>
-      <rect x="1268" y="601" width="699" height="39" fill="#8fc7f0"/>
-      <rect x="1268" y="150" width="699" height="39" fill="#0b3f6b"/>
-      <rect x="1373" y="228" width="490" height="225" fill="#0b3f6b"/>
-      <polyline points="1402 282 1520 282 1520 400 1666 400 1735 282 1833 282" fill="none" stroke="#f2f8fd" stroke-width="49" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g transform="translate(-51.65 49.40) scale(0.0575 -0.0575)">
+    <path d="M1134 310 h156 V552 l-53 53 h-50 l-53 -53 Z" fill="#8a8f88"/>
+      <path d="M1403 310 h156 V552 l-53 53 h-50 l-53 -53 Z" fill="#8a8f88"/>
+      <path d="M1672 310 h156 V552 l-53 53 h-50 l-53 -53 Z" fill="#8a8f88"/>
+      <rect x="1009" y="0" width="890" height="330" fill="#2e7fc4"/>
+      <rect x="1009" y="297" width="890" height="33" fill="#8fc7f0"/>
+      <rect x="1009" y="0" width="890" height="33" fill="#0b3f6b"/>
+      <rect x="1187" y="79" width="552" height="152" fill="#0b3f6b"/>
+      <polyline points="1220 192 1342 192 1342 116 1518 116 1595 195 1706 195" fill="none" stroke="#f2f8fd" stroke-width="38" stroke-linecap="square" stroke-linejoin="miter"/>
   </g>
 </svg>

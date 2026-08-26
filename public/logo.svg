@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3149 2002" role="img" aria-label="كاشف — KASHIF">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3149 1922" role="img" aria-label="كاشف — KASHIF">
 <!--
   كاشف / KASHIF — horizontal lockup, brushed steel
 
@@ -25,23 +25,24 @@
       <stop offset="1" stop-color="#d6dcd9"/>
     </linearGradient>
   </defs>
-  <g transform="translate(110 1230) scale(1 -1)">
+  <g transform="translate(110 1290) scale(1 -1)">
     <g fill="url(#k-steel)">
       <path d="M298 0Q198 0 136.5 24.5Q75 49 47.0 95.5Q19 142 19 208Q19 252 35.0 309.0Q51 366 92 439L210 387Q194 342 187.0 310.5Q180 279 180 254Q180 215 197.0 194.0Q214 173 244.5 165.0Q275 157 315 157H684L570 0ZM533 0V157H677Q674 156 669.5 154.0Q665 152 659.5 150.5Q654 149 649 148Q627 177 619.0 207.0Q611 237 611 268Q611 309 626.0 347.0Q641 385 671.0 416.0Q701 447 745.5 465.0Q790 483 848 483Q907 483 951.5 465.0Q996 447 1026.0 416.0Q1056 385 1071.5 347.0Q1087 309 1087 268Q1087 236 1078.5 206.5Q1070 177 1048 148Q1039 150 1038.0 152.0Q1037 154 1028 157H1145V0H1120Q1049 0 1002.5 1.5Q956 3 922.0 8.0Q888 13 856 25Q841 20 827.0 15.5Q813 11 793.5 7.5Q774 4 742.5 2.0Q711 0 660 0ZM848 149Q872 160 888.0 176.0Q904 192 912.0 212.0Q920 232 920 254Q920 274 911.5 290.0Q903 306 887.0 316.0Q871 326 848 326Q826 326 810.0 316.0Q794 306 785.5 289.5Q777 273 777 254Q777 232 785.0 212.5Q793 193 809.0 177.0Q825 161 848 149ZM533 157H543V0H533Q503 0 503 78Q503 157 533 157ZM852 567 746 673 847 780 952 673Z" transform="translate(0 0)"/><path d="M261 0Q211 0 175.0 10.0Q139 20 115.5 41.5Q92 63 80.5 97.0Q69 131 69 179V740H230V237Q230 215 233.0 199.5Q236 184 244.0 174.5Q252 165 266.5 161.0Q281 157 305 157H344V0Z" transform="translate(2090 0)"/><path d="M64 537 344 770 450 644 176 417 201 476Q315 444 377.5 377.0Q440 310 457.5 214.5Q475 119 453 0H0V157H315Q303 203 271.0 244.0Q239 285 187.5 314.5Q136 344 64 355ZM0 157H10V0H0Q-30 0 -30 78Q-30 157 0 157Z" transform="translate(2434 0)"/>
     </g>
     <g fill="url(#k-steel2)">
-      <path d="M490 565 383 671 484 778 589 671Z" transform="translate(1145 327)"/><path d="M404 398 299 505 398 611 503 505Z" transform="translate(1145 327)"/><path d="M580 398 475 505 575 611 680 505Z" transform="translate(1145 327)"/>
+      <path d="M490 565 383 671 484 778 589 671Z" transform="translate(1145 302)"/><path d="M404 398 299 505 398 611 503 505Z" transform="translate(1145 302)"/><path d="M580 398 475 505 575 611 680 505Z" transform="translate(1145 302)"/>
     </g>
-      <path d="M1380 150 h140 V-68 l-42 -42 h-56 l-42 42 Z" fill="url(#k-steel2)"/>
-      <path d="M1715 150 h140 V-68 l-42 -42 h-56 l-42 42 Z" fill="url(#k-steel2)"/>
-      <rect x="1268" y="150" width="699" height="490" fill="#2e7fc4"/>
-      <rect x="1268" y="601" width="699" height="39" fill="#8fc7f0"/>
-      <rect x="1268" y="150" width="699" height="39" fill="#0b3f6b"/>
-      <rect x="1373" y="228" width="490" height="225" fill="#0b3f6b"/>
-      <polyline points="1402 282 1520 282 1520 400 1666 400 1735 282 1833 282" fill="none" stroke="#f2f8fd" stroke-width="49" stroke-linecap="square" stroke-linejoin="miter"/>
-      <g transform="translate(1618 493) scale(1 -1)"><text text-anchor="middle" font-family="ui-monospace,SFMono-Regular,monospace" font-size="103" font-weight="700" fill="#d8ecfb">15A</text></g>
+      <path d="M1134 310 h156 V552 l-53 53 h-50 l-53 -53 Z" fill="url(#k-steel2)"/>
+      <path d="M1403 310 h156 V552 l-53 53 h-50 l-53 -53 Z" fill="url(#k-steel2)"/>
+      <path d="M1672 310 h156 V552 l-53 53 h-50 l-53 -53 Z" fill="url(#k-steel2)"/>
+      <rect x="1009" y="0" width="890" height="330" fill="#2e7fc4"/>
+      <rect x="1009" y="297" width="890" height="33" fill="#8fc7f0"/>
+      <rect x="1009" y="0" width="890" height="33" fill="#0b3f6b"/>
+      <rect x="1187" y="79" width="552" height="152" fill="#0b3f6b"/>
+      <polyline points="1220 192 1342 192 1342 116 1518 116 1595 195 1706 195" fill="none" stroke="#f2f8fd" stroke-width="38" stroke-linecap="square" stroke-linejoin="miter"/>
+      <g transform="translate(1454 279) scale(1 -1)"><text text-anchor="middle" font-family="ui-monospace,SFMono-Regular,monospace" font-size="99" font-weight="700" fill="#d8ecfb">15A</text></g>
   </g>
-  <g transform="translate(1051 1892) scale(0.26 -0.26)" fill="url(#k-steel2)">
+  <g transform="translate(1051 1812) scale(0.26 -0.26)" fill="url(#k-steel2)">
     <path d="M214 205 170 350 516 700H719ZM87 0V700H258V0ZM537 0 278 342 393 441 737 0Z" transform="translate(0 0)"/><path d="M0 0 277 700H422L697 0H525L392 355Q385 376 376.5 400.0Q368 424 360.0 450.0Q352 476 345.0 500.0Q338 524 333 545L362 546Q356 521 349.0 497.0Q342 473 334.0 449.0Q326 425 317.5 401.5Q309 378 300 353L168 0ZM132 134 186 264H506L560 134Z" transform="translate(742 0)"/><path d="M320 -10Q216 -10 144.5 26.5Q73 63 22 130L126 247Q175 180 225.0 157.0Q275 134 328 134Q355 134 376.5 141.0Q398 148 410.5 161.5Q423 175 423 194Q423 209 415.5 221.0Q408 233 395.0 242.0Q382 251 365.0 258.5Q348 266 327.5 271.0Q307 276 286 280Q228 292 185.5 311.5Q143 331 114.5 358.5Q86 386 72.0 421.5Q58 457 58 502Q58 566 94.5 614.0Q131 662 191.0 689.0Q251 716 321 716Q423 716 485.5 683.5Q548 651 585 594L479 491Q448 531 408.5 551.0Q369 571 326 571Q297 571 275.0 564.0Q253 557 241.5 543.5Q230 530 230 511Q230 495 239.5 482.5Q249 470 266.0 461.0Q283 452 305.0 445.5Q327 439 351 435Q406 424 450.5 406.0Q495 388 527.0 361.5Q559 335 576.5 299.5Q594 264 594 218Q594 146 559.0 95.0Q524 44 462.0 17.0Q400 -10 320 -10Z" transform="translate(1439 0)"/><path d="M522 0V700H693V0ZM87 0V700H258V0ZM155 272V426H612V272Z" transform="translate(2074 0)"/><path d="M74 0V144H192V556H74V700H481V556H363V144H481V0Z" transform="translate(2854 0)"/><path d="M87 0V700H258V0ZM167 268V411H531V268ZM167 549V700H571V549Z" transform="translate(3409 0)"/>
   </g>
 </svg>
