@@ -216,51 +216,83 @@ others. 43 unit tests and 28 end-to-end tests hold the line.
 
 ## Identity
 
-**The ش of كاشف is an automotive blade fuse.**
+**The ش of كاشف is an inverted blade fuse.**
 
 Not a mark beside the name — the fuse *is* the letter. Cover it and the word
-stops reading. That is the constraint the whole identity is built around: the
-fuse has to survive every reduction, down to a 16px favicon and a
-black-and-white printed report, because losing it loses the name.
+stops reading. That single fact drives everything else: the fuse cannot be
+simplified away for the favicon or the printed report, because losing it loses
+the name.
 
-The sheen's three dots are kept and lifted clear of the body. They are letter,
-not ornament, and they are what still says **ش** above the component.
+### Why it works
 
-**Why the fuse.** The product's metaphor is the fuse-box lid. The element
-bridging a fuse's two blades is the part a mechanic actually looks at to tell a
-good fuse from a blown one — which is precisely what Kashif does for a car. The
+A **ش** is a bowl sitting on the baseline with **three teeth** rising off it,
+joined forward to the next letter. Turn a blade fuse upside down and that is
+exactly what you have — the moulded body is the bowl, the terminals are the
+teeth. Give it three instead of the usual two and it stops being a component
+dropped into a gap and becomes the letter.
+
+The three dots are kept and lifted clear. They are letter, not ornament, and
+with three teeth beneath them the **ش** is complete.
+
+**The join is not decoration.** Arabic is a connected script. In كاشف the ش is
+in initial form and joins forward to the ف, while the ا before it does not join
+forward. The shaping puts the ف's right edge at x=1049 and the ش body's left at
+x=1145 — a real 96-unit hole that reads as a broken word. So the bowl extends
+**left past 1049 to overlap the ف**, and stops short on the right. The mark
+does what the script does.
+
+**Why a fuse at all.** The product's metaphor is the fuse-box lid, and the
+element bridging a fuse's terminals is the part a mechanic actually looks at to
+tell a good fuse from a blown one — precisely what Kashif does for a car. The
 body is stamped **15A**: the app's own rating, the one chromatic value in the
 system that is not a status, and the only number on the mark.
 
-**The letterforms are real.** They are Readex Pro outlines — the family the app
-already ships — shaped with HarfBuzz so the letters join correctly
-(`ك.init` `ا.fina` `ش.init` `ف.fina`) and then converted to paths. Arabic drawn
-by hand or by an image model reads as subtly wrong to everyone who speaks the
-language; this does not.
+### The letterforms are real
 
-**Two treatments, one drawing.**
+They are **Readex Pro** outlines — the family the app already ships — shaped
+with **HarfBuzz** so the letters genuinely join (`ك.init` `ا.fina` `ش.init`
+`ف.fina`), then converted to paths. Arabic drawn by hand, or traced from an
+image generation, reads as subtly wrong to everyone who speaks the language.
+
+Two details worth recording, because both were got wrong first:
+
+- **Separating the ش's dots from its body is a test of position, not size.**
+  Sorting contours by area picks up a *counter* — a hole in the letter, not a
+  mark on it. The dots are the only contours that float clear above the body.
+- **The teeth carry the letter's weight, not a pin's.** An early pass drew them
+  thin enough to disappear below about 60px. For a mark whose word depends on
+  them, that is a failure, not a nicety.
+
+### Two treatments, one drawing
 
 | file | what it is |
 |---|---|
-| `public/logo.svg` | the hero lockup, brushed steel, transparent ground — signage, social, print |
+| `public/logo.svg` | hero lockup, brushed steel, transparent ground — signage, social, print |
 | `public/logo-flat.svg` | the reduction: `currentColor`, no gradients, themes with the board |
-| `public/icon.svg` | the fuse alone, square. It is both the distinctive mark and a letter of the name |
-| `public/icon-maskable.svg` | the same inside the centre-80% safe zone, so a round launcher does not crop the blades |
+| `public/icon.svg` | the fuse alone, square. Both the distinctive mark *and* a letter of the name |
+| `public/icon-maskable.svg` | the same inside the centre-80% safe zone, so a round launcher does not crop the teeth |
 | `public/og.svg` → `og.png` | the share card. `npm run og` reprints the raster |
+
+`logo-flat.svg` is what the app uses; `Masthead.tsx` inlines it so it takes
+`currentColor` from the board rather than carrying its own palette.
 
 The Latin `KASHIF` sits beneath the Arabic, letterspaced, at 26% of its size.
 The Arabic leads because the reader does.
 
-**What not to do:**
+### What not to do
 
-- Never draw the element severed. A blown fuse is the fault state, not the brand.
+- **Never draw the element severed.** A blown fuse is the fault state, not the
+  brand.
+- **Never drop to two teeth.** Three is what makes it a ش.
+- **Never detach the bowl from the ف.** A gap there is a broken word.
 - Never render the mark in a severity colour — 10A red, 20A yellow, 30A green
-  all mean something specific, and the mark is not a finding.
+  each mean something specific, and the mark is not a finding.
 - Never round the corners. `--radius-plate: 1px` is the ceiling.
 - Never add a shadow, a glow, or a bevel to the flat reduction.
-- Never add a tagline. An early generated draft carried
-  *"ELECTRICAL SYSTEMS • PRECISION ENGINEERING"* — Kashif is neither, and a
-  logo is not the place to claim a business it does not run.
+- **Never add a tagline.** A generated draft carried *"ELECTRICAL SYSTEMS ·
+  PRECISION ENGINEERING"* and stamped the fuse `230303`. Kashif runs neither
+  business and the number means nothing. A logo is not where this product
+  starts claiming things.
 
 ---
 

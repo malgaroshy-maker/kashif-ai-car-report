@@ -67,6 +67,27 @@ npm run dev
 
 افتح [http://localhost:3000](http://localhost:3000) في المتصفح.
 
+### الأوامر
+
+| الأمر | يسوي شنو |
+|---|---|
+| `npm run dev` | خادم التطوير |
+| `npm test` | اختبارات الوحدة (Vitest) — 43 اختبار |
+| `npm run test:e2e` | اختبارات الطرف للطرف (Playwright) على الـ Worker المبني — 28 اختبار |
+| `npm run lint` | ESLint — صفر أخطاء مطلوبة |
+| `npm run cf:build` | بناء حزمة Cloudflare |
+| `npm run cf:preview` | تشغيل الحزمة محلياً على وقت تشغيل Workers الحقيقي |
+| `npm run og` | إعادة توليد `public/og.png` من `og.svg` بعد أي تعديل على الشعار |
+
+**اختبارات الطرف للطرف تبني وتشغّل الـ Worker الحقيقي، مش `next dev`.** كل خلل
+انكشف عند حدود النشر في هذا المشروع كان مخفي في بيئة التطوير وواضح في
+`cf:preview`.
+
+⚠️ لو البناء علق بخطأ `EPERM` على مجلد `.open-next`، السبب غالباً خادم
+`next dev` شغّال في الخلفية: `initOpenNextCloudflareForDev` يشغّل عملية
+`workerd` تمسك المجلد. اقتل عملية `next dev` نفسها — الـ `workerd` يرجع لو
+قتلته وحده.
+
 ---
 
 ## ☁️ النشر على Cloudflare Workers (Cloudflare Deployment)
@@ -174,6 +195,14 @@ npx wrangler secret put GEMINI_API_KEY
 │   │   ├── sample-data.ts     # نماذج الفحص الجاهزة (BMW E39 / Corolla)
 │   │   ├── sensor-locator.ts  # مرجع مواقع الحساسات والفيوزات
 │   │   └── types.ts           # هياكل البيانات و TypeScript Types
+├── public/
+│   ├── logo.svg               # الشعار الكامل (فولاذ)
+│   ├── logo-flat.svg          # النسخة المسطّحة — اللي يستعملها التطبيق
+│   ├── icon.svg               # أيقونة التطبيق
+│   ├── icon-maskable.svg      # أيقونة أندرويد (المنطقة الآمنة 80%)
+│   └── og.svg → og.png        # كرت المشاركة (واتساب يبي PNG مش SVG)
+├── scripts/
+│   └── render-og.mjs          # يحوّل og.svg إلى og.png (`npm run og`)
 ├── tests/                     # اختبارات الوحدة (Vitest)
 ├── e2e/                       # اختبارات الطرف للطرف (Playwright)
 ├── .github/workflows/
@@ -181,7 +210,7 @@ npx wrangler secret put GEMINI_API_KEY
 ├── wrangler.jsonc             # إعدادات Cloudflare Workers & Assets
 ├── open-next.config.ts        # إعدادات محوّل OpenNext
 ├── PRODUCT.md                 # حقائق المنتج الثابتة
-├── DESIGN.md                  # نظام التصميم (لوحة الفيوزات)
+├── DESIGN.md                  # نظام التصميم والهوية (لوحة الفيوزات)
 ├── plan.md                    # خطة إعادة البناء والمراجعة الهندسية
 ├── PRD_KASHIF_AI.md           # وثيقة متطلبات المنتج الكاملة
 └── ROADMAP.md                 # خارطة طريق وتوثيق المشروع

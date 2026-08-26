@@ -1,6 +1,6 @@
 # Kashif AI — Rebuild Plan
 
-**Status:** all phases done and verified. Not deployed — that needs your Cloudflare credentials.
+**Status:** all seven phases done, plus two rounds beyond them (Arabic copy, and the identity). **Live and verified on `kashif.malgaroshy.workers.dev`.**
 **Scope:** full visual redesign, engineering remediation, and a real Cloudflare deployment.
 **Written:** 2026-08-24 · **Product truth:** [PRODUCT.md](PRODUCT.md)
 
@@ -552,11 +552,54 @@ Corrected against reality:
 - **ROADMAP** — claimed `src/worker.ts` and `scripts/prepare-cloudflare.js` as completed features. Both are deleted, and the entries now say why.
 - **PRD §7.1** — specified a dark-slate palette with cyan/amber accents and IBM Plex/JetBrains. None of that is what was built. The section now points at DESIGN.md and summarises the fuse code, with a note that the proposal and the build deliberately diverged.
 
-**All seven phases are done.** What remains is not development work:
+### Phase 8 — The deploy, and why it had never worked — **DONE**
 
-1. **Deploy.** `npm run cf:deploy`, or set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub secrets and push to `main`.
-2. **Decide on the two WhatsApp PDFs** (see Open questions). They are still committed and still contain a real VIN.
-3. **Streaming the assistant's reply**, the one remaining latency win — a reply currently arrives all at once after ~20s.
+The site was being deployed by **Cloudflare Workers Builds**, connected to the repo from the Cloudflare dashboard — not by the GitHub Actions workflow in this repo, which had been pointed at Cloudflare *Pages* and had therefore never deployed anything. Because that build config lives outside the repository, it had drifted badly out of sync with the code:
+
+```
+Build command    npm run build
+Deploy command   npx wrangler deploy --assets=.next
+Version command  npx wrangler versions upload --assets=.next
+```
+
+`npm run build` produces only `.next`, while `wrangler.jsonc` points `main` at `.open-next/worker.js` — which that command never creates. **Every recent build had failed**, which is why the live site was still the old dark dashboard long after the rebuild landed.
+
+`--assets=.next` is the worse half. It publishes the entire build directory as public files, `.next/server/**` and the system prompt inside it included, and **a CLI flag overrides the `assets.directory` set in `wrangler.jsonc` — so this could not be fixed from the repository at all.** The failing build was the only thing keeping the leak closed. The specific trap, now written into the README: fixing the build command while leaving `--assets=.next` turns a failing build into a *successful leak*.
+
+The correct values are documented in [README.md](README.md), and the GitHub workflow is now **verify-only** — two systems publishing the same Worker is a race. Its leak assertion survives, pointed at the built asset directory instead of a deployed URL.
+
+### Phase 9 — The Arabic, and one more fabrication — **DONE**
+
+Delegated to the Antigravity CLI (`agy`), which judges Libyan Arabic better than I do, under a brief that froze the eight strings the e2e suite asserts on and forbade touching anything but string literals.
+
+The dialect work is real — `يخدم` over `يشتغل`, `امتاعك` over `الخاص بيك`, `نفحص` over `أفحص` for the Libyan first person, `العدة` over `الأداة`, `لوطا` over `تحت`, `السيارة` over `المركبة` throughout. Dialect went where the app talks to you; labels for measured data stayed plain.
+
+**The important half was the exported certificate**, which is the copy that gets forwarded to whoever is deciding whether to buy the car. It was presenting itself as an official inspection:
+
+```
+الفني الفاحص: م. أحمد الفرجاني
+```
+
+A named, titled technician, hardcoded, printed on every report as the person who inspected your car. He does not exist. Around him: `تقرير فحص فني معتمد`, `مركز الفحص والتشخيص الفني المعتمد`, `فحص إلكتروني موثق`, and `تم فحص هذه المركبة واستخراج التقرير بواسطة فني معتمد` — accredited, attested, certified, by nobody. The aftermarket brands the model guesses were labelled `البدائل المعتمدة`.
+
+All of it is gone. The inspector reads `غير محدد`, the sign-off is headed `توقيع الأسطى` over a blank line, and it says plainly: *كاشف قرا تقرير جهاز الفحص وترجمه. الاعتماد يجي من الأسطى اللي كشف على السيارة.* This is F1, F18 and F30 reaching the one artifact that leaves the workshop.
+
+### Phase 10 — The identity — **DONE**
+
+The design system had been documented for weeks and the masthead still carried a text placeholder. See [DESIGN.md § Identity](DESIGN.md) for the mark itself; the two things worth recording here:
+
+- **The owner's correction changed the engineering.** A ش is a bowl with three teeth joined forward to the next letter. An inverted blade fuse *is* that shape. Because the fuse is the letter rather than an ornament beside it, it cannot be simplified out of the favicon or the printed report — losing it loses the name.
+- **The letterforms are real**, not traced: Readex Pro outlines shaped through HarfBuzz so the letters actually join, then converted to paths.
+
+A generated draft arrived with a tagline — *"ELECTRICAL SYSTEMS · PRECISION ENGINEERING"* — and the fuse stamped `230303`. Kashif runs neither business and the number means nothing. Both are recorded in DESIGN.md as things never to add back.
+
+---
+
+## What is actually left
+
+1. **The two WhatsApp PDFs.** Removed from the working tree and `.gitignore` now catches `DOC-*.pdf`, but they remain in history and on `origin/main`. Purging them properly rewrites every commit that touched them and invalidates every existing clone — a decision, not a task.
+2. **Streaming the assistant's reply.** The one remaining latency win; a reply currently lands all at once after ~20s.
+3. **Part photographs.** `parts-search.ts` falls back to a generic schematic whenever Wikimedia has nothing, which is most parts.
 
 ---
 
@@ -564,8 +607,8 @@ Corrected against reality:
 
 - [x] A malformed or failed AI response produces a visible error. No report is ever substituted for another. *(F1)*
 - [x] One shared model list, seeded from the live models endpoint; `gemini-2.0-flash` gone; the Worker's default matches the app's advertised default. *(F2)*
-- [x] `/server/app/index.html` and `/required-server-files.json` return 404. *(F4)* — verified locally; re-asserted by CI on every deploy.
-- [~] A push to `main` deploys the live Worker. *(F5)* — workflow rewritten and the build verified; awaiting `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`.
+- [x] `/server/app/index.html` and `/required-server-files.json` return 404. *(F4)* — **verified on production**, not just locally. CI re-asserts the built asset directory on every run.
+- [x] A push to `main` deploys the live Worker. *(F5)* — by **Cloudflare Workers Builds**, not GitHub Actions; the workflow is verify-only so the two do not race. Verified live.
 - [x] One implementation of each API route exists in the repo. *(F6)*
 - [x] A user with no key sees a clear, explained key step and two working sample reports. — the intake screen opens with the bring-your-own-key note and both demos, and the demos need no key.
 - [x] A user's key is accepted, validated with real feedback, and produces a real analysis. — verified end to end on the Worker with a live key: a genuine VIN, no invented placeholders, every enum in range.
