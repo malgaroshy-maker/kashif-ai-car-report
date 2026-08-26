@@ -91,7 +91,7 @@ npm run cf:deploy
 | `wrangler.jsonc` | اسم الـ Worker، ومجلد الأصول `.open-next/assets` فقط |
 | `open-next.config.ts` | إعدادات المحوّل (بدون تخزين مؤقت — التطبيق ما يحتاجش ISR) |
 | `.dev.vars` | متغيرات محلية (انسخ من `.dev.vars.example`) |
-| `.github/workflows/deploy-cloudflare.yml` | فحص وبناء ونشر تلقائي عند الدفع إلى `main` |
+| `.github/workflows/deploy-cloudflare.yml` | فحص فقط (نوع، lint، اختبارات، بناء، e2e). **ما ينشرش.** |
 
 **المفتاح على الخادم (اختياري):** التطبيق مبني على مبدأ "مفتاحك أنت"، لكن لو حبيت تحط مفتاحاً على الـ Worker:
 
@@ -101,7 +101,25 @@ npx wrangler secret put GEMINI_API_KEY
 
 لا تضعه أبداً في `wrangler.jsonc` — الملف مرفوع على Git بنص واضح.
 
-**أسرار GitHub المطلوبة للنشر التلقائي:** `CLOUDFLARE_API_TOKEN` و `CLOUDFLARE_ACCOUNT_ID`. بدونها يتخطى سير العمل خطوة النشر بدل ما يفشل.
+### مين اللي ينشر فعلياً
+
+**Cloudflare Workers Builds**، مربوط بالمستودع من لوحة تحكم Cloudflare مباشرة — مش GitHub Actions. سير عمل GitHub يفحص فقط ويقف، لأن نظامين ينشرو نفس الـ Worker يعني سباق.
+
+⚠️ **إعدادات البناء موجودة في لوحة تحكم Cloudflare، مش في هذا المستودع** — ولهذا بالضبط انحرفت عن الكود بدون ما ينتبه حد. القيم الصحيحة:
+
+`Workers & Pages → kashif → Settings → Build`
+
+| الحقل | القيمة الصحيحة |
+|---|---|
+| Build command | `npm run cf:build` |
+| Deploy command | `npx opennextjs-cloudflare deploy` |
+| Version command | `npx opennextjs-cloudflare upload` |
+| Root directory | `/` |
+| Production branch | `main` |
+
+🚨 **لا تضيف `--assets=.next` أبداً.** هذا الخيار ينشر مجلد البناء كامل كملفات عامة — بما فيه `.next/server/**` وتعليمات النظام اللي جواه — ويتجاوز `assets.directory` المضبوط في `wrangler.jsonc`، لأن خيار سطر الأوامر يغلب ملف الإعدادات. مجلد الأصول الصحيح معرّف في `wrangler.jsonc` وما يحتاجش خيار.
+
+**تحذير مهم:** لو صلّحت `Build command` وحده وخلّيت `--assets=.next` في أمر النشر، البناء بينجح **والتسريب يرجع**. غيّر الثلاثة مع بعض.
 
 ---
 
@@ -159,7 +177,7 @@ npx wrangler secret put GEMINI_API_KEY
 ├── tests/                     # اختبارات الوحدة (Vitest)
 ├── e2e/                       # اختبارات الطرف للطرف (Playwright)
 ├── .github/workflows/
-│   └── deploy-cloudflare.yml  # سير عمل النشر التلقائي عبر GitHub Actions
+│   └── deploy-cloudflare.yml  # فحص فقط — النشر من لوحة Cloudflare
 ├── wrangler.jsonc             # إعدادات Cloudflare Workers & Assets
 ├── open-next.config.ts        # إعدادات محوّل OpenNext
 ├── PRODUCT.md                 # حقائق المنتج الثابتة
