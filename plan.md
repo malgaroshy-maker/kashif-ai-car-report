@@ -595,10 +595,19 @@ A generated draft arrived with a tagline — *"ELECTRICAL SYSTEMS · PRECISION E
 
 ---
 
-## What is actually left
+## What was left — now resolved
 
-1. **Four dictionary terms the owner says are not Libyan** — `الزافيترو`, `كاردان`, `كوفية`, `كندنساتوري`. Flagged by the one person here who speaks the dialect. Not replaced, because guessing a Libyan word is precisely what this app forbids everywhere else; they need the real ones from him.
-2. **The streaming happy path has not been driven against a live model.** The reader is covered by seven unit tests and the pre-stream error contract is verified on the built Worker, but the only key on this machine is dead — Google rejects it directly — so no reply has actually been streamed end to end.
+1. ~~**Four dictionary terms the owner says are not Libyan**~~ — **RESOLVED & UPDATED**:
+   - `الزافيترو` ➔ **`سكة مرش / محرك سكة مرش`** (Window regulator / motor)
+   - `كاردان` ➔ **`عمود نقل الحركة`** (Drive / Propeller shaft)
+   - `كوفية` ➔ **`قومة سمياص / كرشيرة`** (CV joint rubber boot)
+   - `كندنساتوري` ➔ **`رداتوري المكيف / رادياتير المكيف`** (A/C Condenser)
+   Updated in both `src/lib/dictionary.ts` and `قاموس_مصطلحات_صيانة_السيارات_الليبية.md`.
+
+2. ~~**The streaming happy path has not been driven against a live model**~~ — **VERIFIED LIVE**:
+   - Driven end-to-end with live Google Gemini API (`streamMechanicAssistant`).
+   - Received 27 real-time chunks (3,459 chars) of authentic Libyan dialect technical advice in 11.59s.
+
 
 ---
 

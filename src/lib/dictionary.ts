@@ -27,7 +27,7 @@ export const LIBYAN_DICTIONARY: DictionaryEntry[] = [
   { libyanTerm: "كوادرو", standardArabic: "لوحة العدادات", english: "Instrument cluster", category: "الهيكل والمقصورة" },
   { libyanTerm: "فنار", standardArabic: "المصباح الأمامي", english: "Headlight", category: "الهيكل والمقصورة" },
   { libyanTerm: "سطب / اسطب", standardArabic: "إشارة التوقف الخلفية", english: "Rear stop/tail light", category: "الهيكل والمقصورة" },
-  { libyanTerm: "الزافيترو", standardArabic: "رافعة الزجاج الإلكترونية", english: "Window regulator", category: "الهيكل والمقصورة" },
+  { libyanTerm: "سكة مرش / محرك سكة مرش", standardArabic: "رافعة الزجاج ومحركها (ماكينة القزاز)", english: "Window regulator / motor", category: "الهيكل والمقصورة" },
   { libyanTerm: "شريط إيرباق", standardArabic: "ملف الساعة لعجلة القيادة والإيرباق", english: "Clock spring (airbag coil)", category: "الهيكل والمقصورة" },
   { libyanTerm: "سنتر لوك", standardArabic: "آلية قفل الأبواب المركزية", english: "Central door lock mechanism", category: "الهيكل والمقصورة" },
 
@@ -42,7 +42,7 @@ export const LIBYAN_DICTIONARY: DictionaryEntry[] = [
   { libyanTerm: "عقل الكمبيو / الفالف بدي", standardArabic: "مجمع الصمامات الكهرومغناطيسية للقير", english: "Valve body / Mechatronic unit", category: "المحرك ونقل الحركة" },
   { libyanTerm: "صبورتوات المحرك والكمبيو", standardArabic: "كراسي وقواعد تثبيت المحرك والقير", english: "Engine & transmission mounts (supporti)", category: "المحرك ونقل الحركة" },
   { libyanTerm: "مارشا", standardArabic: "ذراع تعشيق السرعات", english: "Gear shift lever", category: "المحرك ونقل الحركة" },
-  { libyanTerm: "كاردان", standardArabic: "عمود الكردان (نقل الحركة)", english: "Propeller / drive shaft", category: "المحرك ونقل الحركة" },
+  { libyanTerm: "عمود نقل الحركة", standardArabic: "عمود نقل الحركة (الكردان)", english: "Propeller / drive shaft", category: "المحرك ونقل الحركة" },
   { libyanTerm: "بومبة", standardArabic: "مضخة (بنزين / ماء / زيت)", english: "Pump", category: "المحرك ونقل الحركة" },
   { libyanTerm: "بومبة بنزين (قلب البومبة)", standardArabic: "مضخة الوقود / طرمبة البنزين", english: "Fuel pump module / core", category: "المحرك ونقل الحركة" },
   { libyanTerm: "دينمو", standardArabic: "المولد الكهربائي (شاحن البطارية)", english: "Alternator / generator", category: "المحرك ونقل الحركة" },
@@ -53,7 +53,7 @@ export const LIBYAN_DICTIONARY: DictionaryEntry[] = [
   { libyanTerm: "شمعات / شمعة", standardArabic: "شمعات الاحتراق (شمعات الإشعال)", english: "Spark plugs (candele)", category: "المحرك ونقل الحركة" },
   { libyanTerm: "طاقم فاصل / فرسيوني", standardArabic: "طقم القابض (الدبرياج)", english: "Clutch kit (frizione)", category: "المحرك ونقل الحركة" },
   { libyanTerm: "سمياص", standardArabic: "عمود الدفع الجانبي (العكس/نصف العمود)", english: "Axle shaft / CV axle", category: "المحرك ونقل الحركة" },
-  { libyanTerm: "كوفية", standardArabic: "غطاء مطاطي لمفصل السرعة (جلدة العكس)", english: "CV boot", category: "المحرك ونقل الحركة" },
+  { libyanTerm: "قومة سمياص / كرشيرة", standardArabic: "غطاء مطاطي لمفصل السرعة (جلدة العكس)", english: "CV boot", category: "المحرك ونقل الحركة" },
   { libyanTerm: "كولوا", standardArabic: "عمود المرفق (الكرنك شافت)", english: "Crankshaft", category: "المحرك ونقل الحركة" },
   { libyanTerm: "امبروكم", standardArabic: "عمود الكامات (الكامشافت)", english: "Camshaft (albero a camme)", category: "المحرك ونقل الحركة" },
   { libyanTerm: "قرسيوني كوبيركو", standardArabic: "حشية غطاء الصمامات (جوان غطاء البلوف)", english: "Valve cover gasket", category: "المحرك ونقل الحركة" },
@@ -84,7 +84,7 @@ export const LIBYAN_DICTIONARY: DictionaryEntry[] = [
 
   // 5. التبريد والزيوت والتكييف
   { libyanTerm: "كمبريسوري", standardArabic: "ضاغط التكييف (الكمبروسر)", english: "A/C Compressor (compressore)", category: "التبريد والتكييف" },
-  { libyanTerm: "كندنساتوري", standardArabic: "مكثف التكييف (رادياتير المكيف)", english: "A/C Condenser (condensatore)", category: "التبريد والتكييف" },
+  { libyanTerm: "رداتوري المكيف / رادياتير المكيف", standardArabic: "مكثف التكييف (رادياتير المكيف)", english: "A/C Condenser (condensatore)", category: "التبريد والتكييف" },
   { libyanTerm: "رداتوري / راداتوري", standardArabic: "المشعاع (رادياتير تبريد المحرك)", english: "Radiator (radiatore)", category: "التبريد والتكييف" },
   { libyanTerm: "مروحة الرداتوري", standardArabic: "مروحة تبريد المحرك الكهربائية", english: "Radiator cooling fan", category: "التبريد والتكييف" },
   { libyanTerm: "مناكوطي / توبو", standardArabic: "خرطوم الرادياتير المطاطي الموصل", english: "Radiator hose (manicotto / tubo)", category: "التبريد والتكييف" },

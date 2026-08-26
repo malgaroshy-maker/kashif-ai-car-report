@@ -236,10 +236,11 @@ with three teeth beneath them the **ش** is complete.
 
 **The join is not decoration.** Arabic is a connected script. In كاشف the ش is
 in initial form and joins forward to the ف, while the ا before it does not join
-forward. The shaping puts the ف's right edge at x=1049 and the ش body's left at
-x=1145 — a real 96-unit hole that reads as a broken word. So the bowl extends
-**left past 1049 to overlap the ف**, and stops short on the right. The mark
-does what the script does.
+forward. The loop of the ف extends to x=1087 with its baseline connector extending
+to x=1145. The fuse body begins at x=1125, overlapping seamlessly with the baseline
+to form a natural Arabic ligature without encroaching on the round loop of the ف.
+The fuse cavity window uses an SVG mask cutout, ensuring the filament engraving is
+crisp and theme-adaptive across both light and dark backgrounds.
 
 **Why a fuse at all.** The product's metaphor is the fuse-box lid, and the
 element bridging a fuse's terminals is the part a mechanic actually looks at to
