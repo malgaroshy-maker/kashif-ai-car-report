@@ -29,7 +29,7 @@ jobs:
     name: Typecheck, lint, test, build & e2e
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Node 24, to match what the project is developed and built on.
       #
@@ -40,7 +40,7 @@ jobs:
       # written by the npm that ships with Node 24, and the npm in Node 22
       # read the same file as incomplete. Verifying on a different toolchain
       # than the one the code is built with is how that goes unnoticed.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report
           path: playwright-report/

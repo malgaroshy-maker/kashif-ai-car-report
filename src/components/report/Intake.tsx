@@ -7,7 +7,6 @@ import {
   analyzeFile,
   loadSampleReport,
   messageOf,
-  readSettings,
   STORAGE_KEYS,
 } from "@/lib/api-client";
 import { useLocalString } from "@/lib/local-store";
