@@ -336,3 +336,23 @@ describe("registry order", () => {
     expect(curatedPhotoFor("Engine Air Filter")).toContain("Air_filter");
   });
 });
+
+describe("the article tier", () => {
+  it("does not answer a clock spring with a steering wheel", () => {
+    // The dictionary maps "شريط إيرباق الدومان" — the airbag ribbon of the
+    // steering wheel — to "Clock spring" and then "Steering wheel". Walking
+    // the whole list meant that when no clock spring article existed, the card
+    // was given a very good photograph of the wrong part. Twice: tier 3 did it
+    // through Commons, and the article tier repeated it.
+    const [first] = englishTermsFor("شريط إيرباق الدومان");
+    expect(first).toBe("Clock spring");
+    expect(englishTermsFor("شريط إيرباق الدومان")).toContain("Steering wheel");
+  });
+
+  it("keeps the parts the article tier is there to reach", () => {
+    // Commons search answers "radiator" with vintage filler caps and hood
+    // mascots; the encyclopedia has a photograph of a radiator.
+    expect(curatedPhotoFor("رداتوري")).toContain("Automobile_radiator");
+    expect(curatedPhotoFor("طرمبة بنزين")).toContain("Fuelpump");
+  });
+});

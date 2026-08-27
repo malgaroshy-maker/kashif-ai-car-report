@@ -26,6 +26,14 @@ import { englishTermsFor } from "./dictionary";
 interface CommonsSearchResult {
   query?: { search?: { title?: string }[] };
 }
+/** Only the four fields the lead-image lookup reads. */
+interface WikipediaSummary {
+  type?: string;
+  description?: string;
+  extract?: string;
+  thumbnail?: { source?: string };
+}
+
 interface CommonsImageInfo {
   query?: {
     pages?: Record<
@@ -138,6 +146,22 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // ABSorber", so a shock absorber card showed an ABS sensor photo.
     pattern: /\babs\b|wheel.*speed|سرعة.*عجل/i,
     url: "https://assets.turnermotorsport.com/product_library_tms/1769855_x800.jpg",
+  },
+  {
+    // An in-tank electric pump out of the tank, with the strainer sock. From
+    // the "Fuel pump" article; the annotation arrow drawn on it is crude, but
+    // it is the right part and Commons search answers this one with either a
+    // bench teardown or a close-up of a Bosch label.
+    pattern: /fuel[\s_-]*pump|طرمبة.*بنزين|بومب.*بنزين|طلمب.*وقود/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Fuelpump.jpg/330px-Fuelpump.jpg",
+  },
+  {
+    // Core, tanks, both hoses and the filler neck. It came from the lead image
+    // of the "Radiator (engine cooling)" article: Commons search offers only
+    // vintage filler caps and hood mascots for this word, and the closest it
+    // got was a close-up of a cap on a hot rod.
+    pattern: /radiator|رداتوري|رادياتير|مبرد المحرك/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Automobile_radiator.jpg/330px-Automobile_radiator.jpg",
   },
   {
     // A panel filter out of its box. Named only in Libyan in these reports
@@ -543,6 +567,63 @@ async function searchWikimediaCommons(
   return "";
 }
 
+/**
+ * The lead image of the English Wikipedia article about the part.
+ *
+ * Added because the app should answer with a photograph from the web wherever
+ * one exists, and the Commons *search* tiers refuse a great deal that an
+ * article would have handed over: an article's lead image has been chosen by
+ * someone as the picture of that subject, which is a far stronger signal than
+ * any rule over a filename. It is where the radiator finally came from —
+ * Commons search offers only vintage filler caps and hood mascots.
+ *
+ * Two guards, because the title alone is not enough:
+ *
+ * **The article has to be the automotive one.** Half of these words belong to
+ * something else first. "Clock spring" is an anniversary clock's torsion
+ * pendulum, "Air filter" is a HEPA cartridge, "Water pump" is a jet pump in a
+ * garden. Each returns a confident, well-photographed, wrong picture, so the
+ * summary has to say it is about vehicles before its image is taken.
+ *
+ * **A disambiguation page has no subject**, so it has no picture of one.
+ *
+ * The image is served from upload.wikimedia.org, the host the curated photos
+ * already use, so this adds no origin to the CSP.
+ */
+const AUTOMOTIVE_PROSE =
+  /\b(car|cars|automobile|automotive|vehicle|vehicles|motor vehicle|engine|internal combustion|truck|lorry|motorcycle|chassis|drivetrain|exhaust)\b/i;
+
+async function searchWikipediaLeadImage(term: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+        term.replace(/ /g, "_")
+      )}`,
+      { headers: { "User-Agent": COMMONS_UA }, signal: AbortSignal.timeout(4000) }
+    );
+    if (!res.ok) return "";
+
+    const data = (await res.json()) as WikipediaSummary;
+    if (data.type !== "standard") return "";
+
+    const image = data.thumbnail?.source;
+    if (!image) return "";
+
+    const prose = `${data.description ?? ""} ${data.extract ?? ""}`;
+    if (!AUTOMOTIVE_PROSE.test(prose)) return "";
+
+    // The filename still has to be a photograph of the part rather than a
+    // diagram or an advertisement of it.
+    const filename = decodeURIComponent(image.split("/").pop() ?? "");
+    if (isDocumentNotPart(filename, undefined)) return "";
+
+    // Wikimedia appends its own utm_* campaign parameters.
+    return image.split("?")[0];
+  } catch {
+    return "";
+  }
+}
+
 /** Wide enough for a retina 72px card and for the print stylesheet. */
 const THUMB_WIDTH = 320;
 
@@ -681,6 +762,28 @@ export async function searchPartImageOnline(
     ].filter(isSearchableTerm);
 
     if (term) foundUrl = await searchWikimediaCommons(term, term);
+  }
+
+  // Tier 4: the article about the part, and its lead image.
+  //
+  // Last because it is the broadest: an article's picture is of the subject in
+  // general, where the tiers above are pinned to this part by a hand-check or
+  // by the archive's own categories. It is still a photograph of the right
+  // component, which is the thing the reader needs.
+  if (!foundUrl) {
+    // The part's own English name, then the single most specific term the
+    // dictionary offers — never the rest of them. Walking the whole list is
+    // how tier 3 came to answer a clock spring with a steering wheel, and this
+    // tier repeated it: "Clock spring" has no automotive article, so it fell
+    // through to "Steering wheel", which has a very good photograph of the
+    // wrong part.
+    const [fallback] = englishTermsFor(partNameLibyan).filter(isSearchableTerm);
+    for (const term of [partNameEn, fallback].filter(
+      (t): t is string => !!t && isSearchableTerm(t)
+    )) {
+      foundUrl = await searchWikipediaLeadImage(term);
+      if (foundUrl) break;
+    }
   }
 
   // A limit that no rule over titles and categories can close, written down
