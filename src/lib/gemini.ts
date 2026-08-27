@@ -412,9 +412,30 @@ export function normalizeDiagnosticReport(
    */
   const readingOrNull = (value: string | null): string | null => {
     if (!value) return null;
-    if (/غير محدد|غير معروف|not specified|unknown|n\/a/i.test(value)) return null;
-    // "0", "0 ميل", "0 كم", "0.0" — an odometer that reads zero was not read.
-    if (/^0[\s.,0]*(كم|ميل|km|mi(les)?)?$/i.test(value.trim())) return null;
+
+    // Anything that says outright it has no reading.
+    //
+    // The list grew: the first version caught "غير محدد", and a second engine
+    // answered the same empty odometer with "غير مسجل / 0 ميل" — a phrase that
+    // says "not recorded" and then prints a number anyway. Both halves have to
+    // be caught, and it is the whole value that goes, not the tidy half.
+    if (
+      /غير محدد|غير مسجل|غير معروف|مش مسجل|مش محدد|not (specified|recorded|available)|unknown|n\/a/i.test(
+        value
+      )
+    ) {
+      return null;
+    }
+
+    // A zero odometer, alone or inside a compound: "0", "0 ميل", "0 Miles".
+    //
+    // Read as numbers rather than as digit runs. A pattern over digits matched
+    // the "000" inside "185,000 كم" and threw away a real reading.
+    const numbers = (value.match(/\d[\d.,]*/g) ?? []).map((n) =>
+      Number(n.replace(/[.,]/g, ""))
+    );
+    if (numbers.length > 0 && numbers.every((n) => n === 0)) return null;
+
     return value;
   };
 
@@ -515,7 +536,14 @@ export function normalizeDiagnosticReport(
     overallHealthScore:
       modelScore ??
       Math.max(25, 100 - (criticalFaults.length * 20 + moderateFaults.length * 10)),
-    isScoreEstimated: modelScore === null,
+    // Always estimated, because no scan tool reports one.
+    //
+    // This used to be true only when the model gave no number — so when the
+    // model did give one, the report printed "الجاهزية" and the reader took it
+    // for a measurement off the machine. A real Camry scan came back with 35%
+    // labelled as though the scanner had said so; the scanner reports fault
+    // codes and nothing else. Whoever produced the number, it is a judgement.
+    isScoreEstimated: true,
     severityStatus: d.summary?.severityStatus ?? derivedStatus,
     briefSummaryArabic:
       pick(d.summary?.briefSummaryArabic, d.briefSummaryArabic) || "",

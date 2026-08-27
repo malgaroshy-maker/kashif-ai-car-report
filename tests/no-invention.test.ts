@@ -102,10 +102,14 @@ describe("normalizeDiagnosticReport never invents a finding", () => {
     });
     expect(derived.summary.isScoreEstimated).toBe(true);
 
+    // This used to expect `false` — the model's own number was treated as
+    // measured. No scan tool reports a health percentage, so a number from the
+    // model is a judgement too, and the report must say so. Its value is kept
+    // either way.
     const reported = normalizeDiagnosticReport({
       summary: { overallHealthScore: 72 },
     });
-    expect(reported.summary.isScoreEstimated).toBe(false);
+    expect(reported.summary.isScoreEstimated).toBe(true);
     expect(reported.summary.overallHealthScore).toBe(72);
   });
 
@@ -133,5 +137,50 @@ describe("normalizeDiagnosticReport never invents a finding", () => {
     expect(report.vehicle.vin).toBe("WBADT43452G123456");
     expect(report.vehicle.make).toBe("BMW");
     expect(report.vehicle.model).toBeNull();
+  });
+});
+
+describe("what the scanner did not measure", () => {
+  const scan = {
+    vehicle: { vin: "4T1BE46K17U046638", make: "TOYOTA", model: "Camry", year: "2007" },
+    faultCategories: {
+      criticalFaults: [{ code: "B1811", libyanTerm: "قطع في شريط إيرباق الدومان" }],
+      moderateFaults: [],
+      minorOrHistoricalFaults: [],
+    },
+  };
+
+  it("marks the readiness score as an estimate even when the model supplies one", () => {
+    // No scan tool reports a health percentage. This was flagged authoritative
+    // whenever the model gave a number, so a real Camry report printed 35%
+    // under "الجاهزية" as though the machine had said so.
+    const withScore = normalizeDiagnosticReport({ ...scan, summary: { overallHealthScore: 35 } });
+    expect(withScore.summary.overallHealthScore).toBe(35);
+    expect(withScore.summary.isScoreEstimated).toBe(true);
+
+    const withoutScore = normalizeDiagnosticReport(scan);
+    expect(withoutScore.summary.isScoreEstimated).toBe(true);
+  });
+
+  it("drops an odometer that says it was never recorded", () => {
+    // The scan prints "Mileage:0 Miles". Two engines phrased that back two
+    // ways, and both said "unrecorded" and then printed a number anyway.
+    for (const mileage of [
+      "غير مسجل / 0 ميل",
+      "غير محدد (0 ميل)",
+      "0 Miles",
+      "not recorded",
+      "0 كم",
+    ]) {
+      const r = normalizeDiagnosticReport({ ...scan, vehicle: { ...scan.vehicle, mileage } });
+      expect(r.vehicle.mileage, mileage).toBeNull();
+    }
+  });
+
+  it("keeps a real odometer reading", () => {
+    for (const mileage of ["185,000 كم", "280,911 Miles (~452,000 كم)", "120000 km"]) {
+      const r = normalizeDiagnosticReport({ ...scan, vehicle: { ...scan.vehicle, mileage } });
+      expect(r.vehicle.mileage, mileage).toBe(mileage);
+    }
   });
 });
