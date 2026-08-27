@@ -519,10 +519,17 @@ export function normalizeDiagnosticReport(
     severityStatus: d.summary?.severityStatus ?? derivedStatus,
     briefSummaryArabic:
       pick(d.summary?.briefSummaryArabic, d.briefSummaryArabic) || "",
-    systemsCheckedCount:
-      d.summary?.systemsCheckedCount ?? totalFaultsCount + passedSystems.length,
-    faultsFoundCount: d.summary?.faultsFoundCount ?? totalFaultsCount,
-    passedSystemsCount: d.summary?.passedSystemsCount ?? passedSystems.length,
+    // Counted from the lists the report actually prints, never taken from the
+    // model's own tally.
+    //
+    // A real Camry scan listed eight SRS codes, two of them the same fault
+    // twice; the report merged them to seven and printed seven cards, while
+    // the headline kept saying eight because the model's number won. Both were
+    // defensible and the document contradicted itself, which is the thing a
+    // customer notices first. Whatever is on the page is what gets counted.
+    systemsCheckedCount: totalFaultsCount + passedSystems.length,
+    faultsFoundCount: totalFaultsCount,
+    passedSystemsCount: passedSystems.length,
   };
 
   // 6. Spare parts — the OEM number, the aftermarket list and the price are

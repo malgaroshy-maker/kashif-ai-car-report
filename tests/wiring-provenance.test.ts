@@ -122,3 +122,35 @@ describe("the airbag family", () => {
     }
   });
 });
+
+describe("the chassis and network families", () => {
+  it("sends a C-code to the wheel, not to the engine bay", () => {
+    for (const code of ["C1201", "C0035", "C1241"]) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.sensorLocation.engineZone, code).toBe("wheel-hub");
+      expect(d.fuseInfo.fuseNumber, code).toBeNull();
+      expect(d.provenance, code).toBe("general");
+      expect(d.warning ?? null, code).toBeNull();
+    }
+  });
+
+  it("tells a U-code it is looking for a conversation, not a sensor", () => {
+    for (const code of ["U0100", "U0155", "U1000"]) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.sensorLocation.engineZone, code).toBe("cabin");
+      // The 60-ohm reading across the bus is the one measurement that is true
+      // of every CAN car, and it is the whole first step.
+      expect(d.multimeterTest.signalPin, code).toContain("60");
+      expect(d.fuseInfo.fuseNumber, code).toBeNull();
+    }
+  });
+
+  it("still claims no fuse number for either", () => {
+    for (const code of ["C1201", "U0100"]) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.fuseInfo.rating, code).toBeNull();
+      expect(d.sensorLocation.coordinatePct, code).toBeNull();
+      expect(d.fuseInfo.circuitDescription, code).toContain(code);
+    }
+  });
+});

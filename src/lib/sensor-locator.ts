@@ -432,6 +432,65 @@ function deriveGeneral(
     };
   }
 
+  // Chassis codes: ABS, traction, steering angle, wheel speed.
+  if (normalized.startsWith("C")) {
+    return {
+      provenance: "general",
+      fuseInfo: {
+        ...noFuseNumber,
+        boxLocation:
+          "عادةً علبة فيوزات حوض المحرك — فيوز مكتوب عليه ABS أو VSC على غطا العلبة",
+        circuitDescription: `دائرة الفرامل والاتزان — الرمز (${normalized}) من أكواد الهيكل الخاصة بكل شركة`,
+      },
+      sensorLocation: {
+        areaName: "عند العجلات: حساس السرعة على القاعدة وسلكه الماشي مع الكوشينة",
+        engineZone: "wheel-hub",
+        accessTip:
+          "ارفع السيارة على الكريك وافحص سلك الحساس عند الدوران — أغلب أعطال هذه العائلة سلك مقروض أو فيشة مملحة عند العجلة، مش الحساس.",
+        coordinatePct: null,
+      },
+      multimeterTest: {
+        powerPin: "خط التغذية: 12V مع السويتش على فيشة الحساس",
+        groundPin: "خط الأرضي: أقل من 0.1V على الشاسي",
+        signalPin:
+          "حساس السرعة يعطي نبضة متغيرة مع دوران العجلة — تتقرا أوضح من جهاز الكشف (Live Data) وانت تدور العجلة باليد",
+        referenceVoltage: null,
+        testingTipLibyan:
+          "قارن قراءة سرعة العجلات الأربع على جهاز الكشف والسيارة ماشية شوي: العجلة اللي قراءتها صفر أو تقفز هي المشكلة. نظف سن الطاسة (Reluctor Ring) من الصدى قبل ما تبدل الحساس.",
+      },
+    };
+  }
+
+  // Network codes: modules that stopped hearing each other on the bus.
+  if (normalized.startsWith("U")) {
+    return {
+      provenance: "general",
+      fuseInfo: {
+        ...noFuseNumber,
+        boxLocation:
+          "مش فيوز واحد — كل كمبيوتر على الشبكة له تغذيته وفيوزه الخاص",
+        circuitDescription: `عطل اتصال على شبكة الـ CAN — الرمز (${normalized}) يقول إن كمبيوتر ما وصلتش منه رسائل`,
+      },
+      sensorLocation: {
+        areaName:
+          "مش حساس: خطين بيانات (CAN High / CAN Low) ماشيين بين الكمبيوترات وفيشة الفحص OBD تحت التابلو",
+        engineZone: "cabin",
+        accessTip:
+          "ابدأ من فيشة الفحص وتفرّع منها. أغلب أعطال الشبكة تغذية أو أرضي ناقص على كمبيوتر واحد، أو مية دخلت فيشة — مش الكمبيوتر نفسه محروق.",
+        coordinatePct: null,
+      },
+      multimeterTest: {
+        powerPin: "تغذية الكمبيوتر المفقود: 12V مع السويتش",
+        groundPin: "أرضي الكمبيوتر: أقل من 0.1V على الشاسي",
+        signalPin:
+          "على فيشة الفحص والسويتش مفتوح: CAN High حوالي 2.5 إلى 3.5V، وCAN Low حوالي 1.5 إلى 2.5V. المقاومة بين الخطين والبطارية مفصولة حوالي 60 أوم (مقاومتين 120 على التوازي)",
+        referenceVoltage: null,
+        testingTipLibyan:
+          "قيس 60 أوم بين خط 1 و2 من فيشة الفحص والسويتش مطفي: لو طلعت 120 يعني فرع من الشبكة مقطوع، ولو طلعت صفر يعني الخطين ملموسين في بعض. هذي القراءات عامة للـ CAN وما هيش مخطط سيارتك.",
+      },
+    };
+  }
+
   // Anything else: network, chassis, body.
   return {
     provenance: "general",
