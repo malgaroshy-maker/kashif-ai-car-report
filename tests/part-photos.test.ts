@@ -124,6 +124,36 @@ describe("what may be shown as a photo of a part", () => {
     ).toBe(true);
   });
 
+  it("does not put a driver airbag on a clock spring card", () => {
+    // The commonest SRS part in these reports is the clock spring, named
+    // "شريط إيرباق الدومان" — the airbag *ribbon* of the steering wheel. It
+    // matches a driver-airbag rule word for word, and the two are a different
+    // part in the same place at a different price.
+    expect(curatedPhotoFor("شريط إيرباق الدومان كامري 2007")).toBe("");
+    expect(curatedPhotoFor("Clock Spring Toyota Camry genuine auto part")).toBe("");
+
+    // The driver airbag itself still finds its photograph.
+    expect(curatedPhotoFor("Driver Airbag genuine auto part")).toContain(
+      "Driver_airbag_stored"
+    );
+  });
+
+  it("finds the SRS parts a real airbag scan asks for", () => {
+    expect(curatedPhotoFor("Seat Belt Buckle Switch")).toContain("Gurtschloss");
+    expect(curatedPhotoFor("طقطوقة / قفل حزام أمان السواق")).toContain("Gurtschloss");
+    expect(curatedPhotoFor("Airbag Control Module")).toContain("Airbag_control_unit");
+    expect(curatedPhotoFor("كمبيوتر الوسائد الهوائية")).toContain("Airbag_control_unit");
+  });
+
+  it("shows the drawing for the SRS parts Commons has no photograph of", () => {
+    // Written down rather than approximated. A seat-side airbag on its own and
+    // an occupant weight sensor are not photographed on Commons, and the
+    // nearest thing to each is a different part.
+    expect(curatedPhotoFor("إيرباق جانب الكرسي")).toBe("");
+    expect(curatedPhotoFor("Occupant Classification Sensor")).toBe("");
+    expect(curatedPhotoFor("حساس وزن كرسي المعاون")).toBe("");
+  });
+
   it("needs two words to agree when the part name has two to give", () => {
     expect(
       titleMatchesPart("File:Bosch Mass Air Flow Sensor in engine bay.jpg", "Mass Air Flow Sensor")

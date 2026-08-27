@@ -46,6 +46,47 @@ const imageSearchCache = new Map<string, string>();
  * Guaranteed 100% uptime with CDN hosting & unblocked CORS headers
  */
 const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
+  // ── Safety / SRS ──────────────────────────────────────────────────────
+  //
+  // Added after a real Camry report needed four of these and Commons could
+  // match none of them: an SRS scan is one of the commonest things a Libyan
+  // workshop reads off a used import, and the archive files airbag parts under
+  // German names or not at all.
+  //
+  // Every one below was opened and looked at. Three of the six parts that
+  // report named have no photograph on Commons at all — the clock spring, the
+  // occupant weight sensor and a seat-side airbag on its own — and they are
+  // deliberately absent here rather than approximated. Those cards show the
+  // drawn schematic, which is never wrong about what it is.
+  {
+    // A buckle receptacle beside the seat, latch open. This is the طقطوقة
+    // itself, not a photograph of somebody fastening a belt — which is what
+    // every English search for "seat belt buckle" returns.
+    pattern: /seat[\s_-]*belt[\s_-]*(buckle|switch)|belt[\s_-]*buckle|gurtschloss|طقطوقة|قفل.*حزام/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Gurtschloss.jpg/330px-Gurtschloss.jpg",
+  },
+  {
+    // The control unit out of the car: metal box, yellow mounting brackets,
+    // its bolts beside it. Yellow is the SRS connector colour, so this reads
+    // as an airbag module to a mechanic before he has read the caption.
+    pattern:
+      /airbag[\s_-]*(control|module|ecu)|srs[\s_-]*(control|module|unit)|كمبيوتر.*وسائد|عقل.*(ايرباق|إيرباق)/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/2008-04-14_Airbag_control_unit.jpg/330px-2008-04-14_Airbag_control_unit.jpg",
+  },
+  {
+    // The driver airbag folded into the steering wheel with the cover off.
+    //
+    // The negative lookahead is load-bearing. The commonest SRS part in these
+    // reports is the clock spring, named "شريط إيرباق الدومان" — the airbag
+    // *ribbon* of the steering wheel. Without excluding شريط it matches this
+    // rule word for word and every clock spring card would show a photograph
+    // of the airbag instead: a different part, in the same place, for a
+    // different price.
+    pattern:
+      /^(?!.*(شريط|clock[\s_-]*spring))(?=.*(airbag|air[\s_-]*bag|إيرباق|ايرباق))(?=.*(steering|driver|دومان|عجلة.*القيادة))/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Driver_airbag_stored.JPG/330px-Driver_airbag_stored.JPG",
+  },
+
   {
     pattern: /spark[\s_-]*plug|شمع|بوجي|ignit.*plug/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Spark_plug_2.jpg",
