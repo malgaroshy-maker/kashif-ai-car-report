@@ -207,12 +207,23 @@ function usePartPhoto(
   const year = String(vehicle?.year ?? "");
   const oem = part.oemPartNumber ?? "";
   const name = part.partNameEnglish || part.partNameLibyan;
+  // Sent alongside the English name rather than instead of it: the dictionary
+  // translates Libyan workshop terms, and it is the only tier that can answer
+  // for a part the report named only in Libyan.
+  const libyan = part.partNameLibyan ?? "";
 
   React.useEffect(() => {
     if (supplied) return;
     const controller = new AbortController();
 
-    const params = new URLSearchParams({ make, model, year, oem, partName: name });
+    const params = new URLSearchParams({
+      make,
+      model,
+      year,
+      oem,
+      partName: name,
+      partNameLibyan: libyan,
+    });
     fetch(`/api/parts-image?${params}`, {
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]),
     })
@@ -227,7 +238,7 @@ function usePartPhoto(
       });
 
     return () => controller.abort();
-  }, [supplied, make, model, year, oem, name]);
+  }, [supplied, make, model, year, oem, name, libyan]);
 
   return {
     url: supplied || fetched || "",

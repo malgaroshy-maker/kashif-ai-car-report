@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   curatedPhotoFor,
+  isDocumentNotPart,
   isFiledAsAutomotive,
+  isSearchableTerm,
   titleMatchesPart,
 } from "@/lib/parts-search";
 import { englishTermsFor } from "@/lib/dictionary";
@@ -261,5 +263,76 @@ describe("every curated url", () => {
       expect(url, url).toContain("/thumb/");
       expect(url, url).toMatch(/\/\d+px-/);
     }
+  });
+});
+
+describe("what the live search may answer with", () => {
+  it("rejects a 1926 magazine advertisement for shock absorbers", () => {
+    // This was being served on the card for a مزاطوري. It is filed under
+    // "Automobile shock absorbers" and matches both words of the part name, so
+    // the positive evidence was all in order — and its own category list said
+    // "The Elks Magazine advertisements in 1926" the whole time.
+    const title = "File:Burd-Gilmans Shock Absorber ad 1926-08.png";
+    expect(isFiledAsAutomotive([{ title: "Category:Automobile shock absorbers" }])).toBe(true);
+    expect(isDocumentNotPart(title, undefined)).toBe(true);
+    expect(
+      isDocumentNotPart("File:Something.jpg", [
+        { title: "Category:The Elks Magazine advertisements in 1926" },
+      ])
+    ).toBe(true);
+  });
+
+  it("keeps a photograph of the part itself", () => {
+    expect(isDocumentNotPart("File:Ignition coil module.jpg", [
+      { title: "Category:Ignition coils" },
+    ])).toBe(false);
+  });
+
+  it("requires the part to be what the title is about, not a word in it", () => {
+    // English compounds put the head last. Taking any mention gave a radiator
+    // fan for a radiator and a Tesla heat pump for a pump.
+    const inside = { insideAutomotiveCategory: true };
+    expect(titleMatchesPart("File:RADIATOR FAN.jpg", "Radiator", inside)).toBe(false);
+
+    // "Tesla heat pump" is the other half of the same problem and the head
+    // rule does not catch it — "pump" really is the head of that title. What
+    // stops it is that "Pump" is never searched for at all; see the term test
+    // below. Written down so the next reader does not assume this rule covers
+    // a bare generic word.
+    expect(titleMatchesPart("File:Tesla heat pump 01.jpg", "Pump", inside)).toBe(true);
+    expect(isSearchableTerm("Pump")).toBe(false);
+    // and still keeps the airbag that names its car
+    expect(
+      titleMatchesPart(
+        "File:Renault Talisman Grandtour (10) - Undeployed airbag.jpg",
+        "Side Airbag",
+        inside
+      )
+    ).toBe(true);
+  });
+
+  it("will not search on a term that names a category rather than a part", () => {
+    // The dictionary is a glossary: it answers "بومبة مية" with "Pump" and
+    // "حساس مرميطة علوي" with "Exhaust system".
+    expect(isSearchableTerm("Pump")).toBe(false);
+    expect(isSearchableTerm("Exhaust system")).toBe(false);
+    expect(isSearchableTerm("Sensor")).toBe(false);
+    expect(isSearchableTerm("Clock spring")).toBe(true);
+    expect(isSearchableTerm("Control arm")).toBe(true);
+  });
+});
+
+describe("registry order", () => {
+  it("does not answer a catalytic converter with an oxygen sensor", () => {
+    // "مرميط" sits inside "المرميطة", so the sensor's pattern matched the
+    // converter's Libyan name first and the card showed a lambda probe.
+    expect(curatedPhotoFor("علبة كربون المرميطة")).toContain("Catalytic");
+    // and the sensor itself still finds the probe
+    expect(curatedPhotoFor("حساس مرميطة علوي")).toContain("Lambda");
+  });
+
+  it("finds the engine air filter, which fell through every tier", () => {
+    expect(curatedPhotoFor("فيلترو هواء المحرك")).toContain("Air_filter");
+    expect(curatedPhotoFor("Engine Air Filter")).toContain("Air_filter");
   });
 });

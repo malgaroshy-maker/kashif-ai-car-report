@@ -21,8 +21,12 @@ export async function GET(req: NextRequest) {
   const year = searchParams.get("year") || "";
   const oem = searchParams.get("oem") || "";
   const partName = searchParams.get("partName") || "";
+  // The Libyan name is what the dictionary can translate. It never used to be
+  // sent, so the dictionary tier was searching an empty list for every part
+  // that had an English name.
+  const partNameLibyan = searchParams.get("partNameLibyan") || "";
 
-  if (!oem && !partName) {
+  if (!oem && !partName && !partNameLibyan) {
     return NextResponse.json(
       { success: false, error: "يجب توفير رقم الـ OEM أو اسم القطعة للبحث" },
       { status: 400 }
@@ -30,7 +34,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const imageUrl = await searchPartImageOnline(oem, partName, make, model, year);
+    const imageUrl = await searchPartImageOnline(
+      oem,
+      partName,
+      make,
+      model,
+      year,
+      partNameLibyan
+    );
     return NextResponse.json(
       { success: true, imageUrl: imageUrl || null },
       { headers: { "Cache-Control": CACHE } }
