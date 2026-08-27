@@ -76,7 +76,9 @@ function PartCell({
       lifted={selected}
       className="p-[var(--s4)] scroll-mt-[var(--s8)]"
     >
-      <div className="flex items-start gap-[var(--s3)]">
+      {/* Stacked on a phone so the picture can be big enough to recognise the
+          part from, side by side once there is room for both. */}
+      <div className="flex flex-col items-stretch gap-[var(--s3)] sm:flex-row sm:items-start">
         <PartVisual part={part} photo={photo} />
 
         <div className="min-w-0 flex-1">
@@ -147,7 +149,14 @@ function PartVisual({
 
   return (
     <div
-      className="grid h-[72px] w-[72px] shrink-0 place-items-center border border-[var(--rib)] bg-[var(--board-sunk)] p-[var(--s1)]"
+      // 72px was a thumbnail of a thing nobody could identify from it, and
+      // identifying the part is the only reason it is here — the mechanic is
+      // about to go and buy one. It now runs the width of its column and keeps
+      // a 4:3 box, the same shape the exported report gives it.
+      // A fixed height rather than an aspect ratio with a cap on it: the two
+      // fought, the box settled at 190px while the picture inside kept the
+      // 220px the ratio asked for, and the overflow ran under the part's name.
+      className="grid h-[190px] w-full place-items-center overflow-hidden border border-[var(--rib)] bg-[var(--board-sunk)] p-[var(--s2)] sm:w-[190px] sm:shrink-0"
       aria-hidden
     >
       {showPhoto ? (

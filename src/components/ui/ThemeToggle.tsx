@@ -72,7 +72,10 @@ export function ThemeToggle({ className }: { className?: string }) {
         isDark ? "التبديل إلى الوضع النهاري" : "التبديل إلى الوضع الليلي"
       }
       className={cn(
-        "inline-flex size-[var(--tap)] items-center justify-center",
+        // `shrink-0`, because the header is a flex row: on a 412px phone this
+        // button was being squeezed to 33px wide against a 44px tap target it
+        // declares itself. The size is the whole point of the token.
+        "inline-flex size-[var(--tap)] shrink-0 items-center justify-center",
         "border border-[var(--rib)] bg-[var(--cell)] text-(color:--ink-2)",
         "transition-colors duration-[var(--dur-mark)] ease-[var(--ease)]",
         "hover:bg-[var(--board-sunk)] hover:text-(color:--ink)",
