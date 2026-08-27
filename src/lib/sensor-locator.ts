@@ -264,6 +264,9 @@ export function getElectricalDiagnosticsForCode(
     );
     return {
       provenance: complete ? "reference" : "general",
+      // A hazard belongs to the family, not to the table row: a B-code that
+      // gains an entry here must not thereby lose the airbag warning.
+      warning: entry.warning ?? base.warning,
       fuseInfo: entry.fuseInfo ?? base.fuseInfo,
       sensorLocation: entry.sensorLocation ?? base.sensorLocation,
       multimeterTest: entry.multimeterTest ?? base.multimeterTest,
@@ -375,6 +378,56 @@ function deriveGeneral(
         referenceVoltage: null,
         testingTipLibyan:
           "قيس مقاومة سلك السخان الداخلي بالأوم. حساس ثابت ما يتذبذبش يعني ميت حتى لو التغذية سليمة.",
+      },
+    };
+  }
+
+  // Body codes — on most makes this is where the airbag system lives.
+  //
+  // Two reasons this family gets its own branch rather than the catch-all
+  // below, and the first one is a safety matter:
+  //
+  // **The generic advice was dangerous here.** The catch-all tells the reader
+  // to check for 12V and a good ground before replacing anything, and calls
+  // that "فحص عام وينطبق على أغلب الدوائر". On a squib circuit — the igniter
+  // in an airbag or a belt pretensioner — the meter's own test current can set
+  // the charge off, into the hand holding the probe. A real Camry report put
+  // that line on all seven of its faults, every one of them an SRS code.
+  //
+  // **The number cannot be looked up.** B-codes are manufacturer-specific:
+  // the same B1650 is a different circuit on a Toyota than on a Ford, so a
+  // table keyed on the number alone would be inventing. What is true across
+  // makes is the family: where the fuse sits, that the wiring runs under the
+  // seats and up the column, how to depower it, and what not to probe.
+  if (normalized.startsWith("B")) {
+    return {
+      provenance: "general",
+      warning:
+        "خطر — منظومة وسائد هوائية: ما تقيسش دائرة كبسولة الإيرباق (Squib) ولا شداد الحزام بالأفوميتر. تيار الفحص اللي يطلع من الجهاز روحه يقدر يفجر الشحنة في وجهك. افصل طرف البطارية السالب واستنى على الأقل دقيقة إلى تلات دقايق قبل ما تفك أي فيشة صفراء، واشتغل بجهاز الكشف موش بالأفوميتر.",
+      fuseInfo: {
+        ...noFuseNumber,
+        boxLocation:
+          "عادةً العلبة الداخلية تحت التابلو — فيوز مكتوب عليه AIR BAG أو SRS على غطا العلبة",
+        circuitDescription: `دائرة منظومة الهيكل والسلامة — الرمز (${normalized}) من أكواد الـ B الخاصة بكل شركة`,
+      },
+      sensorLocation: {
+        areaName:
+          "داخل المقصورة: عمود الدركسيون، تحت الكراسي، والعتبات تحت الفرش",
+        engineZone: "cabin",
+        accessTip:
+          "أغلب أعطال الـ SRS فيشة صفراء ما هيش مقفولة تحت الكرسي، أو سلك انقطع من حركة الكرسي قدام وورا. افحصها قبل ما تشري أي قطعة — والبطارية مفصولة.",
+        coordinatePct: null,
+      },
+      multimeterTest: {
+        powerPin:
+          "ما ينقاسش على دوائر الإيرباق — اقرا التحذير فوق",
+        groundPin:
+          "أرضي كمبيوتر الـ SRS على الشاسي — ينفحص بالنظر والربط، موش بالقياس على الدائرة",
+        signalPin:
+          "مقاومة دائرة الكبسولة تتقرا من جهاز الكشف (Live Data)، موش من الأفوميتر",
+        referenceVoltage: null,
+        testingTipLibyan:
+          "الطريقة السليمة: افصل البطارية، استنى، فك الفيشة وشوفها بالعين (كربون، تمليح، قفل مكسور، سلك مقروض)، ركبها وامسح الكود بالجهاز، وشوف هل رجع. أكواد الـ B تختلف من شركة لشركة، فرقم الكود لوحده ما يدلش على نفس الدائرة في كل سيارة.",
       },
     };
   }

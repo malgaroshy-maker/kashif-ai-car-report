@@ -109,6 +109,8 @@ const electricalDiagnosticsSchema = z
       referenceVoltage: z.string().nullish(),
       testingTipLibyan: z.string(),
     }),
+    // A hazard in the work. Optional, because most circuits carry none.
+    warning: z.string().nullish(),
   })
   .nullish()
   .catch(undefined);

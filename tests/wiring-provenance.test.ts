@@ -79,3 +79,46 @@ describe("wiring guidance states where it came from", () => {
     }
   });
 });
+
+describe("the airbag family", () => {
+  const SRS = ["B1811", "B1821", "B1826", "B1650", "B1653", "B1655", "B1660", "B0100"];
+
+  it("never tells the reader to put a meter on a squib circuit", () => {
+    // The catch-all branch told every unknown code to check for 12V and a
+    // good ground, and called it advice that applies to most circuits. On an
+    // airbag igniter the meter's own test current can fire the charge. A real
+    // Camry report carried that line on all seven of its faults, every one of
+    // them an SRS code.
+    for (const code of SRS) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.warning, code).toBeTruthy();
+      expect(d.multimeterTest.powerPin, code).not.toContain("12V");
+      expect(d.multimeterTest.testingTipLibyan, code).not.toContain("12V");
+    }
+  });
+
+  it("puts the circuit in the cabin, not in the engine bay", () => {
+    for (const code of SRS) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.sensorLocation.engineZone, code).toBe("cabin");
+      expect(d.sensorLocation.coordinatePct, code).toBeNull();
+    }
+  });
+
+  it("names no fuse number, because a B-code is manufacturer-specific", () => {
+    // The same B1650 is a different circuit on a Toyota than on a Ford, so a
+    // table keyed on the number alone would be inventing.
+    for (const code of SRS) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.fuseInfo.fuseNumber, code).toBeNull();
+      expect(d.fuseInfo.rating, code).toBeNull();
+      expect(d.provenance, code).toBe("general");
+    }
+  });
+
+  it("leaves the engine families carrying no warning", () => {
+    for (const code of ["P0100", "P0301", "P0420", "P0171"]) {
+      expect(getElectricalDiagnosticsForCode(code).warning ?? null, code).toBeNull();
+    }
+  });
+});

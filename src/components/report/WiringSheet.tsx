@@ -39,7 +39,7 @@ export function WiringSheet({
     fault.electricalDiagnostics ??
     getElectricalDiagnosticsForCode(fault.code, vehicleMake);
 
-  const { fuseInfo, sensorLocation, multimeterTest, provenance } = diag;
+  const { fuseInfo, sensorLocation, multimeterTest, provenance, warning } = diag;
   const source = PROVENANCE[provenance];
 
   return (
@@ -70,6 +70,18 @@ export function WiringSheet({
             {source.note}
           </p>
         </div>
+
+        {/* A hazard in the work comes before every reading on the sheet. On the
+            airbag family the readings are exactly what it overrides. */}
+        {warning && (
+          <div
+            className="border border-s-[5px] p-[var(--s3)] font-bold leading-relaxed text-(color:--ink)"
+            style={{ borderColor: "var(--amp-10)" }}
+            role="alert"
+          >
+            ⚠ {warning}
+          </div>
+        )}
 
         <Section title="الفيوز">
           <Field label="موقع علبة الفيوزات" value={fuseInfo.boxLocation} />

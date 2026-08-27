@@ -45,6 +45,16 @@ export interface ElectricalDiagnosticInfo {
     referenceVoltage?: string | null; // e.g. "5.0V مرجعي ثابت من الـ ECM"
     testingTipLibyan: string; // e.g. "حط الأفوميتر على وضع V DC، شغل السويتش بدون تشغيل الموتوري، واقرا الفولتية بين خط الأرضي والكهرباء."
   };
+  /**
+   * A hazard in the work itself, not in the fault.
+   *
+   * Shown wherever the wiring guidance is shown, at any provenance, and
+   * before the readings — the whole point is that it is read instead of the
+   * generic "measure the supply and the ground" advice, not after it. The
+   * only user so far is the airbag family, where putting a meter on a squib
+   * circuit can fire the charge into the hand holding the probe.
+   */
+  warning?: string | null;
 }
 
 export interface DiagnosticCodeDetail {

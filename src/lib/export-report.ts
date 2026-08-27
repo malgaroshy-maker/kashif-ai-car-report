@@ -564,8 +564,14 @@ export async function downloadReportHtml(
             // that block printed identically on all seven faults and was the
             // largest thing on every card. When there is nothing on file, say
             // so once, in the type weight of a footnote.
+            // A hazard in the work is shown at any provenance, and before the
+            // readings. On the SRS family the generic "check 12V and the
+            // ground" line is the thing it is there to override.
+            const elecWarning = elec.warning
+              ? `<div style="border: 1px solid var(--amp-10); border-inline-start-width: 5px; background: var(--paper); padding: 8px 10px; margin-top: 8px; font-size: 11px; color: var(--ink); font-weight: 600;">⚠ ${escapeHtml(elec.warning)}</div>`
+              : "";
             const haveSheet = Boolean(elec.fuseInfo.fuseNumber) || elec.provenance === "reference";
-            const elecBlock = haveSheet
+            const elecBlock = elecWarning + (haveSheet
               ? `<div style="background: var(--board); border: 1px dashed var(--rule); padding: 8px 10px; margin-top: 8px; font-size: 11px;">
             <div style="color: var(--amp-15); font-weight: bold; margin-bottom: 3px;">⚡ فحص الفيوز والفيشة:</div>
             <div style="color: var(--ink); margin-bottom: 2px;">📍 <strong>موقع الحساس:</strong> ${elec.sensorLocation.areaName}</div>
@@ -576,7 +582,7 @@ export async function downloadReportHtml(
               : `<div style="margin-top: 8px; font-size: 10px; color: var(--ink-3); line-height: 1.5;">
             ⚡ ما عندناش مخطط فيوز وفيشة لهذا الرمز — اقرا الرسم المطبوع على غطا علبة الفيوزات في سيارتك.
             قاعدة عامة بالأفوميتر: ${elec.multimeterTest.powerPin} | ${elec.multimeterTest.groundPin}
-          </div>`;
+          </div>`);
             return `
         <div class="fault-card">
           <div class="fault-header">
