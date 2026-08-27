@@ -94,13 +94,63 @@ ${(report.sparePartsRequired || [])
 }
 
   // 3. Download standalone, highly styled, self-contained HTML report with HD parts SVG
+/** No single report may carry more than this in embedded photographs. */
+const PHOTO_BUDGET_BYTES = 1_500_000;
+/** One slow host must not hold up the download of the whole report. */
+const PHOTO_FETCH_TIMEOUT_MS = 6000;
+
+/**
+ * Turns one part photo into a data: URI, or gives up.
+ *
+ * Giving up is a normal outcome and costs nothing: the schematic is already
+ * in the card underneath, so a photo that cannot be fetched simply is not
+ * there. It legitimately fails when the reader is offline while exporting, or
+ * when the file is larger than the budget left.
+ *
+ * The fetch goes through this app's own origin rather than straight at the
+ * photo host, for two reasons that each rule the direct call out on their own:
+ * `connect-src` in the CSP is `'self'` plus Google and nothing else, which is
+ * what stops injected script posting a pasted API key anywhere; and two of the
+ * three photo hosts send no `Access-Control-Allow-Origin`, so the page could
+ * not read their bytes even if the CSP allowed the attempt.
+ */
+async function photoAsDataUri(url: string, budgetLeft: number): Promise<string> {
+  try {
+    const res = await fetch(
+      `/api/part-photo?url=${encodeURIComponent(url)}`,
+      { signal: AbortSignal.timeout(PHOTO_FETCH_TIMEOUT_MS) }
+    );
+    if (!res.ok) return "";
+
+    const blob = await res.blob();
+    // base64 is 4 bytes of text for every 3 of image.
+    if (!blob.type.startsWith("image/") || blob.size * 1.37 > budgetLeft) return "";
+
+    return await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () =>
+        resolve(typeof reader.result === "string" ? reader.result : "");
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
+  }
+}
+
 /**
  * The standalone certificate: one HTML file that opens with no network.
  *
  * Every value is escaped on the way in (`escapeDeep`), because a fault
  * description is model output and this file is opened as a document.
+ *
+ * Async because the part photos are pulled in and embedded before the file is
+ * written. The promise this returns is what the button awaits; the file lands
+ * when it resolves.
  */
-export function downloadReportHtml(report: KashifDiagnosticReport): void {
+export async function downloadReportHtml(
+  report: KashifDiagnosticReport
+): Promise<void> {
     // Every string below is model output, interpolated into an HTML file the
     // user forwards to their customer. Escaping once at the source is the only
     // enforceable place: the template has hundreds of interpolation points and
@@ -127,6 +177,34 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
       ),
       _key: i,
     }));
+
+    // The photo is embedded, not linked.
+    //
+    // This file's stated promise is that it opens on a workshop laptop with no
+    // internet, and a remote <img> quietly broke that for exactly the parts
+    // that had a photo: online the mechanic saw a photograph, in the bay with
+    // no signal he saw the drawing. Fetched here, once, at export time.
+    //
+    // Sequential rather than parallel: the budget below is a running total, so
+    // the first photos get the room and a later 4MB one is simply skipped
+    // rather than everything being fetched and then thrown away.
+    let budgetLeft = PHOTO_BUDGET_BYTES;
+    for (const part of partsWithSvg) {
+      const src = part.partImageUrl;
+      if (
+        !src ||
+        !(src.startsWith("http://") || src.startsWith("https://")) ||
+        src.includes("/parts/")
+      ) {
+        part.partImageUrl = undefined;
+        continue;
+      }
+      const dataUri = await photoAsDataUri(src, budgetLeft);
+      // A data: URI is the only src that ships. Leaving the remote URL as a
+      // fallback would put the promise straight back.
+      part.partImageUrl = dataUri || undefined;
+      budgetLeft -= dataUri.length;
+    }
 
     const score =
       typeof report?.summary?.overallHealthScore === "number"
@@ -543,10 +621,8 @@ export function downloadReportHtml(report: KashifDiagnosticReport): void {
             <div class="part-visual-container">
               ${p.svg}
               ${
-                p.partImageUrl &&
-                (p.partImageUrl.startsWith("http://") || p.partImageUrl.startsWith("https://")) &&
-                !p.partImageUrl.includes("/parts/")
-                  ? `<img class="part-photo" src="${p.partImageUrl}" alt="${p.partNameLibyan}" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">`
+                p.partImageUrl
+                  ? `<img class="part-photo" src="${p.partImageUrl}" alt="${p.partNameLibyan}" onerror="this.remove()">`
                   : ""
               }
             </div>

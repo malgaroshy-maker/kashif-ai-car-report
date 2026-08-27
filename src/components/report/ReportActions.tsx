@@ -22,6 +22,23 @@ import type { KashifDiagnosticReport } from "@/lib/types";
  * report itself.
  */
 export function ReportActions({ report }: { report: KashifDiagnosticReport }) {
+  // The download now fetches and embeds the part photos before it writes the
+  // file, so it takes a moment and has to be able to fail. Without a pending
+  // state the button looks broken and gets pressed four more times, which is
+  // four more rounds of fetching the same photographs.
+  const [state, setState] = React.useState<"idle" | "working" | "failed">("idle");
+
+  const download = async () => {
+    if (state === "working") return;
+    setState("working");
+    try {
+      await downloadReportHtml(report);
+      setState("idle");
+    } catch {
+      setState("failed");
+    }
+  };
+
   return (
     <Cell
       as="section"
@@ -29,11 +46,15 @@ export function ReportActions({ report }: { report: KashifDiagnosticReport }) {
       aria-label="تصدير التقرير"
     >
       <p className="k-label normal-case flex-1">
-        الملف المنزّل يخدم بدون نت — افتحه على أي جهاز في الورشة.
+        {state === "failed"
+          ? "ما نجحش التنزيل — عاود مرة ثانية."
+          : "الملف المنزّل يخدم بدون نت — افتحه على أي جهاز في الورشة."}
       </p>
 
       <div className="flex flex-wrap gap-[var(--s2)]">
-        <Button onClick={() => downloadReportHtml(report)}>تنزيل الملف</Button>
+        <Button onClick={download} disabled={state === "working"}>
+          {state === "working" ? "جاري التحضير…" : "تنزيل الملف"}
+        </Button>
         <Button onClick={printReport}>طباعة / PDF</Button>
         <Button onClick={() => shareReportToWhatsApp(report)}>واتساب</Button>
       </div>
