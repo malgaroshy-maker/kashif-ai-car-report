@@ -31,9 +31,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node 24, to match what the project is developed and built on.
+      #
+      # This workflow spent a day and a half failing on `npm ci` before the
+      # first step ran: "package.json and package-lock.json are not in sync,
+      # Missing: esbuild@0.28.2". The lock is fine — it installs cleanly here
+      # and on the machine that wrote it. What differed was npm: the lock is
+      # written by the npm that ships with Node 24, and the npm in Node 22
+      # read the same file as incomplete. Verifying on a different toolchain
+      # than the one the code is built with is how that goes unnoticed.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - run: npm ci
