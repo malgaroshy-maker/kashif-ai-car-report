@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { normalizeDiagnosticReport } from "@/lib/gemini";
+import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "@/lib/sample-data";
 import { KashifError } from "@/lib/errors";
 
 /**
@@ -230,4 +231,50 @@ Engine:2AZ-FE`,
     expect(r.sparePartsRequired[0].oemPartNumber).toBe("73230-06130");
     expect(r.sparePartsRequired[0].isOemNumberUnverified).toBe(true);
   });
+});
+
+describe("the demo reports", () => {
+  // The demo is what a new reader judges the product by, so it has to disclose
+  // exactly what a real report discloses. These were returned as written, and
+  // said less: OEM numbers with no note that they came from the assistant, an
+  // engine worked out from the VIN presented as read, and a readiness score
+  // with nothing marking it an estimate.
+  for (const [name, sample] of [
+    ["Toyota", SAMPLE_TOYOTA_COROLLA],
+    ["BMW", SAMPLE_BMW_528I],
+  ] as const) {
+    it(`${name} discloses what a real report discloses`, () => {
+      const r = normalizeDiagnosticReport(sample);
+      expect(r.summary.isScoreEstimated, "score").toBe(true);
+      expect(r.vehicle.engineSpecs?.isInferred, "engine").toBe(true);
+      for (const part of r.sparePartsRequired) {
+        expect(part.isOemNumberUnverified, part.partNameLibyan).toBe(true);
+      }
+    });
+
+    it(`${name} counts the faults it actually lists`, () => {
+      // The BMW fixture announced 28 faults above a list of 8, and the Toyota
+      // claimed four systems checked where three faults and three passed
+      // systems make six.
+      const r = normalizeDiagnosticReport(sample);
+      const listed =
+        r.faultCategories.criticalFaults.length +
+        r.faultCategories.moderateFaults.length +
+        r.faultCategories.minorOrHistoricalFaults.length;
+      expect(r.summary.faultsFoundCount).toBe(listed);
+      expect(r.summary.passedSystemsCount).toBe(r.passedSystems.length);
+      expect(r.summary.systemsCheckedCount).toBe(listed + r.passedSystems.length);
+    });
+
+    it(`${name} keeps everything the fixture actually says`, () => {
+      const r = normalizeDiagnosticReport(sample);
+      expect(r.vehicle.vin).toBe(sample.vehicle.vin);
+      expect(r.vehicle.mileage).toBe(sample.vehicle.mileage);
+      expect(r.sparePartsRequired.length).toBe(sample.sparePartsRequired.length);
+      expect(r.workshopChecklist.length).toBe(sample.workshopChecklist.length);
+      expect(r.faultCategories.criticalFaults.length).toBe(
+        sample.faultCategories.criticalFaults.length
+      );
+    });
+  }
 });

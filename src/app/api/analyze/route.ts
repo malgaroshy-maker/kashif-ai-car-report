@@ -6,6 +6,26 @@ import { tryAgyPrompt, parseAgyJson } from "@/lib/agy";
 import { KashifError, errorPayload } from "@/lib/errors";
 import { resolveModelId } from "@/lib/models";
 
+/**
+ * The demo reports, put through the same normaliser a real analysis goes
+ * through.
+ *
+ * They used to be returned as written. That made the demo — the thing a new
+ * reader judges the product by — disclose less than the real thing: it printed
+ * OEM numbers with no "this came from the assistant, not the scanner" note,
+ * engine specs with no "worked out from the VIN" mark, and a readiness score
+ * with nothing saying it is an estimate. The report a real scan produces says
+ * all three.
+ *
+ * It also fixes what the fixtures got wrong about themselves: the BMW sample
+ * announced 28 faults above a list of 8, and the Toyota said four systems were
+ * checked where three faults and three passed systems make six. The counts are
+ * taken from the lists now, here as everywhere else.
+ */
+function demoReport(sample: unknown) {
+  return normalizeDiagnosticReport(sample);
+}
+
 /** Uploads are base64'd for the model; cap before that. */
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ALLOWED_MIME = /^(application\/pdf|image\/(jpeg|png|webp))$/;
@@ -26,10 +46,10 @@ export async function POST(req: NextRequest) {
       const provider = (formData.get("provider") as string) || providerHeader || "gemini";
 
       if (sampleId === "bmw-528i") {
-        return NextResponse.json({ success: true, report: SAMPLE_BMW_528I });
+        return NextResponse.json({ success: true, report: demoReport(SAMPLE_BMW_528I) });
       }
       if (sampleId === "toyota-corolla") {
-        return NextResponse.json({ success: true, report: SAMPLE_TOYOTA_COROLLA });
+        return NextResponse.json({ success: true, report: demoReport(SAMPLE_TOYOTA_COROLLA) });
       }
 
       if (!file) throw new KashifError("NO_INPUT");
@@ -107,10 +127,10 @@ export async function POST(req: NextRequest) {
     const activeApiKey = body.apiKey || userApiKey;
 
     if (body.sampleId === "bmw-528i") {
-      return NextResponse.json({ success: true, report: SAMPLE_BMW_528I });
+      return NextResponse.json({ success: true, report: demoReport(SAMPLE_BMW_528I) });
     }
     if (body.sampleId === "toyota-corolla") {
-      return NextResponse.json({ success: true, report: SAMPLE_TOYOTA_COROLLA });
+      return NextResponse.json({ success: true, report: demoReport(SAMPLE_TOYOTA_COROLLA) });
     }
 
     // Without this, an empty body reached the model as a prompt with no scan
