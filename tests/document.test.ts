@@ -108,7 +108,15 @@ describe("part schematics carry no active content", () => {
     // a muffler drew a lambda probe, a coolant temperature sensor drew a
     // thermostat, and a brake master cylinder drew a disc. The honest answer
     // is the placeholder, which claims nothing.
-    for (const name of ["شكمان / عادم", "حساس حرارة الماء", "بومب فرينو"]) {
+    for (const name of [
+      "شكمان / عادم",
+      "حساس حرارة الماء",
+      "بومب فرينو",
+      // Both are air-conditioning parts and neither is a compressor; the
+      // condenser is also called a "رداتوري", which is the engine radiator.
+      "رداتوري المكيف",
+      "ثلاجة التكييف",
+    ]) {
       expect(getPartVisualType(name), name).toBe("GENERIC_PART");
     }
   });

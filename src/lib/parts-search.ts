@@ -138,7 +138,10 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
   {
     // "عادم" and "شكمان" are the exhaust and the muffler, not the sensor
     // in them: an EGR valve and a muffler both came back as a lambda probe.
-    pattern: /oxygen|lambda|مرميط|\bo2\b.*sensor/i,
+    // "مرميط" alone is the muffler, so it has to be qualified by حساس:
+    // without that, "مرميطة" — the exhaust box itself — was answered with a
+    // photograph of a lambda probe.
+    pattern: /oxygen|lambda|حساس.*مرميط|\bo2\b.*sensor/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Lambda_sond_till_volvo240_etc.jpg/330px-Lambda_sond_till_volvo240_etc.jpg",
   },
   {
@@ -160,7 +163,10 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // of the "Radiator (engine cooling)" article: Commons search offers only
     // vintage filler caps and hood mascots for this word, and the closest it
     // got was a close-up of a cap on a hot rod.
-    pattern: /radiator|رداتوري|رادياتير|مبرد المحرك/i,
+    // Not the air-conditioning condenser, which Libyan also calls a
+    // "رداتوري": a different part in a different circuit, and it was
+    // being answered with the engine radiator.
+    pattern: /^(?!.*(المكيف|التكييف|condenser))(?=.*(radiator|رداتوري|رادياتير|مبرد المحرك))/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Automobile_radiator.jpg/330px-Automobile_radiator.jpg",
   },
   {

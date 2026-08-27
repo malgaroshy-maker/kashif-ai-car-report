@@ -6,7 +6,7 @@ import {
   isSearchableTerm,
   titleMatchesPart,
 } from "@/lib/parts-search";
-import { englishTermsFor } from "@/lib/dictionary";
+import { englishTermsFor, LIBYAN_DICTIONARY } from "@/lib/dictionary";
 import { isAllowedPartImage } from "@/lib/part-image-hosts";
 import { readFileSync } from "node:fs";
 
@@ -354,5 +354,59 @@ describe("the article tier", () => {
     // mascots; the encyclopedia has a photograph of a radiator.
     expect(curatedPhotoFor("رداتوري")).toContain("Automobile_radiator");
     expect(curatedPhotoFor("طرمبة بنزين")).toContain("Fuelpump");
+  });
+});
+
+describe("the dictionary as a source of search terms", () => {
+  it("answers an oxygen sensor with a sensor, not with the pipe it sits in", () => {
+    // The entry is written "حساس مرميطة علوي (قبل علبة الكربون)" and a scan
+    // says "حساس مرميطة علوي". The full spelling never matched the short one,
+    // so the only thing that did match was "مرميطة" — the muffler.
+    expect(englishTermsFor("حساس مرميطة علوي")[0]).toBe("Oxygen sensor");
+    expect(englishTermsFor("حساس مرميطة سفلي")[0]).toBe("Oxygen sensor");
+    // and the muffler itself is still the muffler
+    expect(englishTermsFor("مرميطة")[0]).toBe("Muffler");
+    expect(englishTermsFor("علبة كربون المرميطة")[0]).toBe("Catalytic converter");
+  });
+
+  it("does not reduce an air-conditioning part to the letter A", () => {
+    // "A/C Compressor (compressore)" was cut at its first slash. Four entries
+    // searched an image archive for "A".
+    expect(englishTermsFor("كمبريسوري المكيف")[0]).toBe("Air conditioning compressor");
+    expect(englishTermsFor("رداتوري المكيف")[0]).toBe("Air conditioning condenser");
+    expect(englishTermsFor("ثلاجة التكييف")[0]).toBe("Evaporator core");
+  });
+
+  it("offers nothing at all for a term that is not a part", () => {
+    // Labour, a diagnosis, a service interval, a salvage yard. An archive
+    // asked for any of them answers with something, and it is always wrong.
+    for (const term of ["اليد العاملة", "جهاز كشف", "رابش", "سيرفيز", "تسريب"]) {
+      expect(englishTermsFor(term), term).toEqual([]);
+    }
+  });
+
+  it("keeps every entry's gloss readable for a person", () => {
+    // The search term is a separate field precisely so the glossary can go on
+    // reading like a glossary.
+    for (const entry of LIBYAN_DICTIONARY) {
+      expect(entry.english.length, entry.libyanTerm).toBeGreaterThan(2);
+      expect(entry.standardArabic.length, entry.libyanTerm).toBeGreaterThan(2);
+    }
+  });
+});
+
+describe("names that overlap between two different parts", () => {
+  it("does not answer a muffler with an oxygen sensor", () => {
+    // "مرميط" matches inside "مرميطة", so the exhaust box itself was given a
+    // photograph of the probe screwed into it.
+    expect(curatedPhotoFor("مرميطة")).not.toContain("Lambda");
+    expect(curatedPhotoFor("حساس مرميطة علوي")).toContain("Lambda");
+  });
+
+  it("does not answer an A/C condenser with the engine radiator", () => {
+    // Libyan calls both a "رداتوري". They are different parts in different
+    // circuits, at different prices.
+    expect(curatedPhotoFor("رداتوري المكيف")).not.toContain("Automobile_radiator");
+    expect(curatedPhotoFor("رداتوري")).toContain("Automobile_radiator");
   });
 });

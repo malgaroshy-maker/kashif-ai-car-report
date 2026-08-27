@@ -93,7 +93,10 @@ export function getPartVisualType(partName: string = "", oem: string = ""): stri
   if (p.includes("ديسك") || p.includes("فرامل") || p.includes("brake")) {
     return "BRAKE_DISC";
   }
-  if (p.includes("مكيف") || p.includes("compressor") || p.includes("كومبروسر")) {
+  // The compressor itself, not everything with "مكيف" in its name: the
+  // condenser and the evaporator are both air-conditioning parts and
+  // neither is a compressor. They take the placeholder.
+  if (p.includes("كومبروسور") || p.includes("كمبريسور") || p.includes("compressor")) {
     return "AC_COMPRESSOR";
   }
   // Before the ABS test, which is a bare substring: "shock ABSorber" contains
@@ -105,7 +108,14 @@ export function getPartVisualType(partName: string = "", oem: string = ""): stri
   if (p.includes("abs") || p.includes("سرعة عجل") || p.includes("speed sensor")) {
     return "ABS_SENSOR";
   }
-  if (p.includes("radiator") || p.includes("رداتوري") || p.includes("رادياتير") || p.includes("مبرد")) {
+  // The air-conditioning condenser is also a "رداتوري" in Libyan and is a
+  // different part in a different circuit. It has no drawing of its own, so
+  // it takes the placeholder rather than the engine radiator's.
+  if (
+    !p.includes("المكيف") &&
+    !p.includes("التكييف") &&
+    (p.includes("radiator") || p.includes("رداتوري") || p.includes("رادياتير") || p.includes("مبرد"))
+  ) {
     return "RADIATOR";
   }
   if (p.includes("بومبة مية") || p.includes("water pump") || p.includes("مضخة ماء")) {
