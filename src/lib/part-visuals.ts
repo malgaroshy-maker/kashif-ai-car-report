@@ -41,38 +41,63 @@ export function getPartVisualType(partName: string = "", oem: string = ""): stri
     return "SIDE_AIRBAG";
   }
 
-  if (p.includes("لمدا") || p.includes("lambda") || p.includes("oxygen") || p.includes("o2") || p.includes("عادم") || p.includes("شكمان")) {
+  // Filters, before the MAF test. That test used to claim the word فيلترو
+  // outright, so an oil filter, a fuel filter and an air filter all drew a
+  // mass-air-flow sensor — three different parts, one wrong picture each.
+  if (/فيلترو.*هوا|فلتر.*هوا|air[\s_-]*filter/.test(p)) {
+    return "AIR_FILTER";
+  }
+  if (/فيلترو|فلتر|oil[\s_-]*filter|fuel[\s_-]*filter|\bfilter\b/.test(p)) {
+    return "CANISTER_FILTER";
+  }
+  if (p.includes("ماف") || p.includes("maf") || p.includes("air flow") || p.includes("mass air") || p.includes("حساس هواء")) {
+    return "MAF_SENSOR";
+  }
+
+  // Catalytic before oxygen, the same order the photo registry needs: "مرميط"
+  // sits inside "المرميطة", so "علبة كربون المرميطة" is the converter.
+  if (p.includes("كتالايزر") || p.includes("كربون") || p.includes("catalytic") || /دبة.*بيئة/.test(p)) {
+    return "CATALYTIC_CONVERTER";
+  }
+  // The sensor, not the pipe it screws into. "عادم" and "شكمان" are the
+  // exhaust and the muffler; they were in this test, so a muffler drew a
+  // lambda probe while "حساس مرميطة علوي" — the sensor itself — fell through
+  // to the blank generic box. The registry documented this trap and fixed it;
+  // this copy was left as it was.
+  if (p.includes("لمدا") || p.includes("lambda") || p.includes("oxygen") || /\bo2\b/.test(p) || /حساس.*مرميط/.test(p)) {
     return "OXYGEN_SENSOR";
   }
+
   if (p.includes("بوبين") || p.includes("كويل") || p.includes("coil") || p.includes("ignition")) {
     return "IGNITION_COIL";
   }
   if (p.includes("شمع") || p.includes("بوجي") || p.includes("spark") || p.includes("plug")) {
     return "SPARK_PLUG";
   }
-  if (p.includes("تيرستات") || p.includes("thermostat") || p.includes("حرارة") || p.includes("كوع")) {
+  if (p.includes("رشاش") || p.includes("بخاخ") || p.includes("injector") || p.includes("حاقن")) {
+    return "INJECTOR";
+  }
+  // "حرارة" was enough to claim this, so a coolant temperature sensor drew a
+  // thermostat: the same circuit, a different part, a different price.
+  if (p.includes("تيرستات") || p.includes("thermostat") || /بلف.*حرارة/.test(p)) {
     return "THERMOSTAT";
   }
   if (p.includes("طرمبة") || p.includes("بومبة بنزين") || p.includes("fuel pump") || p.includes("بانزين") || p.includes("ضغط الوقود")) {
     return "FUEL_PUMP";
   }
-  if (p.includes("ماف") || p.includes("maf") || p.includes("air flow") || p.includes("حساس هواء") || p.includes("فيلترو")) {
-    return "MAF_SENSOR";
-  }
-  if (p.includes("كتالايزر") || p.includes("كربون") || p.includes("catalytic") || p.includes("بيئة") || p.includes("دبة")) {
-    return "CATALYTIC_CONVERTER";
-  }
   if (p.includes("brake pad") || p.includes("باطني") || p.includes("فحمات") || p.includes("قماش")) {
     return "BRAKE_PAD";
   }
-  if (p.includes("ديسك") || p.includes("فرامل") || p.includes("brake") || p.includes("فحمات") || p.includes("قماشات")) {
+  // Not "فرينو" on its own: "بومب فرينو" is the master cylinder, a
+  // different part. "ديسكو فرينو" still arrives through "ديسك".
+  if (p.includes("ديسك") || p.includes("فرامل") || p.includes("brake")) {
     return "BRAKE_DISC";
   }
   if (p.includes("مكيف") || p.includes("compressor") || p.includes("كومبروسر")) {
     return "AC_COMPRESSOR";
   }
   // Before the ABS test, which is a bare substring: "shock ABSorber" contains
-  // it. The photo registry hit this exact trap and pinned `abs`; this copy
+  // it. The photo registry hit this exact trap and pinned `abs`; this copy
   // of the test was left as it was, so a مزاطوري card drew a wheel sensor.
   if (p.includes("shock") || p.includes("مزاطوري") || p.includes("مساعد") || p.includes("strut") || p.includes("damper")) {
     return "SHOCK_ABSORBER";
@@ -85,6 +110,21 @@ export function getPartVisualType(partName: string = "", oem: string = ""): stri
   }
   if (p.includes("بومبة مية") || p.includes("water pump") || p.includes("مضخة ماء")) {
     return "WATER_PUMP";
+  }
+
+  // Parts that carry a curated photograph but had no drawing, so the card went
+  // blank whenever the photo did not load — which offline is always.
+  if (p.includes("دينمو") || p.includes("alternator") || p.includes("مولد")) {
+    return "ALTERNATOR";
+  }
+  if (p.includes("مارش") || p.includes("starter") || /بادئ.*حركة/.test(p)) {
+    return "STARTER";
+  }
+  if (p.includes("بطاري") || p.includes("battery")) {
+    return "BATTERY";
+  }
+  if (p.includes("براتشو") || p.includes("control arm") || p.includes("مقص") || p.includes("نوتشي")) {
+    return "CONTROL_ARM";
   }
   return "GENERIC_PART";
 }
@@ -405,6 +445,106 @@ function partSvgFor(type: string): string {
         <path d="M 130 62 h 76 v 30 h -76 z"/>
         <path d="M 130 92 h 76 v 22 a 8 8 0 0 1 -8 8 h -60 a 8 8 0 0 1 -8 -8 z" ${HAIR}/>
         <path d="M 50 134 h 140" ${HAIR} stroke-dasharray="5 5"/>
+      </svg>`;
+
+    case "AIR_FILTER":
+      // A panel filter: pleated element in a moulded frame.
+      return `${OPEN}
+        <rect x="34" y="56" width="172" height="70" rx="10" ${MASS}/>
+        <rect x="34" y="56" width="172" height="70" rx="10"/>
+        <rect x="48" y="68" width="144" height="46" rx="4"/>
+        <path d="M 58 68 v 46 M 70 68 v 46 M 82 68 v 46 M 94 68 v 46 M 106 68 v 46 M 118 68 v 46 M 130 68 v 46 M 142 68 v 46 M 154 68 v 46 M 166 68 v 46 M 178 68 v 46" ${HAIR}/>
+        <path d="M 34 91 h -14 M 206 91 h 14" ${HAIR}/>
+      </svg>`;
+
+    case "CANISTER_FILTER":
+      // A spin-on cartridge — oil or fuel: body, seam, sealing ring, threads.
+      return `${OPEN}
+        <rect x="82" y="40" width="76" height="102" rx="10" ${MASS}/>
+        <rect x="82" y="40" width="76" height="102" rx="10"/>
+        <path d="M 82 58 h 76 M 82 124 h 76" ${HAIR}/>
+        <ellipse cx="120" cy="40" rx="38" ry="10"/>
+        <ellipse cx="120" cy="40" rx="22" ry="6" ${HAIR}/>
+        <path d="M 100 34 h 40 M 102 28 h 36" ${HAIR}/>
+        <path d="M 96 78 h 48 M 96 94 h 48" ${HAIR} stroke-dasharray="4 4"/>
+      </svg>`;
+
+    case "INJECTOR":
+      // Body, coil winding, connector on top, nozzle and O-rings below.
+      return `${OPEN}
+        <rect x="96" y="44" width="48" height="60" rx="6" ${MASS}/>
+        <rect x="96" y="44" width="48" height="60" rx="6"/>
+        <path d="M 96 56 h 48 M 96 68 h 48 M 96 80 h 48 M 96 92 h 48" ${HAIR}/>
+        <rect x="104" y="20" width="32" height="24" rx="4"/>
+        <path d="M 112 26 v 12 M 128 26 v 12" ${HAIR}/>
+        <ellipse cx="120" cy="110" rx="20" ry="6" ${HAIR}/>
+        <ellipse cx="120" cy="126" rx="16" ry="5" ${HAIR}/>
+        <path d="M 108 110 v 22 h 24 v -22" />
+        <path d="M 120 132 v 16" />
+        <path d="M 112 156 l 8 -8 l 8 8" ${HAIR}/>
+      </svg>`;
+
+    case "ALTERNATOR":
+      // Case with ventilation slots, pulley on the nose, output stud.
+      return `${OPEN}
+        <rect x="76" y="46" width="104" height="88" rx="14" ${MASS}/>
+        <rect x="76" y="46" width="104" height="88" rx="14"/>
+        <path d="M 96 60 v 60 M 112 60 v 60 M 128 60 v 60 M 144 60 v 60 M 160 60 v 60" ${HAIR}/>
+        <circle cx="56" cy="90" r="26" ${MASS}/>
+        <circle cx="56" cy="90" r="26"/>
+        <circle cx="56" cy="90" r="9"/>
+        <path d="M 34 78 h 44 M 34 102 h 44" ${HAIR}/>
+        <path d="M 180 68 h 22" />
+        <circle cx="206" cy="68" r="6" ${HAIR}/>
+        <rect x="180" y="104" width="26" height="18" rx="3" ${HAIR}/>
+      </svg>`;
+
+    case "STARTER":
+      // Motor body, solenoid barrel on top, drive housing and pinion.
+      return `${OPEN}
+        <rect x="46" y="72" width="106" height="62" rx="10" ${MASS}/>
+        <rect x="46" y="72" width="106" height="62" rx="10"/>
+        <path d="M 66 72 v 62 M 86 72 v 62 M 106 72 v 62 M 126 72 v 62" ${HAIR}/>
+        <rect x="72" y="34" width="76" height="34" rx="14" ${MASS}/>
+        <rect x="72" y="34" width="76" height="34" rx="14"/>
+        <path d="M 148 44 h 22" ${HAIR}/>
+        <circle cx="176" cy="44" r="6" ${HAIR}/>
+        <path d="M 152 76 h 30 v 54 h -30 z" ${MASS}/>
+        <path d="M 152 76 h 30 v 54 h -30 z"/>
+        <path d="M 182 92 h 22 M 182 102 h 22 M 182 112 h 22" ${HAIR}/>
+      </svg>`;
+
+    case "BATTERY":
+      // Case, two posts, cell caps along the lid.
+      return `${OPEN}
+        <rect x="42" y="52" width="156" height="86" rx="6" ${MASS}/>
+        <rect x="42" y="52" width="156" height="86" rx="6"/>
+        <path d="M 42 74 h 156" ${HAIR}/>
+        <rect x="62" y="34" width="22" height="18" rx="3" ${MASS}/>
+        <rect x="62" y="34" width="22" height="18" rx="3"/>
+        <rect x="156" y="34" width="22" height="18" rx="3" ${MASS}/>
+        <rect x="156" y="34" width="22" height="18" rx="3"/>
+        <path d="M 67 43 h 12 M 73 37 v 12" ${HAIR}/>
+        <path d="M 161 43 h 12" ${HAIR}/>
+        <circle cx="100" cy="63" r="5" ${HAIR}/>
+        <circle cx="120" cy="63" r="5" ${HAIR}/>
+        <circle cx="140" cy="63" r="5" ${HAIR}/>
+        <path d="M 62 92 h 116 M 62 108 h 116 M 62 124 h 80" ${HAIR} stroke-dasharray="5 5"/>
+      </svg>`;
+
+    case "CONTROL_ARM":
+      // The wishbone: two bushings at the body end, ball joint at the wheel.
+      return `${OPEN}
+        <path d="M 40 52 L 176 86 L 40 128" ${MASS}/>
+        <path d="M 40 52 L 176 86 L 40 128 Z"/>
+        <ellipse cx="46" cy="52" rx="16" ry="11"/>
+        <ellipse cx="46" cy="52" rx="7" ry="5" ${HAIR}/>
+        <ellipse cx="46" cy="128" rx="16" ry="11"/>
+        <ellipse cx="46" cy="128" rx="7" ry="5" ${HAIR}/>
+        <circle cx="182" cy="86" r="16" ${MASS}/>
+        <circle cx="182" cy="86" r="16"/>
+        <path d="M 182 70 v -18" />
+        <path d="M 172 52 h 20" ${HAIR}/>
       </svg>`;
 
     // ── Anything with no drawing of its own ─────────────────────────────

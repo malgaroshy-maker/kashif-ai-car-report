@@ -76,10 +76,40 @@ describe("part schematics carry no active content", () => {
       ["شريط إيرباق الدومان", "CLOCK_SPRING"],
       ["إيرباق جانب الكرسي", "SIDE_AIRBAG"],
       ["طقطوقة حزام الأمان", "SEATBELT_BUCKLE"],
+
+      // "فيلترو" was claimed outright by the mass-air-flow test, so three
+      // different filters each drew a sensor none of them is.
+      ["فيلترو زيت المحرك", "CANISTER_FILTER"],
+      ["فيلترو بنزين", "CANISTER_FILTER"],
+      ["فيلترو هواء المحرك", "AIR_FILTER"],
+      ["حساس ماف", "MAF_SENSOR"],
+
+      // The sensor, not the pipe it screws into: "مرميط" is inside
+      // "المرميطة", and "عادم"/"شكمان" are the exhaust and the muffler.
+      ["علبة كربون المرميطة", "CATALYTIC_CONVERTER"],
+      ["حساس مرميطة علوي", "OXYGEN_SENSOR"],
+
+      // Parts that had a photograph but no drawing, so the card went blank
+      // whenever the photo did not load — offline, always.
+      ["دينمو", "ALTERNATOR"],
+      ["مارش", "STARTER"],
+      ["بطارية", "BATTERY"],
+      ["براتشو", "CONTROL_ARM"],
+      ["رشاش بنزين", "INJECTOR"],
     ];
     for (const [name, type] of cases) {
       expect(getPartVisualType(name), name).toBe(type);
       expect(getPartSvg(name).length, name).toBeGreaterThan(200);
+    }
+  });
+
+  it("draws the generic placeholder rather than a part it is not", () => {
+    // Each of these used to be claimed by a rule for a different component:
+    // a muffler drew a lambda probe, a coolant temperature sensor drew a
+    // thermostat, and a brake master cylinder drew a disc. The honest answer
+    // is the placeholder, which claims nothing.
+    for (const name of ["شكمان / عادم", "حساس حرارة الماء", "بومب فرينو"]) {
+      expect(getPartVisualType(name), name).toBe("GENERIC_PART");
     }
   });
 });
