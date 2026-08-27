@@ -156,7 +156,13 @@ function PartVisual({
       // A fixed height rather than an aspect ratio with a cap on it: the two
       // fought, the box settled at 190px while the picture inside kept the
       // 220px the ratio asked for, and the overflow ran under the part's name.
-      className="grid h-[190px] w-full place-items-center overflow-hidden border border-[var(--rib)] bg-[var(--board-sunk)] p-[var(--s2)] sm:w-[190px] sm:shrink-0"
+      //
+      // Flex rather than grid, for the sequel to that bug: a grid row sizes
+      // itself to its content, so the row grew to the picture's own 220px and
+      // `max-height: 100%` then measured itself against the row instead of the
+      // box — no constraint at all, and thirty pixels of the photo clipped. A
+      // flex line gives the percentage a definite box to resolve against.
+      className="flex h-[190px] w-full items-center justify-center overflow-hidden border border-[var(--rib)] bg-[var(--board-sunk)] p-[var(--s2)] sm:w-[190px] sm:shrink-0"
       aria-hidden
     >
       {showPhoto ? (
@@ -169,11 +175,15 @@ function PartVisual({
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => setFailed(true)}
-          className="h-full w-full object-contain"
+          // `max-h-full`, not `h-full`: the box centres its child, so a
+          // percentage height has no definite basis to resolve against and the
+          // picture fell back to its own ratio from the full width — 220px of
+          // image in a 190px box, with thirty pixels of it clipped away.
+          className="max-h-full max-w-full object-contain"
         />
       ) : (
         <div
-          className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
+          className="flex h-full w-full items-center justify-center [&_svg]:max-h-full [&_svg]:max-w-full"
           dangerouslySetInnerHTML={{
             __html: getPartSvg(
               part.partNameEnglish || part.partNameLibyan,
