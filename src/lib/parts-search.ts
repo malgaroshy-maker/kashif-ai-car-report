@@ -30,7 +30,10 @@ interface CommonsImageInfo {
   query?: {
     pages?: Record<
       string,
-      { imageinfo?: { url?: string; thumburl?: string }[] }
+      {
+        imageinfo?: { url?: string; thumburl?: string }[];
+        categories?: { title?: string }[];
+      }
     >;
   };
 }
@@ -217,21 +220,41 @@ function significantWords(partName: string): string[] {
  * government report on battery manufacturing for the query "Battery". It came
  * back as a `.pdf` URL that the browser rendered as a broken image.
  */
-export function titleMatchesPart(title: string, partName: string): boolean {
+export function titleMatchesPart(
+  title: string,
+  partName: string,
+  opts: { insideAutomotiveCategory?: boolean } = {}
+): boolean {
   if (!IMAGE_FILE.test(title)) return false;
 
   // Commons returns every result in its namespace form, "File:Car Radiator.jpg".
   // Left on, "file" counts as a subject the title is about, and the
   // single-word rule below then rejects every result Commons can return.
   const haystack = title.toLowerCase().replace(/^file:\s*/, "");
+  // A caption that lists several things is a photograph of a scene, not of a
+  // part. "Mercedes W221 start button, light switch and parking brake" matches
+  // three words of "Brake Light Switch" and is a picture of a dashboard; the
+  // mechanic opens the card expecting the switch he has to go and buy.
+  if (/,| and /.test(haystack)) return false;
+
   const words = significantWords(partName);
   if (words.length === 0) return false;
 
+  // Commons titles a file "Ignition coils.jpg" while the report names the part
+  // "Ignition Coil". A bare word boundary misses every plural on the archive
+  // side, and threw away results that were exactly right.
   const matched = words.filter((w) =>
-    new RegExp(String.raw`\b${w}\b`).test(haystack)
+    new RegExp(String.raw`\b${w}(?:e?s)?\b`).test(haystack)
   );
 
   if (words.length >= 2) return matched.length >= 2;
+
+  // The search that produced this title was confined to the automotive
+  // category tree, so "is this about a car at all" is already settled and the
+  // title only has to name the part. Without this, "Airbag SEAT Ibiza.jpg" —
+  // an airbag, filed by Commons under automobile parts — was thrown away for
+  // mentioning which car it came out of.
+  if (opts.insideAutomotiveCategory) return matched.length >= 1;
 
   // Only one word to go on. Requiring that one word to appear is not enough:
   // it put a 19th-century photograph of a mule artillery *battery* — soldiers
@@ -256,10 +279,66 @@ export function titleMatchesPart(title: string, partName: string): boolean {
 }
 
 /**
+ * Wikimedia's policy asks for a User-Agent that identifies the client and
+ * gives a way to reach whoever runs it. "KashifAI-CarReport/1.0" did neither.
+ */
+const COMMONS_UA =
+  "KashifAI-CarReport/1.0 (https://kashif.malgaroshy.workers.dev)";
+
+/**
+ * The category tree Commons files actual vehicle components under.
+ *
+ * Confining the search to it is what turned this tier from decorative into
+ * useful. Measured over twenty part names it returned nothing at all: a
+ * full-text search of the whole archive for "Brake Light Switch" answers with
+ * five scans of the 1908 Westinghouse *Air Brake Catechism*, and "Clock
+ * Spring" with a 1930 Nancy Drew novel — because Commons always returns its
+ * best guess rather than nothing, and the archive is mostly not about cars.
+ *
+ * `deepcategory` walks the subcategories, so "Ignition coils" and "Airbags"
+ * are reached without naming either.
+ */
+const AUTOMOTIVE_CATEGORY = "Automobile parts";
+
+/**
+ * Categories that mean "this is a picture of part of a road vehicle".
+ *
+ * Kept to words that cannot be read another way. "Pumps" is not here — that is
+ * exactly how the village hand pump got in — and neither is "Springs", which
+ * on Commons is mostly water sources and mattresses.
+ */
+const AUTOMOTIVE_CATEGORY_WORD =
+  /\b(automobile|automotive|auto part|car part|vehicle part|motor vehicle|airbag|air bag|brake|ignition|spark plug|exhaust|catalytic|carburet|alternator|odometer|dashboard|windscreen|windshield|tyre|tire|engine of|engines of|interior of|cars? by|vehicles? by)/i;
+
+export function isFiledAsAutomotive(
+  categories: { title?: string }[] | undefined
+): boolean {
+  // No category list at all is not evidence of anything; the file simply has
+  // not been catalogued. Treated as a fail, because the whole point is to
+  // require positive evidence rather than absence of contradiction.
+  return (categories ?? []).some((c) =>
+    AUTOMOTIVE_CATEGORY_WORD.test((c.title ?? "").replace(/^Category:/, ""))
+  );
+}
+
+/**
  * Searches Wikimedia Commons (a public API; hotlinking is permitted).
  *
  * `partName` is passed separately from `query` so the result can be checked
  * against what was actually asked for.
+ *
+ * Two passes. The first is confined to the automotive category tree, which is
+ * where the answer almost always is; the second is the open archive, kept for
+ * the parts Commons has photographed but not filed, and judged by the strict
+ * title rule because nothing else vouches for it.
+ *
+ * `filetype:bitmap` replaces checking the extension after the fact. Namespace
+ * 6 holds PDFs, DjVu scans, video and audio, and asking the API for pictures
+ * costs nothing and removes them at the source.
+ *
+ * The query used to have " auto part" appended to it. That is what summoned
+ * the auto-biographies: it doubled the archive's weight on the word "auto"
+ * while adding no automotive meaning at all. It is gone.
  *
  * A thumbnail is requested rather than the original. Commons originals are
  * frequently 4-8 MB — one photograph is heavier than the entire report around
@@ -271,36 +350,63 @@ async function searchWikimediaCommons(
   partName: string
 ): Promise<string> {
   try {
-    const listUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
-      query + " auto part"
-    )}&srnamespace=6&format=json&origin=*`;
+    const titleFrom = async (
+      srsearch: string,
+      insideAutomotiveCategory: boolean
+    ): Promise<string> => {
+      const listUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
+        srsearch
+      )}&srnamespace=6&srlimit=10&format=json&origin=*`;
 
-    const res = await fetch(listUrl, {
-      headers: { "User-Agent": "KashifAI-CarReport/1.0" },
-      signal: AbortSignal.timeout(4000),
-    });
+      const res = await fetch(listUrl, {
+        headers: { "User-Agent": COMMONS_UA },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!res.ok) return "";
 
-    if (!res.ok) return "";
-    const data = (await res.json()) as CommonsSearchResult;
+      const data = (await res.json()) as CommonsSearchResult;
+      // Look past the top hit: the best *relevant* result is often second.
+      return (
+        (data.query?.search ?? [])
+          .map((r) => r.title)
+          .find(
+            (t): t is string =>
+              !!t && titleMatchesPart(t, partName, { insideAutomotiveCategory })
+          ) ?? ""
+      );
+    };
 
-    // Look past the top hit: the best *relevant* result is often second.
-    const title = (data.query?.search ?? [])
-      .map((r) => r.title)
-      .find((t): t is string => !!t && titleMatchesPart(t, partName));
+    const title =
+      (await titleFrom(
+        `${query} filetype:bitmap deepcategory:"${AUTOMOTIVE_CATEGORY}"`,
+        true
+      )) || (await titleFrom(`${query} filetype:bitmap`, false));
 
     if (title) {
+      // Categories ride along on the request that fetches the URL, so what a
+      // file is actually filed under costs nothing to find out.
       const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(
         title
-      )}&prop=imageinfo&iiprop=url&iiurlwidth=${THUMB_WIDTH}&format=json&origin=*`;
+      )}&prop=imageinfo|categories&iiprop=url&iiurlwidth=${THUMB_WIDTH}&cllimit=50&format=json&origin=*`;
 
       const infoRes = await fetch(infoUrl, {
-        headers: { "User-Agent": "KashifAI-CarReport/1.0" },
+        headers: { "User-Agent": COMMONS_UA },
         signal: AbortSignal.timeout(3000),
       });
 
       if (!infoRes.ok) return "";
       const infoData = (await infoRes.json()) as CommonsImageInfo;
       const page = Object.values(infoData.query?.pages ?? {})[0];
+
+      // What the file is filed under, not what its name suggests.
+      //
+      // The title rules alone put a spring-driven wall clock on the card for a
+      // clock spring, and a Victorian village hand pump on the card for a
+      // water pump — both match two words of the part name, and both are the
+      // kind of confident wrong photograph that is worse than the drawing,
+      // because the drawing never claims to be a photograph of anything.
+      if (!isFiledAsAutomotive(page?.categories)) return "";
+
       const info = page?.imageinfo?.[0];
 
       // `thumburl` is absent when the file is already narrower than the

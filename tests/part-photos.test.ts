@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { curatedPhotoFor, titleMatchesPart } from "@/lib/parts-search";
+import {
+  curatedPhotoFor,
+  isFiledAsAutomotive,
+  titleMatchesPart,
+} from "@/lib/parts-search";
 import { englishTermsFor } from "@/lib/dictionary";
 
 /**
@@ -46,6 +50,78 @@ describe("what may be shown as a photo of a part", () => {
     expect(titleMatchesPart("File:Car Radiator.jpg", "Radiator")).toBe(true);
     expect(titleMatchesPart("File:Alternator 1.jpg", "Alternator")).toBe(true);
     expect(titleMatchesPart("File:Thermostat auto.jpg", "Thermostat")).toBe(true);
+  });
+
+  it("rejects a wall clock for a clock spring, on its categories", () => {
+    // Measured against the live archive: searching "Clock Spring" returns a
+    // 19th-century spring-driven wall clock, and it matches both words of the
+    // part name perfectly. No rule over the title can separate them —
+    const title = "File:Spring-driven wall clock Sault Museum.jpg";
+    expect(titleMatchesPart(title, "Clock Spring")).toBe(true);
+
+    // — so what the file is filed under is asked instead, and that is decisive.
+    expect(
+      isFiledAsAutomotive([
+        { title: "Category:19th-century pendulum clocks" },
+        { title: "Category:Spring-driven clocks" },
+        { title: "Category:Wall clocks in Canada" },
+      ])
+    ).toBe(false);
+
+    // The same question, asked of a photograph that really is a car part.
+    expect(
+      isFiledAsAutomotive([
+        { title: "Category:Side air bags" },
+        { title: "Category:Renault interiors" },
+      ])
+    ).toBe(true);
+  });
+
+  it("rejects a village hand pump for a water pump", () => {
+    // "Water pump at Morwellham" matches both words and even sits inside the
+    // automotive category tree, reached through a subcategory. Its own
+    // categories are about Devon and industrial heritage.
+    expect(
+      isFiledAsAutomotive([
+        { title: "Category:Water pumps in England" },
+        { title: "Category:Industrial heritage in England" },
+        { title: "Category:Images from Geograph Britain and Ireland" },
+      ])
+    ).toBe(false);
+  });
+
+  it("treats an uncatalogued file as unproven, not as innocent", () => {
+    expect(isFiledAsAutomotive(undefined)).toBe(false);
+    expect(isFiledAsAutomotive([])).toBe(false);
+  });
+
+  it("rejects a photograph of a scene that lists several parts", () => {
+    // A dashboard photograph captioned with three separate controls matched
+    // three words of "Brake Light Switch". The mechanic opens that card
+    // expecting the switch he has to go and buy.
+    expect(
+      titleMatchesPart(
+        "File:Mercedes W221 start button, light switch and parking brake.JPG",
+        "Brake Light Switch"
+      )
+    ).toBe(false);
+  });
+
+  it("matches a plural on the archive side", () => {
+    // Commons files it as "Ignition coils"; the report names one coil. A bare
+    // word boundary missed every plural and threw away exact answers.
+    expect(titleMatchesPart("File:Ignition coils.jpg", "Ignition Coil")).toBe(true);
+  });
+
+  it("lets a car be named once the search was confined to car parts", () => {
+    // Inside the automotive category tree "is this about a car" is already
+    // settled, so the title only has to name the part. Strictly judged, this
+    // real result was thrown away for saying which car the airbag came out of.
+    const title = "File:Renault Talisman Grandtour (10) - Undeployed airbag.jpg";
+    expect(titleMatchesPart(title, "Side Airbag")).toBe(false);
+    expect(
+      titleMatchesPart(title, "Side Airbag", { insideAutomotiveCategory: true })
+    ).toBe(true);
   });
 
   it("needs two words to agree when the part name has two to give", () => {
