@@ -50,7 +50,17 @@ export function VehiclePlate({ report }: { report: KashifDiagnosticReport }) {
             )}
           </h1>
           {spec.length > 0 && (
-            <p className="mt-[var(--s1)] text-(color:--ink-2)">{spec.join(" · ")}</p>
+            <p className="mt-[var(--s1)] text-(color:--ink-2)">
+              {spec.join(" · ")}
+              {/* A scan prints the VIN, the codes and nothing about the
+                  engine. When these came from the VIN rather than off the
+                  machine, the line says so. */}
+              {vehicle.engineSpecs?.isInferred && (
+                <span className="k-label ms-[var(--s2)] normal-case text-(color:--ink-3)">
+                  مستنتج من رقم الهيكل — مش مقروء من الجهاز
+                </span>
+              )}
+            </p>
           )}
         </div>
 

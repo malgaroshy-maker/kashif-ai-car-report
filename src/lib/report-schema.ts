@@ -167,6 +167,7 @@ const partSchema = z
       .loose()
       .nullish()
       .catch(undefined),
+    isOemNumberUnverified: z.boolean().nullish().catch(undefined),
     diagramCategory: oneOf(DIAGRAM_CATEGORY),
     partImageUrl: loose,
   })
@@ -220,6 +221,7 @@ export const rawReportSchema = z
             fuelType: oneOf(FUEL_TYPE),
             cylinders: z.number().nullish().catch(undefined),
             transmission: loose,
+            isInferred: z.boolean().nullish().catch(undefined),
           })
           .loose()
           .nullish()

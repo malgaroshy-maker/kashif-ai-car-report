@@ -439,6 +439,31 @@ export function normalizeDiagnosticReport(
     return value;
   };
 
+  /**
+   * Did the scan itself print this, or did the model work it out?
+   *
+   * The scan text is the only authority. A displacement the scan never
+   * mentions is an inference from the VIN — usually a good one, and still not
+   * a reading.
+   */
+  const scanText = `${rawInput?.textReport ?? ""} ${rawInput?.manualCodes ?? ""}`;
+  const statedInScan = (value: string | null): boolean => {
+    if (!value || !scanText.trim()) return false;
+    // Compared token by token, not whole string: the scan prints "2AZ-FE"
+    // where the report writes "2.4L 2AZ-FE", and an exact comparison called a
+    // stated engine inferred. A token of four characters or more is
+    // distinctive enough to mean the scan really named this thing.
+    const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const haystack = norm(scanText);
+    // Split on whitespace only. Splitting on every non-alphanumeric character
+    // broke "2AZ-FE" into "2az" and "fe", both under the threshold, and the
+    // engine the scan had named came back inferred.
+    return value
+      .split(/\s+/)
+      .map(norm)
+      .some((token) => token.length >= 4 && haystack.includes(token));
+  };
+
   // 1. Vehicle — every field may legitimately be unknown.
   const vehicle = {
     vin: pick(d.vehicle?.vin, d.vin, rawInput?.vehicleInfo?.vin),
@@ -447,6 +472,7 @@ export function normalizeDiagnosticReport(
     year: pick(d.vehicle?.year, d.year, rawInput?.vehicleInfo?.year),
     mileage: readingOrNull(pick(d.vehicle?.mileage, d.mileage)),
     engineSpecs: {
+      isInferred: !statedInScan(pick(d.vehicle?.engineSpecs?.displacement)),
       displacement: pick(d.vehicle?.engineSpecs?.displacement),
       fuelType: (d.vehicle?.engineSpecs?.fuelType || null) as FuelType | null,
       cylinders:
@@ -575,6 +601,7 @@ export function normalizeDiagnosticReport(
             pick(part.partNameStandardArabic, part.partNameLibyan) || "",
           partNameEnglish: pick(part.partNameEnglish) || "",
           oemPartNumber: pick(part.oemPartNumber),
+          isOemNumberUnverified: !statedInScan(pick(part.oemPartNumber)),
           aftermarketReplacements: part.aftermarketReplacements ?? [],
           estimatedPriceRangeLYD: price
             ? {

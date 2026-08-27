@@ -478,7 +478,7 @@ export async function downloadReportHtml(
           <div class="car-vin">VIN: ${orUnknown(safe.vehicle.vin)}</div>
           <div class="telemetry-row">
             <div class="telemetry-chip">الممشى: <strong>${orUnknown(safe.vehicle.mileage)}</strong></div>
-            <div class="telemetry-chip">المحرك: <strong>${orUnknown(safe.vehicle.engineSpecs?.displacement)}</strong></div>
+            <div class="telemetry-chip">المحرك: <strong>${orUnknown(safe.vehicle.engineSpecs?.displacement)}</strong>${safe.vehicle.engineSpecs?.isInferred ? ` <span style="color: var(--ink-3);">(مستنتج)</span>` : ""}</div>
             <div class="telemetry-chip">تاريخ الفحص: <strong>${safe.generatedAt.slice(0, 10)}</strong></div>
           </div>
         </div>
@@ -639,6 +639,11 @@ export async function downloadReportHtml(
             <div style="background: var(--board); padding: 8px 10px; border: 1px solid var(--rule); margin-bottom: 8px;">
               <div style="font-size: 10px; color: var(--ink-2);">رقم الوكالة (OEM):</div>
               <div class="ltr-chunk" style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--amp-20);">${p.oemPartNumber}</div>
+              ${
+                p.oemPartNumber && p.isOemNumberUnverified
+                  ? `<div style="font-size: 9px; color: var(--ink-3); margin-top: 3px; line-height: 1.4;">من المساعد، مش من جهاز الفحص — أكّده مع المحل على رقم هيكل سيارتك.</div>`
+                  : ""
+              }
             </div>
 
             ${

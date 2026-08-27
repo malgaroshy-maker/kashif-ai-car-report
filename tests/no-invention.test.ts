@@ -184,3 +184,50 @@ describe("what the scanner did not measure", () => {
     }
   });
 });
+
+describe("what came off the machine, and what did not", () => {
+  const scanText = `All System Diagnostic Report
+SN:9TBC29728913
+Make:TOYOTA
+Model:Camry
+Year:2007
+VIN:4T1BE46K17U046638
+1.B1811 Open in Driver's Squib (Dual Stage - 2nd Step) Circuit`;
+
+  const model = {
+    vehicle: {
+      vin: "4T1BE46K17U046638",
+      make: "TOYOTA",
+      engineSpecs: { displacement: "2.4L 2AZ-FE", cylinders: 4 },
+    },
+    faultCategories: { criticalFaults: [{ code: "B1811" }] },
+    sparePartsRequired: [
+      { id: "p1", partNameLibyan: "طقطوقة حزام الأمان", oemPartNumber: "73230-06130" },
+    ],
+  };
+
+  it("marks engine specs the scan never printed as inferred", () => {
+    // A real Camry scan prints the VIN, the model, the year and the codes, and
+    // nothing about the engine. "2.4L 2AZ-FE" is right about that car and was
+    // still worked out from the VIN, not read off the machine.
+    const r = normalizeDiagnosticReport(model, { textReport: scanText });
+    expect(r.vehicle.engineSpecs?.displacement).toBe("2.4L 2AZ-FE");
+    expect(r.vehicle.engineSpecs?.isInferred).toBe(true);
+  });
+
+  it("does not call it inferred when the scan did print it", () => {
+    const r = normalizeDiagnosticReport(model, {
+      textReport: `${scanText}
+Engine:2AZ-FE`,
+    });
+    expect(r.vehicle.engineSpecs?.isInferred).toBe(false);
+  });
+
+  it("marks an OEM number the scan never printed as unverified", () => {
+    // Two engines gave two different numbers for this same buckle, and neither
+    // is anywhere in the scan. It is what somebody reads out at the counter.
+    const r = normalizeDiagnosticReport(model, { textReport: scanText });
+    expect(r.sparePartsRequired[0].oemPartNumber).toBe("73230-06130");
+    expect(r.sparePartsRequired[0].isOemNumberUnverified).toBe(true);
+  });
+});

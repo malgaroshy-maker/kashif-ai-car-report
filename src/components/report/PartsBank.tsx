@@ -108,6 +108,16 @@ function PartCell({
         />
       </dl>
 
+      {/* The number somebody reads out at the parts counter. It is not in the
+          scan — two engines gave two different numbers for the same buckle on
+          the same car — so it says where it came from. */}
+      {part.oemPartNumber && part.isOemNumberUnverified && (
+        <p className="mt-[var(--s2)] leading-relaxed text-(color:--ink-3)">
+          رقم الوكالة والسعر من المساعد، مش من جهاز الفحص — أكّدهم مع محل قطع
+          الغيار على رقم هيكل سيارتك قبل الشراء.
+        </p>
+      )}
+
       {price?.marketNote && (
         <p className="k-label mt-[var(--s2)] normal-case">{price.marketNote}</p>
       )}

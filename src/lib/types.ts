@@ -102,6 +102,15 @@ export interface SparePartItem {
    * buckle under "Engine", all four of them. A wrong system label sends a
    * mechanic to the wrong part of the car; no label sends him to the part name.
    */
+  /**
+   * true when the OEM number came from the analysis rather than from data we
+   * control.
+   *
+   * Two engines gave two different numbers for the same seat-belt buckle on
+   * the same car, and neither appears anywhere in the scan. The number is what
+   * somebody reads out at the parts counter, so it says where it came from.
+   */
+  isOemNumberUnverified?: boolean;
   diagramCategory:
     | "المحرك"
     | "الفرامل"
@@ -152,6 +161,17 @@ export interface KashifDiagnosticReport {
       fuelType?: FuelType | null;
       cylinders?: number | null;
       transmission?: string | null;
+      /**
+       * true when the scan did not print these and they were worked out from
+       * the VIN and the model instead.
+       *
+       * A real Camry scan prints the VIN, the model, the year and the codes,
+       * and nothing about the engine. The report filled in "2.4L 2AZ-FE, 4
+       * cylinders, automatic" — right about that car, and sitting beside the
+       * VIN as though the machine had said it. The reader has to be able to
+       * tell the two apart.
+       */
+      isInferred?: boolean;
     };
   };
   summary: {
