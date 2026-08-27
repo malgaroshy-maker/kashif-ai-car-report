@@ -42,8 +42,23 @@ interface CommonsImageInfo {
 const imageSearchCache = new Map<string, string>();
 
 /**
- * Curated High-Definition Genuine Automotive Parts Photo Registry
- * Guaranteed 100% uptime with CDN hosting & unblocked CORS headers
+ * Hand-checked photographs, tried before anything is searched for.
+ *
+ * The header here used to claim "Guaranteed 100% uptime". Thirteen of its
+ * twenty-nine URLs answered 404, and five of those named files that have never
+ * existed on Commons at all — plausible filenames under plausible hash
+ * prefixes, constructed rather than copied. Two more pointed at real files
+ * through the wrong prefix, and one was hotlinked from a catalogue that
+ * answers 403 to everyone but itself. Every dead one sat above the "looked at
+ * before it was written down" line further down; everything below it resolved.
+ *
+ * So: a URL goes in here only after it has been fetched and the picture
+ * opened. A Commons link is to the 330px thumbnail, never to the original —
+ * three of these were 1MB originals being rendered in a 72px card and, since
+ * the export embeds photos, carried whole into the downloaded file.
+ *
+ * `npm run audit:photos` refetches every URL here and fails on a dead or
+ * oversized one, because nothing else will notice when one goes.
  */
 const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
   // ── Safety / SRS ──────────────────────────────────────────────────────
@@ -89,21 +104,25 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
 
   {
     pattern: /spark[\s_-]*plug|شمع|بوجي|ignit.*plug/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Spark_plug_2.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Spark_plug_2.jpg/330px-Spark_plug_2.jpg",
   },
   {
+    // A four-cylinder coil pack with its boots — what a modern engine
+    // actually has. The previous photo was hotlinked from a parts catalogue
+    // that answers 403 to anyone but its own pages, so the commonest part in
+    // these reports had no picture at all.
     pattern: /ignition[\s_-]*coil|بوبين|ملف.*إشعال|كويل/i,
-    url: "https://cdn4.pelicanparts.com/BMW/techarticles/BMW-5-Series-E39/55-ENGINE-Spark_Plug_Coil_Replacement/images_large/pic06.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Ignition_coil_module.jpg/330px-Ignition_coil_module.jpg",
   },
   {
     pattern: /mass[\s_-]*air|\bmaf\b|حساس.*ماف|حساس.*هواء|air.*flow/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/1/12/Bosch_Mass_Air_Flow_Sensor_location_in_the_engine_bay_%28Opel_Antara_2.0_CDTI%29.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bosch_Mass_Air_Flow_Sensor_location_in_the_engine_bay_%28Opel_Antara_2.0_CDTI%29.jpg/330px-Bosch_Mass_Air_Flow_Sensor_location_in_the_engine_bay_%28Opel_Antara_2.0_CDTI%29.jpg",
   },
   {
     // "عادم" and "شكمان" are the exhaust and the muffler, not the sensor
     // in them: an EGR valve and a muffler both came back as a lambda probe.
     pattern: /oxygen|lambda|مرميط|\bo2\b.*sensor/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Lambda_sond_till_volvo240_etc.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Lambda_sond_till_volvo240_etc.jpg/330px-Lambda_sond_till_volvo240_etc.jpg",
   },
   {
     // `abs` must be a whole word. As a substring it matched "shock
@@ -112,57 +131,55 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     url: "https://assets.turnermotorsport.com/product_library_tms/1769855_x800.jpg",
   },
   {
-    pattern: /fuel.*pump|بومب.*بنزين|طلمب.*وقود/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Kraftstofff%C3%B6rdereinheit.jpg",
-  },
-  {
+    // A filter in place under the car, its own label legible. Grimy, which is
+    // what one looks like at the age these cars are.
     pattern: /fuel.*filter|فيلترو.*بنزين|فلتر.*وقود/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/b/b5/Kraftstofffilter.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Just_a_fuel_filter..._%2822493933238%29.jpg/330px-Just_a_fuel_filter..._%2822493933238%29.jpg",
   },
   {
-    pattern: /brake.*pad|باطني|فحمات|قماش/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/3/36/Brake_pads_and_discs.jpg",
-  },
-  {
+    // Disc and caliper on the hub.
     pattern: /brake.*disc|ديسكو.*فرينو|هوبات/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Brake_disc.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Disk_brake_dsc03682.jpg/330px-Disk_brake_dsc03682.jpg",
   },
   {
+    // The converter itself in the exhaust line, seen from under the car.
     pattern: /catalytic|علبة.*كربون|كتلايزر|دبة.*بيئة/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/0/07/Catalytic_converter.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Catalytic_Converter.JPG/330px-Catalytic_Converter.JPG",
   },
   {
+    // The arm in place under the car, numbered against the rest of the
+    // suspension. Busy, but it is where the mechanic will be looking.
     pattern: /control.*arm|براتشو|مقص|نوتشي/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/5/50/Querlenker_Kfz.jpg",
-  },
-  {
-    pattern: /shock|مزاطوري|مساعد|ياي/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/7/77/Sto%C3%9Fd%C3%A4mpfer_P1010041.JPG",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Control_Arm_Fahrwerk.JPG/330px-Control_Arm_Fahrwerk.JPG",
   },
   {
     pattern: /oil.*sensor|حساس.*زيت|ستاقوب/i,
     url: "https://assets.turnermotorsport.com/product_library_tms/341975_x600.jpg",
   },
   {
-    pattern: /radiator|رداتوري|رادياتير|تبريد/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Car_Radiator.jpg",
-  },
-  {
     pattern: /thermostat|ثيرموستات|بلف.*حرارة/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/4/4a/Thermostat_auto.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/1-1111_Automobile_Thermostat_20180929_1730.jpg/330px-1-1111_Automobile_Thermostat_20180929_1730.jpg",
   },
   {
     pattern: /throttle|بوابة|راس.*انجكشن|\btps\b/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Drosselklappe.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Drosselklappe.jpg/330px-Drosselklappe.jpg",
   },
   {
     pattern: /alternator|دينمو|مولد/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/2/23/Alternator_1.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Automotive_alternator._Terminals.jpg/330px-Automotive_alternator._Terminals.jpg",
   },
   {
     pattern: /starter|مارش|بادئ.*حركة/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/1/14/Starter_motor.jpg",
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Automobile_starter.JPG/330px-Automobile_starter.JPG",
   },
+
+  // Four parts that belong here and are not: the radiator, the shock
+  // absorber, the fuel pump and the brake pads. Commons answers each of them
+  // with something else — patent drawings and cooling fans for the radiator,
+  // 1920s magazine advertisements for the shock absorber, a teardown on a
+  // bench for the pump, and for the pads a photograph of a disc. Each had an
+  // entry here and every one of those URLs was dead. They are drawn instead.
+
 
   // Everything below was looked at before it was written down. Commons titles
   // a great deal of machinery "auto part" that is nothing of the kind: the

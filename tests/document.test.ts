@@ -57,6 +57,31 @@ describe("part schematics carry no active content", () => {
     expect(getPartVisualType("Oxygen Sensor")).toBe("OXYGEN_SENSOR");
     expect(getPartSvg("Oxygen Sensor").length).toBeGreaterThan(200);
   });
+
+  it("routes a part to its own drawing and not to a neighbour's", () => {
+    // Two of these are bare-substring traps that shipped: "brake" matches
+    // inside "brake pad", and "abs" inside "shock ABSorber", so both parts
+    // drew the wrong component until the specific test was put first.
+    const cases: [string, string][] = [
+      ["Shock Absorber", "SHOCK_ABSORBER"],
+      ["مزاطوري أمامي", "SHOCK_ABSORBER"],
+      ["ABS Wheel Speed Sensor", "ABS_SENSOR"],
+      ["Brake Pad", "BRAKE_PAD"],
+      ["باطنيات", "BRAKE_PAD"],
+      ["Brake Disc", "BRAKE_DISC"],
+      ["Radiator", "RADIATOR"],
+      ["رداتوري", "RADIATOR"],
+      // The clock spring is named "airbag ribbon of the steering wheel"; the
+      // general airbag test must not take it first.
+      ["شريط إيرباق الدومان", "CLOCK_SPRING"],
+      ["إيرباق جانب الكرسي", "SIDE_AIRBAG"],
+      ["طقطوقة حزام الأمان", "SEATBELT_BUCKLE"],
+    ];
+    for (const [name, type] of cases) {
+      expect(getPartVisualType(name), name).toBe(type);
+      expect(getPartSvg(name).length, name).toBeGreaterThan(200);
+    }
+  });
 });
 
 describe("the installed app", () => {

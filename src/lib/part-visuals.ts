@@ -62,14 +62,26 @@ export function getPartVisualType(partName: string = "", oem: string = ""): stri
   if (p.includes("كتالايزر") || p.includes("كربون") || p.includes("catalytic") || p.includes("بيئة") || p.includes("دبة")) {
     return "CATALYTIC_CONVERTER";
   }
+  if (p.includes("brake pad") || p.includes("باطني") || p.includes("فحمات") || p.includes("قماش")) {
+    return "BRAKE_PAD";
+  }
   if (p.includes("ديسك") || p.includes("فرامل") || p.includes("brake") || p.includes("فحمات") || p.includes("قماشات")) {
     return "BRAKE_DISC";
   }
   if (p.includes("مكيف") || p.includes("compressor") || p.includes("كومبروسر")) {
     return "AC_COMPRESSOR";
   }
+  // Before the ABS test, which is a bare substring: "shock ABSorber" contains
+  // it. The photo registry hit this exact trap and pinned `abs`; this copy
+  // of the test was left as it was, so a مزاطوري card drew a wheel sensor.
+  if (p.includes("shock") || p.includes("مزاطوري") || p.includes("مساعد") || p.includes("strut") || p.includes("damper")) {
+    return "SHOCK_ABSORBER";
+  }
   if (p.includes("abs") || p.includes("سرعة عجل") || p.includes("speed sensor")) {
     return "ABS_SENSOR";
+  }
+  if (p.includes("radiator") || p.includes("رداتوري") || p.includes("رادياتير") || p.includes("مبرد")) {
+    return "RADIATOR";
   }
   if (p.includes("بومبة مية") || p.includes("water pump") || p.includes("مضخة ماء")) {
     return "WATER_PUMP";
@@ -352,6 +364,47 @@ function partSvgFor(type: string): string {
         <circle cx="158" cy="44" r="4" ${HAIR}/>
         <circle cx="66" cy="136" r="4" ${HAIR}/>
         <circle cx="158" cy="136" r="4" ${HAIR}/>
+      </svg>`;
+
+    case "RADIATOR":
+      // Core, tanks top and bottom, inlet and outlet, filler neck.
+      return `${OPEN}
+        <rect x="40" y="34" width="160" height="18" rx="4" ${MASS}/>
+        <rect x="40" y="34" width="160" height="18" rx="4"/>
+        <rect x="40" y="128" width="160" height="18" rx="4" ${MASS}/>
+        <rect x="40" y="128" width="160" height="18" rx="4"/>
+        <rect x="46" y="52" width="148" height="76"/>
+        <path d="M 62 52 v 76 M 78 52 v 76 M 94 52 v 76 M 110 52 v 76 M 126 52 v 76 M 142 52 v 76 M 158 52 v 76 M 174 52 v 76" ${HAIR}/>
+        <path d="M 46 72 h 148 M 46 90 h 148 M 46 108 h 148" ${HAIR}/>
+        <rect x="150" y="18" width="26" height="16" rx="4"/>
+        <path d="M 40 43 h -22 M 200 137 h 22"/>
+      </svg>`;
+
+    case "SHOCK_ABSORBER":
+      // Damper body, piston rod, top mount and the coil around it.
+      return `${OPEN}
+        <rect x="98" y="74" width="44" height="76" rx="8" ${MASS}/>
+        <rect x="98" y="74" width="44" height="76" rx="8"/>
+        <path d="M 120 74 V 30"/>
+        <ellipse cx="120" cy="26" rx="30" ry="10" ${MASS}/>
+        <ellipse cx="120" cy="26" rx="30" ry="10"/>
+        <circle cx="120" cy="26" r="5" ${HAIR}/>
+        <path d="M 84 44 q 36 14 72 0 M 84 62 q 36 14 72 0 M 84 80 q 36 14 72 0 M 84 98 q 36 14 72 0 M 84 116 q 36 14 72 0" ${HAIR}/>
+        <path d="M 106 150 v 12 M 134 150 v 12"/>
+        <circle cx="120" cy="166" r="8"/>
+      </svg>`;
+
+    case "BRAKE_PAD":
+      // A pair of pads: backing plate, friction block, wear indicator tang.
+      return `${OPEN}
+        <path d="M 34 62 h 76 v 30 h -76 z" ${MASS}/>
+        <path d="M 34 62 h 76 v 30 h -76 z"/>
+        <path d="M 34 92 h 76 v 22 a 8 8 0 0 1 -8 8 h -60 a 8 8 0 0 1 -8 -8 z" ${HAIR}/>
+        <path d="M 110 70 h 14 v 10 h -14" ${HAIR}/>
+        <path d="M 130 62 h 76 v 30 h -76 z" ${MASS}/>
+        <path d="M 130 62 h 76 v 30 h -76 z"/>
+        <path d="M 130 92 h 76 v 22 a 8 8 0 0 1 -8 8 h -60 a 8 8 0 0 1 -8 -8 z" ${HAIR}/>
+        <path d="M 50 134 h 140" ${HAIR} stroke-dasharray="5 5"/>
       </svg>`;
 
     // ── Anything with no drawing of its own ─────────────────────────────

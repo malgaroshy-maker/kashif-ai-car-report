@@ -12,9 +12,12 @@
  */
 export const PART_IMAGE_HOSTS = [
   "https://upload.wikimedia.org",
-  "https://cdn4.pelicanparts.com",
   "https://assets.turnermotorsport.com",
 ] as const;
+
+// cdn4.pelicanparts.com was here for one photograph. That host answers 403 to
+// any request that is not from its own pages, so the photo never loaded, and
+// an origin nothing can load from is an origin the CSP should not name.
 
 /** True when `url` is an https URL on one of the allowed origins. */
 export function isAllowedPartImage(url: string): boolean {

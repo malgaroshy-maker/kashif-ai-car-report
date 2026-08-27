@@ -13,7 +13,8 @@
     "og": "node scripts/render-og.mjs",
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
-    "cf:deploy": "opennextjs-cloudflare deploy"
+    "cf:deploy": "opennextjs-cloudflare deploy",
+    "audit:photos": "node scripts/audit-photos.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.18.0",

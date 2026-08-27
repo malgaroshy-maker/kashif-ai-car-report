@@ -5,6 +5,8 @@ import {
   titleMatchesPart,
 } from "@/lib/parts-search";
 import { englishTermsFor } from "@/lib/dictionary";
+import { isAllowedPartImage } from "@/lib/part-image-hosts";
+import { readFileSync } from "node:fs";
 
 /**
  * Every case here is a photograph this app actually put on a part card.
@@ -175,10 +177,13 @@ describe("what may be shown as a photo of a part", () => {
 describe("the curated registry", () => {
   it("does not answer a shock absorber with an ABS sensor", () => {
     // `abs` matched inside "shock ABSorber", so the suspension part showed a
-    // wheel-speed sensor.
+    // wheel-speed sensor. The shock absorber's own entry has since been
+    // removed — its URL was one of the thirteen dead ones, and Commons offers
+    // nothing for it but 1920s magazine advertisements — so the honest answer
+    // is no photograph and the drawn schematic. It must still never be the
+    // sensor.
     const shock = curatedPhotoFor("Shock Absorber مزاطوري genuine auto part");
-    expect(shock).toContain("mpfer");
-    expect(shock).not.toContain("turnermotorsport");
+    expect(shock).toBe("");
   });
 
   it("still answers a real ABS sensor", () => {
@@ -229,6 +234,32 @@ describe("reading a Libyan part name", () => {
     for (const t of englishTermsFor("كمبيو")) {
       expect(t).not.toContain("/");
       expect(t).not.toContain("(");
+    }
+  });
+});
+
+/**
+ * These cannot check that a photo still exists — that needs the network, and
+ * `npm run audit:photos` does it. They check the two properties that made
+ * thirteen dead URLs possible in the first place.
+ */
+describe("every curated url", () => {
+  const urls = [
+    ...readFileSync("src/lib/parts-search.ts", "utf8").matchAll(/url:\s*"([^"]+)"/g),
+  ].map((m) => m[1]);
+
+  it("is on the allowlist the CSP and the proxy share", () => {
+    expect(urls.length).toBeGreaterThan(10);
+    for (const url of urls) expect(isAllowedPartImage(url), url).toBe(true);
+  });
+
+  it("links a Commons thumbnail, never the original", () => {
+    // Three of these were 1MB originals rendered in a 72px card — and since
+    // the export embeds photos, carried whole into the downloaded file.
+    for (const url of urls) {
+      if (!url.includes("upload.wikimedia.org")) continue;
+      expect(url, url).toContain("/thumb/");
+      expect(url, url).toMatch(/\/\d+px-/);
     }
   });
 });
