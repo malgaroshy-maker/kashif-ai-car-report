@@ -93,6 +93,35 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
+/** The upstream body, for the server log only. Never sent to the client. */
+function upstreamMessage(err: unknown): string {
+  return String((err as Error)?.message ?? err).slice(0, 500);
+}
+
+/**
+ * Which 4xx this is.
+ *
+ * Every 4xx used to be reported as "Google rejected your key", which is right
+ * for a 401/403 and wrong for everything else. The one that cost the most time
+ * was the opposite mistake — a genuinely dead key, reported correctly but with
+ * nothing in the log to say so, so it read as a model outage for an hour. A
+ * 400 can equally be a request this build sent wrongly, and telling the user to
+ * go and check their key over that sends them somewhere there is nothing to
+ * find.
+ */
+function classify4xx(err: unknown, status: number): KashifError {
+  const message = upstreamMessage(err);
+  const aboutTheKey =
+    status === 401 ||
+    status === 403 ||
+    /API_KEY_INVALID|API key not valid|PERMISSION_DENIED|UNAUTHENTICATED/i.test(
+      message
+    );
+  return aboutTheKey
+    ? new KashifError("INVALID_API_KEY", String(status))
+    : new KashifError("UPSTREAM_ERROR", String(status));
+}
+
 async function generateWithModelFallback(
   ai: GoogleGenAI,
   params: {
@@ -124,15 +153,22 @@ async function generateWithModelFallback(
     } catch (err) {
       if (err instanceof KashifError) throw err;
       const status = (err as { status?: number; code?: number })?.status;
+      // The status alone does not say what went wrong, and this line is the
+      // only record of it — the client is deliberately never told, because an
+      // upstream body can carry the caller's own key. Logging the message
+      // server-side is what makes a 400 diagnosable at all: a stale
+      // machine-level GEMINI_API_KEY shadowing `.env.local` produced six
+      // identical "400" lines and nothing that said "API key not valid".
       console.warn(
-        `[Gemini] ${model} unavailable (${status ?? "error"}), trying next candidate`
+        `[Gemini] ${model} unavailable (${status ?? "error"}), trying next candidate:`,
+        upstreamMessage(err)
       );
       // Only availability failures are worth retrying on another model. A 4xx
       // is about the key or the request, and trying five more models just
       // multiplies the round trips before showing the same error: an invalid
       // key took six upstream calls to report before this early exit.
       if (status && status >= 400 && status < 500 && status !== 429) {
-        throw new KashifError("INVALID_API_KEY", String(status));
+        throw classify4xx(err, status);
       }
       lastError = err;
     }
@@ -148,6 +184,17 @@ export interface RawAnalyzeInput {
   imageParts?: { inlineData: { data: string; mimeType: string } }[];
   manualCodes?: string;
   vehicleInfo?: { vin?: string; make?: string; model?: string; year?: string };
+  /**
+   * The DTCs the PDF parser found in the scan text, by pattern.
+   *
+   * The parser had been extracting these since the beginning and the route
+   * dropped them on the floor. They are ground truth in a way nothing else in
+   * the prompt is — matched out of the machine's own printout — so they are
+   * quoted back to the model as the list it must not add to or drop from.
+   */
+  codesFound?: string[];
+  /** The tool name the scan printed, e.g. "Ediag". */
+  scannerTool?: string;
 }
 
 export function getKashifSystemInstruction(): string {
@@ -277,12 +324,7 @@ ${dictionaryContext}
 }
 
 export async function analyzeReportWithGemini(
-  rawInput: {
-    textReport?: string;
-    imageParts?: { inlineData: { data: string; mimeType: string } }[];
-    manualCodes?: string;
-    vehicleInfo?: { vin?: string; make?: string; model?: string; year?: string };
-  },
+  rawInput: RawAnalyzeInput,
   apiKeyOverride?: string,
   modelId?: string
 ): Promise<KashifDiagnosticReport> {
@@ -298,6 +340,8 @@ export async function analyzeReportWithGemini(
 حلل بيانات التقرير التالية وأصدر تقرير الفحص الشامل:
 ${rawInput.textReport ? `--- نص التقرير المستخرج من جهاز الفحص ---\n${rawInput.textReport}\n` : ""}
 ${rawInput.manualCodes ? `--- الأكواد المدخلة ---\n${rawInput.manualCodes}\n` : ""}
+${rawInput.codesFound?.length ? `--- الأكواد المقروءة حرفياً من نص التقرير (هذي هي المرجع) ---\n${rawInput.codesFound.join("، ")}\nممنوع تزيد كود ما هوش في القائمة هذي، وممنوع تسقط كود منها. لو نفس الكود متكرر في التقرير بحالات مختلفة (Current / Pending / History) اعتبره عطل واحد وقول في وصفه إنه متكرر وفي أي حالات ظهر.\n` : ""}
+${rawInput.scannerTool ? `جهاز الفحص كما طبعه التقرير حرفياً: ${rawInput.scannerTool} — استعمل هذا الاسم كما هو ولا تزيد عليه.\n` : ""}
 ${rawInput.vehicleInfo?.vin ? `رقم الهيكل VIN: ${rawInput.vehicleInfo.vin}\n` : ""}
 ${rawInput.vehicleInfo?.make ? `الصانع: ${rawInput.vehicleInfo.make} ${rawInput.vehicleInfo.model || ""} ${rawInput.vehicleInfo.year || ""}\n` : ""}
 `;
@@ -404,6 +448,30 @@ export function normalizeDiagnosticReport(
   };
 
   /**
+   * A value that says outright it has no value.
+   *
+   * The list grew: the first version caught "غير محدد", and a second engine
+   * answered the same empty odometer with "غير مسجل / 0 ميل" — a phrase that
+   * says "not recorded" and then prints a number anyway. Both halves have to
+   * be caught, and it is the whole value that goes, not the tidy half.
+   */
+  const saysNothing = (value: string): boolean => {
+    const v = value.trim();
+    // Phrases that disown the value even when something else is printed
+    // beside them, so they are looked for anywhere in it.
+    if (
+      /غير محدد|غير مسجل|غير معروف|غير متوفر|مش مسجل|مش محدد|مش متوفر|not (specified|recorded|available)|unknown/i.test(
+        v
+      )
+    ) {
+      return true;
+    }
+    // "N/A" and a row of dashes only count as the whole value. Matched loose
+    // they would hit real content — an "NA" sits inside plenty of part names.
+    return /^(n\s*[/.-]?\s*a|-+|—+|\?+)$/i.test(v);
+  };
+
+  /**
    * A reading that says it has no reading is not a reading.
    *
    * A real Camry scan left the mileage field empty and the model wrote
@@ -412,20 +480,7 @@ export function normalizeDiagnosticReport(
    */
   const readingOrNull = (value: string | null): string | null => {
     if (!value) return null;
-
-    // Anything that says outright it has no reading.
-    //
-    // The list grew: the first version caught "غير محدد", and a second engine
-    // answered the same empty odometer with "غير مسجل / 0 ميل" — a phrase that
-    // says "not recorded" and then prints a number anyway. Both halves have to
-    // be caught, and it is the whole value that goes, not the tidy half.
-    if (
-      /غير محدد|غير مسجل|غير معروف|مش مسجل|مش محدد|not (specified|recorded|available)|unknown|n\/a/i.test(
-        value
-      )
-    ) {
-      return null;
-    }
+    if (saysNothing(value)) return null;
 
     // A zero odometer, alone or inside a compound: "0", "0 ميل", "0 Miles".
     //
@@ -464,6 +519,42 @@ export function normalizeDiagnosticReport(
       .some((token) => token.length >= 4 && haystack.includes(token));
   };
 
+  /**
+   * The engine, with "I do not know" spelled one way.
+   *
+   * A real Elantra scan prints no engine at all, and the model answered the
+   * displacement with the literal string "غير محدد". The plate then rendered
+   * "غير محدد · بنزين · كمبيو أوتوماتيك" under a badge saying the engine was
+   * worked out from the VIN — a claim to have inferred something, printed
+   * beside the word for having inferred nothing. The same filter the odometer
+   * uses turns that back into a null the UI already knows how to render.
+   *
+   * `isInferred` is then decided on the cleaned value, so a spec that does not
+   * exist is not also labelled as deduced.
+   */
+  const engineSpecsOf = (
+    specs:
+      | {
+          displacement?: string | number | null;
+          fuelType?: string | null;
+          cylinders?: number | null;
+          transmission?: string | number | null;
+        }
+      | null
+      | undefined
+  ) => {
+    const known = (value: string | null): string | null =>
+      value && !saysNothing(value) ? value : null;
+    const displacement = known(pick(specs?.displacement));
+    return {
+      isInferred: displacement !== null && !statedInScan(displacement),
+      displacement,
+      fuelType: (specs?.fuelType || null) as FuelType | null,
+      cylinders: typeof specs?.cylinders === "number" ? specs.cylinders : null,
+      transmission: known(pick(specs?.transmission)),
+    };
+  };
+
   // 1. Vehicle — every field may legitimately be unknown.
   const vehicle = {
     vin: pick(d.vehicle?.vin, d.vin, rawInput?.vehicleInfo?.vin),
@@ -471,16 +562,7 @@ export function normalizeDiagnosticReport(
     model: pick(d.vehicle?.model, d.model, rawInput?.vehicleInfo?.model),
     year: pick(d.vehicle?.year, d.year, rawInput?.vehicleInfo?.year),
     mileage: readingOrNull(pick(d.vehicle?.mileage, d.mileage)),
-    engineSpecs: {
-      isInferred: !statedInScan(pick(d.vehicle?.engineSpecs?.displacement)),
-      displacement: pick(d.vehicle?.engineSpecs?.displacement),
-      fuelType: (d.vehicle?.engineSpecs?.fuelType || null) as FuelType | null,
-      cylinders:
-        typeof d.vehicle?.engineSpecs?.cylinders === "number"
-          ? d.vehicle.engineSpecs.cylinders
-          : null,
-      transmission: pick(d.vehicle?.engineSpecs?.transmission),
-    },
+    engineSpecs: engineSpecsOf(d.vehicle?.engineSpecs),
   };
 
   // 2. Scanner — the tool name is the one field worth a generic label, since
@@ -539,8 +621,36 @@ export function normalizeDiagnosticReport(
   const criticalFaults = critical.map((f) => mapFault(f, "عالي جداً"));
   const moderateFaults = moderate.map((f) => mapFault(f, "متوسط"));
   const minorOrHistoricalFaults = minor.map((f) => mapFault(f, "منخفض"));
-  const totalFaultsCount =
-    criticalFaults.length + moderateFaults.length + minorOrHistoricalFaults.length;
+  const allFaults = [
+    ...criticalFaults,
+    ...moderateFaults,
+    ...minorOrHistoricalFaults,
+  ];
+  const totalFaultsCount = allFaults.length;
+
+  /**
+   * How many control units the faults came out of — not how many faults.
+   *
+   * A scan reports per module. A real Camry scan read eight modules: the
+   * engine ECU, the SRS, and six that came back clean. It found eleven codes,
+   * all of them in two of those modules, and the plate printed "systems
+   * checked: 11" beside "6 passed" — more systems than the machine touched,
+   * and a number that grew every time one module produced another code. The
+   * Elantra was worse: four codes out of the one EPS module read as four
+   * systems.
+   */
+  const faultedModules = new Set(
+    allFaults
+      .map((f) => f.module.trim().toUpperCase())
+      .filter((m) => m && m !== "—")
+  );
+  // A fault with no module named still came from somewhere, and that somewhere
+  // was checked. Count the unnamed ones as one module between them rather than
+  // dropping them, which would under-report a scan the model labelled loosely.
+  const unnamedModuleFaults = allFaults.some(
+    (f) => !f.module.trim() || f.module.trim() === "—"
+  );
+  const faultedModuleCount = faultedModules.size + (unnamedModuleFaults ? 1 : 0);
 
   // 4. Passed systems — an unreported system is unknown, not passed. Claiming
   // the ABS passed when nothing said so is a safety claim we cannot make.
@@ -581,13 +691,15 @@ export function normalizeDiagnosticReport(
     // the headline kept saying eight because the model's number won. Both were
     // defensible and the document contradicted itself, which is the thing a
     // customer notices first. Whatever is on the page is what gets counted.
-    systemsCheckedCount: totalFaultsCount + passedSystems.length,
+    systemsCheckedCount: faultedModuleCount + passedSystems.length,
     faultsFoundCount: totalFaultsCount,
     passedSystemsCount: passedSystems.length,
   };
 
   // 6. Spare parts — the OEM number, the aftermarket list and the price are
   // commercial claims someone will spend money on. Unknown stays null.
+  const oemOrNull = (value: string | null): string | null =>
+    value && !saysNothing(value) ? value : null;
   const sparePartsRequired = (d.sparePartsRequired ?? []).map(
     (part: RawPart, idx: number) => {
       // The schema keeps a price range only when both ends are real numbers,
@@ -600,8 +712,12 @@ export function normalizeDiagnosticReport(
           partNameStandardArabic:
             pick(part.partNameStandardArabic, part.partNameLibyan) || "",
           partNameEnglish: pick(part.partNameEnglish) || "",
-          oemPartNumber: pick(part.oemPartNumber),
-          isOemNumberUnverified: !statedInScan(pick(part.oemPartNumber)),
+          // A number nobody can order is not a number. One engine answered
+          // an airbag connector repair with an oemPartNumber of "N/A", and
+          // the card printed "N/A" in the slot somebody reads out at the
+          // parts counter. Same filter the odometer already uses.
+          oemPartNumber: oemOrNull(pick(part.oemPartNumber)),
+          isOemNumberUnverified: !statedInScan(oemOrNull(pick(part.oemPartNumber))),
           aftermarketReplacements: part.aftermarketReplacements ?? [],
           estimatedPriceRangeLYD: price
             ? {
@@ -739,10 +855,11 @@ async function streamWithModelFallback(
       if (err instanceof KashifError && err.code !== "MODEL_UNAVAILABLE") throw err;
       const status = (err as { status?: number; code?: number })?.status;
       console.warn(
-        `[Gemini] ${model} would not stream (${status ?? "error"}), trying next candidate`
+        `[Gemini] ${model} would not stream (${status ?? "error"}), trying next candidate:`,
+        upstreamMessage(err)
       );
       if (status && status >= 400 && status < 500 && status !== 429) {
-        throw new KashifError("INVALID_API_KEY", String(status));
+        throw classify4xx(err, status);
       }
       lastError = err;
     }

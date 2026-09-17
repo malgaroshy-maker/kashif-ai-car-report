@@ -74,31 +74,31 @@ export async function POST(req: NextRequest) {
           if (agyOutput) report = await parseAgyJson(agyOutput);
         }
 
-        if (!report) {
-          report = await analyzeReportWithGemini(
-            {
-              textReport: parsedPdf.rawText,
-              vehicleInfo: {
-                vin: parsedPdf.extractedVin,
-                make: parsedPdf.extractedMake,
-                model: parsedPdf.extractedModel,
-                year: parsedPdf.extractedYear,
-              },
-            },
-            formApiKey,
-            resolveModelId(formModel)
-          );
-        }
-
-        report = normalizeDiagnosticReport(report, {
+        // One description of what the scan said, used by both the analysis
+        // and the normaliser. They were built separately and the parser's
+        // own `codesFound` and `scannerTool` were in neither, although it had
+        // been extracting them all along.
+        const scanInput = {
           textReport: parsedPdf.rawText,
+          codesFound: parsedPdf.codesFound,
+          scannerTool: parsedPdf.scannerTool,
           vehicleInfo: {
             vin: parsedPdf.extractedVin,
             make: parsedPdf.extractedMake,
             model: parsedPdf.extractedModel,
             year: parsedPdf.extractedYear,
           },
-        });
+        };
+
+        if (!report) {
+          report = await analyzeReportWithGemini(
+            scanInput,
+            formApiKey,
+            resolveModelId(formModel)
+          );
+        }
+
+        report = normalizeDiagnosticReport(report, scanInput);
 
         return NextResponse.json({ success: true, report });
       } else {

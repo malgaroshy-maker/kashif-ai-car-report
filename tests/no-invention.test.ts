@@ -263,7 +263,22 @@ describe("the demo reports", () => {
         r.faultCategories.minorOrHistoricalFaults.length;
       expect(r.summary.faultsFoundCount).toBe(listed);
       expect(r.summary.passedSystemsCount).toBe(r.passedSystems.length);
-      expect(r.summary.systemsCheckedCount).toBe(listed + r.passedSystems.length);
+
+      // Systems, not faults. A scan reads modules; several codes out of one
+      // module are one system checked, not several.
+      const modules = new Set(
+        [
+          ...r.faultCategories.criticalFaults,
+          ...r.faultCategories.moderateFaults,
+          ...r.faultCategories.minorOrHistoricalFaults,
+        ].map((f) => f.module.trim().toUpperCase())
+      );
+      expect(r.summary.systemsCheckedCount).toBe(
+        modules.size + r.passedSystems.length
+      );
+      expect(r.summary.systemsCheckedCount).toBeLessThanOrEqual(
+        listed + r.passedSystems.length
+      );
     });
 
     it(`${name} keeps everything the fixture actually says`, () => {
