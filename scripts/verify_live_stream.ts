@@ -10,7 +10,7 @@ async function main() {
   const context = chatContextOf(SAMPLE_TOYOTA_COROLLA);
   const question = "شنو الخطوات الأولى لفحص الكود P0102؟";
   
-  console.log("Sending query with model gemini-3.7-flash...");
+  console.log("Sending query with model gemini-3.8-flash...");
   const startTime = Date.now();
   let chunkCount = 0;
   let fullResponse = "";

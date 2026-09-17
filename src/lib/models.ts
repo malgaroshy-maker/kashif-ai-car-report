@@ -8,7 +8,7 @@
  *
  * Edge-safe: no `fs`, no `process.cwd()`. The Worker imports this directly.
  *
- * The IDs below were verified against `GET /v1beta/models` on 2026-08-24. When
+ * The IDs below were verified against `GET /v1beta/models` on 2026-09-17. When
  * a key is available the live endpoint is the authority and this list is only
  * the offline fallback — that is what stops it drifting again.
  */
@@ -21,14 +21,21 @@ export interface AvailableModelItem {
 }
 
 /** What the app advertises, and what every runtime must actually use. */
-export const DEFAULT_MODEL = "gemini-3.7-flash";
+export const DEFAULT_MODEL = "gemini-3.8-flash";
 
 /**
  * Tried in order when a model is unavailable (503 high demand, 429 quota).
  * Availability ladder: newest and fastest active 3.x models first.
+ *
+ * `gemini-3.8-flash` shipped after this file was last checked and was missing
+ * from the ladder entirely, so a spike that took out 3.7 skipped straight past
+ * the one model most likely to be free. A real Camry upload failed with
+ * MODEL_UNAVAILABLE after walking the whole chain while 3.8 was up. It is the
+ * default now, with 3.7 directly behind it.
  */
 export const MODEL_FALLBACK_CHAIN = [
   DEFAULT_MODEL,
+  "gemini-3.7-flash",
   "gemini-3.6-flash",
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
@@ -39,10 +46,15 @@ export const MODEL_FALLBACK_CHAIN = [
 /** Shown when there is no key to query the live endpoint with. */
 export const KNOWN_MODELS: AvailableModelItem[] = [
   {
+    id: "gemini-3.8-flash",
+    displayName: "Gemini 3.8 Flash",
+    description: "النموذج الافتراضي — أحدث نموذج، أسرع استجابة وأدق قراءة للتقارير الطويلة",
+    isRecommended: true,
+  },
+  {
     id: "gemini-3.7-flash",
     displayName: "Gemini 3.7 Flash",
-    description: "النموذج الافتراضي — استنتاج متقدم ومعالجة شاملة للتقارير المعقدة",
-    isRecommended: true,
+    description: "استنتاج متقدم ومعالجة شاملة للتقارير المعقدة",
   },
   {
     id: "gemini-3.6-flash",
