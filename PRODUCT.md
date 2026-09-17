@@ -20,7 +20,7 @@ Turn an OBD-II scanner report (Launch X431, Autel, Ediag, ThinkDiag, Topdon, Bos
 
 ## Positioning
 
-Three-layer translation no generic DTC lookup can copy: **Libyan shop term ⇄ plain Arabic ⇄ standard English code**, bound to a curated 200+ term dictionary across 12 categories (بوبينات، مزاطوري، شمعات، بيانتو، براتشو، كونفيرتا، قرسيوني كوبيركو، ستاقوبا، باطنيات، امبروكم). Paired with a sensor/fuse/multimeter locator that names the fuse box, fuse number, amp rating and colour, the sensor's position in the engine bay, and the expected pin voltages — the specific thing that stops a good part from being replaced.
+Three-layer translation no generic DTC lookup can copy: **Libyan shop term ⇄ plain Arabic ⇄ standard English code**, bound to a curated 200+ term dictionary across 12 categories (بوبينات، مزاطوري، شمعات، بيانتو، براتشو، كونفيرتا، قرسيوني كوبيركو، ستاقوبا، باطنيات، امبروكم). Paired with a sensor/fuse/multimeter locator that says where the fuse box is, where the part sits, and what the meter should read — the specific thing that stops a good part from being replaced. It names a fuse number, an amp rating or a diagram position only for codes held in our own reference; for everything else it gives what is true of the code's family and labels itself as such, because a guessed fuse number is a claim about a car nobody checked.
 
 ## Operating Context
 
@@ -33,7 +33,7 @@ Three-layer translation no generic DTC lookup can copy: **Libyan shop term ⇄ p
 
 - **Interface language is Arabic, RTL, throughout.** English appears only as codes, OEM part numbers, module names, and scanner tool names.
 - Confirmed AI access model: **bring-your-own key**. Each user pastes their own Google AI Studio Gemini key in Settings; the product ships no shared key. Two built-in sample reports (BMW 528i E39, Toyota Corolla) must stay fully functional with no key, since they are the entire first-run experience.
-- Deployment target is Cloudflare (currently `kashif.malgaroshy.workers.dev`). Confirmed direction: migrate to the official `@opennextjs/cloudflare` adapter and retire the hand-written `src/worker.ts` router.
+- Deployment target is Cloudflare (currently `kashif.malgaroshy.workers.dev`), through the official `@opennextjs/cloudflare` adapter. The hand-written `src/worker.ts` router was a conflicting second copy of every API route and has been deleted.
 - The Antigravity CLI (`agy`) local engine is confirmed **development-only**; it must not be reachable or visible in production.
 - Report data structure (`KashifDiagnosticReport`) is established product truth: vehicle profile, health score 0–100, three fault severity tiers, passed systems, spare parts with OEM + aftermarket + LYD price range, and a sequential workshop checklist.
 - Part photos are best-effort from a live multi-tier search; a curated SVG vector of the part is the guaranteed offline fallback. Neither may be presented as a verified match for the specific vehicle.
@@ -50,6 +50,7 @@ Three-layer translation no generic DTC lookup can copy: **Libyan shop term ⇄ p
 
 - `قاموس_مصطلحات_صيانة_السيارات_الليبية.md` — the 200+ term Libyan dictionary, real and authored.
 - `DOC-20260812-WA0026.pdf`, `DOC-20260821-WA0001.pdf` — two real scanner reports received over WhatsApp. Treat as potentially containing a real VIN and owner data.
+- Two further real Ediag all-system reports (a 2010 Hyundai Elantra with four EPS faults, a 2007 Toyota Camry with four SRS faults and one EVAP fault) were run end to end on 2026-09-17 and are what the scan-reading, systems-count and wiring-routing fixes were found and verified against. They live outside the repo: the filenames alone carry a VIN, and `.gitignore` keeps real customer scans out.
 - `src/lib/sample-data.ts` — two hand-built demo reports derived from real scans.
 - `src/lib/sensor-locator.ts` — authored sensor/fuse/pinout data.
 - No customers, testimonials, usage numbers, press, pricing, or accuracy benchmarks exist. Future work must not invent any.
@@ -59,8 +60,9 @@ Three-layer translation no generic DTC lookup can copy: **Libyan shop term ⇄ p
 1. **The shop term leads; the code follows.** Every fault is named the way it is named in the bay, with the standard code and English description available beside it, never instead of it.
 2. **Test before you replace.** The checklist and the fuse/pinout data are the product's reason to exist; they outrank the parts list in prominence.
 3. **Severity is the spine.** Everything sorts by what can strand or endanger the driver, not by module or code order.
-4. **Never fake certainty.** AI-derived part numbers, prices, and photos are labelled as estimates; nothing is dressed up as a verified OEM match.
-5. **Readable in the worst conditions.** Sunlight, a cracked phone screen, greasy hands, a slow connection, and a black-and-white office printer are all normal.
+4. **Never fake certainty.** AI-derived part numbers, prices, and photos are labelled as estimates; nothing is dressed up as a verified OEM match. A value that says it has none — "N/A", "غير محدد" — is not a value: it is dropped rather than printed, because a mechanic reads "N/A" at the parts counter and a reader takes "unspecified" beside a VIN for something the machine said.
+5. **Count what is on the page.** Every number in the summary is derived from the lists the report actually prints — faults from the fault cards, systems from the modules the scanner read. A headline that disagrees with the list beneath it is the first thing a customer notices.
+6. **Readable in the worst conditions.** Sunlight, a cracked phone screen, greasy hands, a slow connection, and a black-and-white office printer are all normal.
 
 ## Accessibility & Inclusion
 
