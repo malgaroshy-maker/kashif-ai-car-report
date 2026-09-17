@@ -49,6 +49,7 @@
 ### 1. المتطلبات (Prerequisites)
 - **Node.js:** الإصدار 18 أو أحدث (موصى بـ Node.js 20+).
 - **مفتاح Google Gemini API:** مجاني من [Google AI Studio](https://aistudio.google.com/app/apikey).
+- **متصفحات Playwright:** مطلوبة فقط لـ `npm run test:e2e` — `npx playwright install chromium` مرة وحدة.
 - *(اختياري)* **Antigravity CLI (`agy`):** لتشغيل المحرك المحلي.
 
 ### 2. التثبيت والتشغيل (Installation & Setup)
@@ -60,6 +61,9 @@ cd kashif-ai-car-report
 
 # تثبيت الحزم
 npm install
+
+# متصفحات Playwright (تلزم فقط لاختبارات الطرف للطرف)
+npx playwright install chromium
 
 # إعداد ملف البيئة
 cp .env.example .env.local
@@ -77,7 +81,7 @@ npm run dev
 |---|---|
 | `npm run dev` | خادم التطوير |
 | `npm test` | اختبارات الوحدة (Vitest) — 133 اختبار |
-| `npm run test:e2e` | اختبارات الطرف للطرف (Playwright) على الـ Worker المبني — 28 اختبار |
+| `npm run test:e2e` | اختبارات الطرف للطرف (Playwright) على الـ Worker المبني — 28 اختبار (تبي `npx playwright install chromium` مرة وحدة) |
 | `npm run lint` | ESLint — صفر أخطاء مطلوبة |
 | `npm run cf:build` | بناء حزمة Cloudflare |
 | `npm run cf:preview` | تشغيل الحزمة محلياً على وقت تشغيل Workers الحقيقي |
@@ -86,6 +90,16 @@ npm run dev
 **اختبارات الطرف للطرف تبني وتشغّل الـ Worker الحقيقي، مش `next dev`.** كل خلل
 انكشف عند حدود النشر في هذا المشروع كان مخفي في بيئة التطوير وواضح في
 `cf:preview`.
+
+⚠️ **`npm install` ما يجيبش متصفحات Playwright.** لازم `npx playwright install chromium`
+مرة وحدة على كل جهاز، وكمان بعد أي ترقية لحزمة `@playwright/test` — الحزمة تربط نفسها
+بنسخة متصفح محددة، فترقيتها لوحدها تخلّي 24 من 28 اختبار يطيحو برسالة
+`Executable doesn't exist at ...chrome-headless-shell.exe`. الرسالة تبان وكأنها عطل في
+الكود وهي مش كذلك: الـ Worker يتبنى ويشتغل عادي. المشروعين الاتنين (سطح المكتب
+والموبايل) يستعملو Chromium، فما فيش داعي تجيب المتصفحات الثانية.
+
+الـ CI ما عندوش هذي المشكلة — `.github/workflows/deploy-cloudflare.yml` يجيب المتصفح
+بنفسه قبل ما يشغّل الاختبارات. هذي خطوة محلية بس.
 
 ⚠️ لو البناء علق بخطأ `EPERM` على مجلد `.open-next`، السبب غالباً خادم
 `next dev` شغّال في الخلفية: `initOpenNextCloudflareForDev` يشغّل عملية
