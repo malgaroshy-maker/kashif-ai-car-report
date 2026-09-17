@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getElectricalDiagnosticsForCode } from "@/lib/sensor-locator";
+import { getElectricalDiagnosticsForCode, scanContext } from "@/lib/sensor-locator";
 
 /**
  * The wiring reference is the one place a reader acts physically on what the
@@ -124,7 +124,7 @@ describe("the airbag family", () => {
 });
 
 describe("the chassis and network families", () => {
-  it("sends a C-code to the wheel, not to the engine bay", () => {
+  it("sends a wheel-speed C-code to the wheel, not to the engine bay", () => {
     for (const code of ["C1201", "C0035", "C1241"]) {
       const d = getElectricalDiagnosticsForCode(code);
       expect(d.sensorLocation.engineZone, code).toBe("wheel-hub");
@@ -132,6 +132,50 @@ describe("the chassis and network families", () => {
       expect(d.provenance, code).toBe("general");
       expect(d.warning ?? null, code).toBeNull();
     }
+  });
+
+  /**
+   * A real Elantra scan came back with four codes out of the electric power
+   * steering module. Every one of those parts is in the steering column, and
+   * this branch sent the reader under the car to the wheel bearings because
+   * the code started with a C.
+   */
+  it("sends a steering C-code to the column, not to the wheel", () => {
+    const steering = [
+      { code: "C1259", module: "EPS", standardDescriptionEn: "Steering Angle Sensor-Electrical" },
+      { code: "C1290", module: "EPS", standardDescriptionEn: "Torque Sensor Main Signal Fault" },
+      { code: "C1261", module: "EPS", standardDescriptionEn: "Steering Angle Sensor Not Calibrated" },
+    ];
+    for (const fault of steering) {
+      const d = getElectricalDiagnosticsForCode(
+        fault.code,
+        "Hyundai",
+        scanContext(fault)
+      );
+      expect(d.sensorLocation.engineZone, fault.code).toBe("cabin");
+      expect(d.sensorLocation.areaName, fault.code).not.toContain("العجلات");
+      // Still no invented fuse: a C-code is manufacturer-specific either way.
+      expect(d.fuseInfo.fuseNumber, fault.code).toBeNull();
+      expect(d.provenance, fault.code).toBe("general");
+    }
+  });
+
+  it("reads a bus timeout as a bus timeout whatever letter it carries", () => {
+    // The Elantra printed "C1611 CAN Time-Out EMS" — the EPS module saying it
+    // lost the engine ECU. Nothing about that fault is at a wheel.
+    const d = getElectricalDiagnosticsForCode(
+      "C1611",
+      "Hyundai",
+      scanContext({ module: "EPS", standardDescriptionEn: "CAN Time-Out EMS" })
+    );
+    expect(d.sensorLocation.engineZone).toBe("cabin");
+    expect(d.multimeterTest.signalPin).toContain("60");
+    expect(d.fuseInfo.circuitDescription).toContain("C1611");
+  });
+
+  it("without context, a C-code keeps the wheel-speed answer it always had", () => {
+    const d = getElectricalDiagnosticsForCode("C1259");
+    expect(d.sensorLocation.engineZone).toBe("wheel-hub");
   });
 
   it("tells a U-code it is looking for a conversation, not a sensor", () => {
@@ -151,6 +195,32 @@ describe("the chassis and network families", () => {
       expect(d.fuseInfo.rating, code).toBeNull();
       expect(d.sensorLocation.coordinatePct, code).toBeNull();
       expect(d.fuseInfo.circuitDescription, code).toContain(code);
+    }
+  });
+});
+
+/**
+ * P044x-P046x is the vapour side of the emissions system and lives at the fuel
+ * tank. It used to fall into the exhaust branch with the oxygen sensors, so a
+ * real Camry's P0453 — the vapour pressure sensor on the charcoal canister —
+ * sent the reader under the exhaust, while the report's own checklist on the
+ * previous screen said the tank.
+ */
+describe("the emissions families", () => {
+  it("puts an EVAP code at the tank, not under the exhaust", () => {
+    for (const code of ["P0440", "P0453", "P0455", "P0456"]) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.sensorLocation.engineZone, code).toBe("fuel-tank");
+      expect(d.sensorLocation.areaName, code).not.toContain("الشكمان");
+      expect(d.fuseInfo.fuseNumber, code).toBeNull();
+      expect(d.sensorLocation.coordinatePct, code).toBeNull();
+    }
+  });
+
+  it("leaves the oxygen-sensor codes on the exhaust where they belong", () => {
+    for (const code of ["P0135", "P0141", "P0420", "P0430"]) {
+      const d = getElectricalDiagnosticsForCode(code);
+      expect(d.sensorLocation.engineZone, code).toBe("exhaust-downpipe");
     }
   });
 });

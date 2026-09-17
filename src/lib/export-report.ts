@@ -1,6 +1,6 @@
 import { escapeDeep, escapeHtml, safeFilenamePart } from "./html-escape";
 import { getPartSvg } from "./part-visuals";
-import { getElectricalDiagnosticsForCode } from "./sensor-locator";
+import { getElectricalDiagnosticsForCode, scanContext } from "./sensor-locator";
 import { orUnknown, type KashifDiagnosticReport } from "./types";
 
 /**
@@ -545,7 +545,7 @@ export async function downloadReportHtml(
       ${allFaults
         .map(
           (f) => {
-            const elec = f.electricalDiagnostics || getElectricalDiagnosticsForCode(f.code, safe.vehicle?.make ?? undefined);
+            const elec = f.electricalDiagnostics || getElectricalDiagnosticsForCode(f.code, safe.vehicle?.make ?? undefined, scanContext(f));
             // The printed copy is the one that leaves the workshop and gets
             // acted on with a probe, so it carries the same disclosure the
             // screen does. A fuse number we do not have is stated as missing,

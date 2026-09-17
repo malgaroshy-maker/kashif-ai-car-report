@@ -248,7 +248,18 @@ const ELECTRICAL_DATABASE: Record<string, Partial<ElectricalDiagnosticInfo>> = {
  */
 export function getElectricalDiagnosticsForCode(
   code: string,
-  make?: string
+  make?: string,
+  /**
+   * What the scan printed beside this code — the module it came out of and its
+   * English description.
+   *
+   * A manufacturer-specific code number does not say which circuit it is:
+   * C1290 is a steering torque sensor on one make and something else on
+   * another. The words the scanner printed next to it do, and they are already
+   * on the fault we are rendering. Optional, because a caller that has only a
+   * code still gets the family-level answer it used to get.
+   */
+  context?: string
 ): ElectricalDiagnosticInfo {
   const normalized = (code || "").toUpperCase().trim();
   const entry = ELECTRICAL_DATABASE[normalized];
@@ -258,7 +269,7 @@ export function getElectricalDiagnosticsForCode(
     // sub-block it was missing. Now a missing block falls back to the general
     // guidance for the code family, and the whole record is marked accordingly
     // so nothing claims more precision than it has.
-    const base = deriveGeneral(normalized, make);
+    const base = deriveGeneral(normalized, make, context);
     const complete = Boolean(
       entry.fuseInfo && entry.sensorLocation && entry.multimeterTest
     );
@@ -273,7 +284,69 @@ export function getElectricalDiagnosticsForCode(
     };
   }
 
-  return deriveGeneral(normalized, make);
+  return deriveGeneral(normalized, make, context);
+}
+
+/**
+ * The words the scanner printed beside a code, as one string.
+ *
+ * `getElectricalDiagnosticsForCode` uses it to tell apart circuits that share
+ * a code letter — a steering fault from a wheel-speed fault, a bus timeout
+ * from either. Both the on-screen sheet and the exported HTML build it the
+ * same way, so they cannot disagree about which branch a fault lands in.
+ */
+export function scanContext(fault: {
+  module?: string | null;
+  moduleNameArabic?: string | null;
+  standardDescriptionEn?: string | null;
+  libyanTerm?: string | null;
+}): string {
+  return [
+    fault.module,
+    fault.moduleNameArabic,
+    fault.standardDescriptionEn,
+    fault.libyanTerm,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/**
+ * What is true of a module that stopped being heard from, whatever letter the
+ * maker filed the code under.
+ *
+ * Shared by the `U` family and by any code whose printed description says it
+ * is a bus timeout. Nothing here is a wiring diagram: the 60-ohm reading and
+ * the two bus voltages are properties of CAN itself, not of this car.
+ */
+function networkGuidance(normalized: string): ElectricalDiagnosticInfo {
+  return {
+    provenance: "general",
+    fuseInfo: {
+      fuseNumber: null,
+      rating: null,
+      relayName: null,
+      boxLocation: "مش فيوز واحد — كل كمبيوتر على الشبكة له تغذيته وفيوزه الخاص",
+      circuitDescription: `عطل اتصال على شبكة الـ CAN — الرمز (${normalized}) يقول إن كمبيوتر ما وصلتش منه رسائل`,
+    },
+    sensorLocation: {
+      areaName:
+        "مش حساس: خطين بيانات (CAN High / CAN Low) ماشيين بين الكمبيوترات وفيشة الفحص OBD تحت التابلو",
+      engineZone: "cabin",
+      accessTip:
+        "ابدأ من فيشة الفحص وتفرّع منها. أغلب أعطال الشبكة تغذية أو أرضي ناقص على كمبيوتر واحد، أو مية دخلت فيشة — مش الكمبيوتر نفسه محروق.",
+      coordinatePct: null,
+    },
+    multimeterTest: {
+      powerPin: "تغذية الكمبيوتر المفقود: 12V مع السويتش",
+      groundPin: "أرضي الكمبيوتر: أقل من 0.1V على الشاسي",
+      signalPin:
+        "على فيشة الفحص والسويتش مفتوح: CAN High حوالي 2.5 إلى 3.5V، وCAN Low حوالي 1.5 إلى 2.5V. المقاومة بين الخطين والبطارية مفصولة حوالي 60 أوم (مقاومتين 120 على التوازي)",
+      referenceVoltage: null,
+      testingTipLibyan:
+        "قيس 60 أوم بين خط 1 و2 من فيشة الفحص والسويتش مطفي: لو طلعت 120 يعني فرع من الشبكة مقطوع، ولو طلعت صفر يعني الخطين ملموسين في بعض. هذي القراءات عامة للـ CAN وما هيش مخطط سيارتك.",
+    },
+  };
 }
 
 /**
@@ -285,7 +358,8 @@ export function getElectricalDiagnosticsForCode(
  */
 function deriveGeneral(
   normalized: string,
-  make?: string
+  make?: string,
+  context?: string
 ): ElectricalDiagnosticInfo {
   const isBmw =
     (make || "").toLowerCase().includes("bmw") ||
@@ -299,7 +373,15 @@ function deriveGeneral(
   } as const;
 
   // Air, fuel and temperature sensors.
-  if (normalized.startsWith("P01") || normalized.startsWith("P00")) {
+  //
+  // P013x-P016x are excluded: those are the oxygen and air-fuel sensors and
+  // their heaters, and they are screwed into the exhaust, not sitting in the
+  // intake tract this branch describes. They join P0420 in the emissions
+  // branch below, the same way the vapour codes were split out of it.
+  if (
+    (normalized.startsWith("P01") || normalized.startsWith("P00")) &&
+    !/^P01[3-6]/.test(normalized)
+  ) {
     return {
       provenance: "general",
       fuseInfo: {
@@ -354,8 +436,50 @@ function deriveGeneral(
     };
   }
 
-  // Emissions, speed, cruise.
-  if (normalized.startsWith("P04") || normalized.startsWith("P05")) {
+  // Fuel-vapour (EVAP) codes, which live at the tank end of the car.
+  //
+  // These used to fall into the emissions branch below and be answered with
+  // "the exhaust line, underneath the car" and how to read an oxygen sensor's
+  // heater resistance. A real Camry scan came back with P0453 — the vapour
+  // pressure sensor, which sits on the charcoal canister behind the fuel tank.
+  // The report's own checklist said so on one screen while the wiring sheet
+  // sent the reader under the exhaust on the next. P044x-P046x is the vapour
+  // side; P013x-P016x and the rest of P04/P05 are the exhaust side.
+  if (/^P04[4-6]/.test(normalized)) {
+    return {
+      provenance: "general",
+      fuseInfo: {
+        ...noFuseNumber,
+        boxLocation:
+          "عادةً علبة فيوزات حوض المحرك — نفس مسار تغذية كمبيوتر المحرك وفالفات التبخير",
+        circuitDescription: `دائرة منظومة تبخير الوقود (EVAP) — الرمز (${normalized}) من عائلة قربة الفحم وفالفاتها`,
+      },
+      sensorLocation: {
+        areaName:
+          "ناحية خزان البنزين: قربة الفحم (Canister) وحساس الضغط وفالف التنفيس، وغطا البنزين نفسه",
+        engineZone: "fuel-tank",
+        accessTip:
+          "ابدأ من أرخص حاجة: غطا البنزين وجلدته. بعدها الخراطيم الماشية لقربة الفحم — هذه المنطقة تحت السيارة وتتملح وتتقرض. الحساس والفالف عادةً على القربة نفسها أو فوق الخزان.",
+        coordinatePct: null,
+      },
+      multimeterTest: {
+        powerPin: "خط التغذية لحساس الضغط: مع السويتش",
+        groundPin: "خط الأرضي: أقل من 0.1V على الشاسي",
+        signalPin:
+          "إشارة حساس ضغط التبخير تتغير مع ضغط الخزان — تتقرا أوضح من جهاز الكشف (Live Data) وانت تفك غطا البنزين وتردّه",
+        referenceVoltage: null,
+        testingTipLibyan:
+          "شوف قراءة الحساس على جهاز الكشف والغطا مقفول وبعدها مفتوح: لو ما تحركتش، الحساس أو سلكه. افحص الخراطيم والفيشة من التمليح قبل ما تشري القطعة — أغلب أعطال هذه العائلة تسريب أو خرطوم، مش الحساس.",
+      },
+    };
+  }
+
+  // Emissions, speed, cruise — and the oxygen sensors on the exhaust line.
+  if (
+    normalized.startsWith("P04") ||
+    normalized.startsWith("P05") ||
+    /^P01[3-6]/.test(normalized)
+  ) {
     return {
       provenance: "general",
       fuseInfo: {
@@ -432,64 +556,88 @@ function deriveGeneral(
     };
   }
 
-  // Chassis codes: ABS, traction, steering angle, wheel speed.
+  // A bus timeout is a bus timeout whatever letter it was filed under.
+  //
+  // The U branch below holds what is true about a module that stopped being
+  // heard from. Makers do not all file those codes under U: the Elantra scan
+  // printed "C1611 CAN Time-Out EMS" — the EPS module saying it lost the
+  // engine ECU — and the chassis branch answered it with wheel-speed sensors.
+  // Nothing about that fault is at a wheel.
+  if (
+    !normalized.startsWith("U") &&
+    /CAN|BUS|TIME.?OUT|COMMUNICAT|LOST COMM/i.test(context || "")
+  ) {
+    return networkGuidance(normalized);
+  }
+
+  // Chassis codes: the brakes, the stability system, and the steering.
+  //
+  // This branch used to answer every C-code with the wheel hubs: "the speed
+  // sensor on the hub and its wire running with the bearing", lift the car,
+  // compare the four wheel-speed readings. That is right for the ABS half of
+  // the family and wrong for the other half, and C-codes are
+  // manufacturer-specific, so the number alone does not say which.
+  //
+  // A real Elantra scan came back with four codes out of the electric power
+  // steering module — C1259 and C1261 on the steering angle sensor, C1290 on
+  // the torque sensor, C1611 a bus timeout. Every one of those parts is in the
+  // steering column, and the sheet sent the reader under the car to the wheel
+  // bearings. So the location is no longer asserted from the letter: the
+  // module the code was read out of is what names the area, the way the B
+  // branch already works.
   if (normalized.startsWith("C")) {
+    const steering = /STEER|EPS|EPAS|MDPS|SAS|TORQUE/i.test(context || "");
     return {
       provenance: "general",
       fuseInfo: {
         ...noFuseNumber,
-        boxLocation:
-          "عادةً علبة فيوزات حوض المحرك — فيوز مكتوب عليه ABS أو VSC على غطا العلبة",
-        circuitDescription: `دائرة الفرامل والاتزان — الرمز (${normalized}) من أكواد الهيكل الخاصة بكل شركة`,
+        boxLocation: steering
+          ? "عادةً فيوز كبير مكتوب عليه EPS أو MDPS أو POWER STEERING — يكون في علبة حوض المحرك أو علبة خاصة قريبة من البطارية"
+          : "عادةً علبة فيوزات حوض المحرك — فيوز مكتوب عليه ABS أو VSC على غطا العلبة",
+        circuitDescription: steering
+          ? `دائرة الستيرسو الكهربائي — الرمز (${normalized}) من أكواد الهيكل الخاصة بكل شركة`
+          : `دائرة الفرامل والاتزان — الرمز (${normalized}) من أكواد الهيكل الخاصة بكل شركة`,
       },
-      sensorLocation: {
-        areaName: "عند العجلات: حساس السرعة على القاعدة وسلكه الماشي مع الكوشينة",
-        engineZone: "wheel-hub",
-        accessTip:
-          "ارفع السيارة على الكريك وافحص سلك الحساس عند الدوران — أغلب أعطال هذه العائلة سلك مقروض أو فيشة مملحة عند العجلة، مش الحساس.",
-        coordinatePct: null,
-      },
-      multimeterTest: {
-        powerPin: "خط التغذية: 12V مع السويتش على فيشة الحساس",
-        groundPin: "خط الأرضي: أقل من 0.1V على الشاسي",
-        signalPin:
-          "حساس السرعة يعطي نبضة متغيرة مع دوران العجلة — تتقرا أوضح من جهاز الكشف (Live Data) وانت تدور العجلة باليد",
-        referenceVoltage: null,
-        testingTipLibyan:
-          "قارن قراءة سرعة العجلات الأربع على جهاز الكشف والسيارة ماشية شوي: العجلة اللي قراءتها صفر أو تقفز هي المشكلة. نظف سن الطاسة (Reluctor Ring) من الصدى قبل ما تبدل الحساس.",
-      },
+      sensorLocation: steering
+        ? {
+            areaName:
+              "عمود الدركسيون داخل المقصورة: حساس زاوية الستيرسو وحساس العزم وكمبيوتر الـ EPS — كلهم على العمود أو على علبة الدركسيون",
+            engineZone: "cabin",
+            accessTip:
+              "حساس الزاوية وحساس العزم جوا عمود الدركسيون تحت غطا البلاستيك، وأغلبهم ما ينباعش لوحده. حساس الزاوية كثير يحتاج تصفير (Calibration) بجهاز الكشف بعد أي شغل في الصالة أو الميزان — جرب التصفير قبل ما تشري قطعة. لو في إيرباق في الدركسيون افصل البطارية واستنى قبل ما تفك.",
+            coordinatePct: null,
+          }
+        : {
+            areaName: "عند العجلات: حساس السرعة على القاعدة وسلكه الماشي مع الكوشينة",
+            engineZone: "wheel-hub",
+            accessTip:
+              "ارفع السيارة على الكريك وافحص سلك الحساس عند الدوران — أغلب أعطال هذه العائلة سلك مقروض أو فيشة مملحة عند العجلة، مش الحساس.",
+            coordinatePct: null,
+          },
+      multimeterTest: steering
+        ? {
+            powerPin: "خط التغذية: 12V مع السويتش على فيشة الكمبيوتر أو الحساس",
+            groundPin: "خط الأرضي: أقل من 0.1V على الشاسي",
+            signalPin:
+              "حساس الزاوية وحساس العزم يمشيوا على الشبكة أو على خطين إشارة متعاكسين — القراءة الصحيحة تتاخذ من جهاز الكشف (Live Data) وانت تلف الدركسيون يمين ويسار، مش من الأفوميتر",
+            referenceVoltage: null,
+            testingTipLibyan:
+              "لف الدركسيون من الآخر للآخر وراقب زاوية الستيرسو على جهاز الكشف: لازم تتحرك بانتظام وترجع صفر والعجلات مستقيمة. لو قفزت أو وقفت، ابدأ بالتصفير وبعدها بالفيشة تحت العمود. أكواد الـ C تختلف من شركة لشركة، فرقم الكود لوحده ما يدلش على نفس الدائرة في كل سيارة.",
+          }
+        : {
+            powerPin: "خط التغذية: 12V مع السويتش على فيشة الحساس",
+            groundPin: "خط الأرضي: أقل من 0.1V على الشاسي",
+            signalPin:
+              "حساس السرعة يعطي نبضة متغيرة مع دوران العجلة — تتقرا أوضح من جهاز الكشف (Live Data) وانت تدور العجلة باليد",
+            referenceVoltage: null,
+            testingTipLibyan:
+              "قارن قراءة سرعة العجلات الأربع على جهاز الكشف والسيارة ماشية شوي: العجلة اللي قراءتها صفر أو تقفز هي المشكلة. نظف سن الطاسة (Reluctor Ring) من الصدى قبل ما تبدل الحساس. أكواد الـ C تختلف من شركة لشركة، فرقم الكود لوحده ما يدلش على نفس الدائرة في كل سيارة.",
+          },
     };
   }
 
   // Network codes: modules that stopped hearing each other on the bus.
-  if (normalized.startsWith("U")) {
-    return {
-      provenance: "general",
-      fuseInfo: {
-        ...noFuseNumber,
-        boxLocation:
-          "مش فيوز واحد — كل كمبيوتر على الشبكة له تغذيته وفيوزه الخاص",
-        circuitDescription: `عطل اتصال على شبكة الـ CAN — الرمز (${normalized}) يقول إن كمبيوتر ما وصلتش منه رسائل`,
-      },
-      sensorLocation: {
-        areaName:
-          "مش حساس: خطين بيانات (CAN High / CAN Low) ماشيين بين الكمبيوترات وفيشة الفحص OBD تحت التابلو",
-        engineZone: "cabin",
-        accessTip:
-          "ابدأ من فيشة الفحص وتفرّع منها. أغلب أعطال الشبكة تغذية أو أرضي ناقص على كمبيوتر واحد، أو مية دخلت فيشة — مش الكمبيوتر نفسه محروق.",
-        coordinatePct: null,
-      },
-      multimeterTest: {
-        powerPin: "تغذية الكمبيوتر المفقود: 12V مع السويتش",
-        groundPin: "أرضي الكمبيوتر: أقل من 0.1V على الشاسي",
-        signalPin:
-          "على فيشة الفحص والسويتش مفتوح: CAN High حوالي 2.5 إلى 3.5V، وCAN Low حوالي 1.5 إلى 2.5V. المقاومة بين الخطين والبطارية مفصولة حوالي 60 أوم (مقاومتين 120 على التوازي)",
-        referenceVoltage: null,
-        testingTipLibyan:
-          "قيس 60 أوم بين خط 1 و2 من فيشة الفحص والسويتش مطفي: لو طلعت 120 يعني فرع من الشبكة مقطوع، ولو طلعت صفر يعني الخطين ملموسين في بعض. هذي القراءات عامة للـ CAN وما هيش مخطط سيارتك.",
-      },
-    };
-  }
+  if (normalized.startsWith("U")) return networkGuidance(normalized);
 
   // Anything else: network, chassis, body.
   return {

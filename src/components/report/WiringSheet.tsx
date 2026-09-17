@@ -3,7 +3,7 @@
 import * as React from "react";
 import { CodePlate, Field } from "@/components/ui/primitives";
 import { Sheet } from "@/components/ui/Sheet";
-import { getElectricalDiagnosticsForCode } from "@/lib/sensor-locator";
+import { getElectricalDiagnosticsForCode, scanContext } from "@/lib/sensor-locator";
 import type { DiagnosticCodeDetail, ElectricalProvenance } from "@/lib/types";
 
 /**
@@ -37,7 +37,7 @@ export function WiringSheet({
 }) {
   const diag =
     fault.electricalDiagnostics ??
-    getElectricalDiagnosticsForCode(fault.code, vehicleMake);
+    getElectricalDiagnosticsForCode(fault.code, vehicleMake, scanContext(fault));
 
   const { fuseInfo, sensorLocation, multimeterTest, provenance, warning } = diag;
   const source = PROVENANCE[provenance];
