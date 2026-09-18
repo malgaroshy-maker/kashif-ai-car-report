@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  agreesWithEnglishName,
+  commonsFileNameFrom,
   curatedPhotoFor,
+  englishSearchVariants,
   isDocumentNotPart,
   isFiledAsAutomotive,
   isSearchableTerm,
@@ -408,5 +411,100 @@ describe("names that overlap between two different parts", () => {
     // circuits, at different prices.
     expect(curatedPhotoFor("رداتوري المكيف")).not.toContain("Automobile_radiator");
     expect(curatedPhotoFor("رداتوري")).toContain("Automobile_radiator");
+  });
+});
+
+describe("searching under the name the report actually gave", () => {
+  it("asks for the head of a catalogue name, not only the whole phrase", () => {
+    // A real card from an Elantra HD report. No archive has titled anything
+    // this, and the single miss handed the card to the dictionary — which
+    // answered with a photograph of a Volvo steering wheel.
+    expect(englishSearchVariants("EPS Column Assembly with Torque Sensor")).toEqual([
+      "EPS Column Assembly with Torque Sensor",
+      "EPS Column Assembly",
+      "EPS Column",
+    ]);
+  });
+
+  it("drops where the part sits, which no archive files anything under", () => {
+    expect(englishSearchVariants("Front Left ABS Wheel Speed Sensor")).toEqual([
+      "Front Left ABS Wheel Speed Sensor",
+      "ABS Wheel Speed Sensor",
+    ]);
+  });
+
+  it("keeps the word a catalogue put in brackets", () => {
+    // Cutting at the bracket unconditionally is how "Upstream Oxygen (O2)
+    // Sensor" once became "Upstream Oxygen", losing the component's name.
+    expect(englishSearchVariants("Upstream Oxygen (O2) Sensor")).toEqual([
+      "Upstream Oxygen (O2) Sensor",
+      "Upstream Oxygen Sensor",
+    ]);
+  });
+
+  it("costs one search for a name that is already a part name", () => {
+    expect(englishSearchVariants("Ignition Coil")).toEqual(["Ignition Coil"]);
+  });
+
+  it("offers nothing for a name that is only a category", () => {
+    // `isSearchableTerm` throws these out: an archive asked for "Sensor"
+    // answers with something, and whatever it answers with is wrong.
+    expect(englishSearchVariants("Sensor")).toEqual([]);
+  });
+});
+
+describe("a dictionary term standing in for the part's own name", () => {
+  it("refuses a steering wheel for a steering column", () => {
+    // "عمود ستيرسو كهربائي مع حساس التورك" contains "ستيرسو", whose gloss reads
+    // "Steering wheel (sterzo)". Right about the word, wrong about the part.
+    expect(
+      agreesWithEnglishName("Steering wheel", "EPS Column Assembly with Torque Sensor")
+    ).toBe(false);
+  });
+
+  it("accepts a term that names the same part the report did", () => {
+    expect(
+      agreesWithEnglishName("Steering Angle Sensor", "Steering Angle Sensor")
+    ).toBe(true);
+    expect(agreesWithEnglishName("Shock absorber", "Rear Shock Absorber Assembly")).toBe(
+      true
+    );
+  });
+
+  it("still answers for a part the report named only in Libyan", () => {
+    // Nothing to disagree with, and the dictionary is the only tier that can
+    // say anything at all about "براتشو".
+    expect(agreesWithEnglishName("Control arm", "")).toBe(true);
+    expect(agreesWithEnglishName("Control arm", "براتشو")).toBe(true);
+  });
+});
+
+describe("reading a file's name off a Wikimedia URL", () => {
+  it("takes the file, not the rendering, out of a thumbnail URL", () => {
+    // "330px-Mini_Shocks.JPG" is a size Commons has never heard of. Asking it
+    // about that name returns a missing page, which reads as "no categories" —
+    // and the categories are the strongest evidence there is about a picture.
+    expect(
+      commonsFileNameFrom(
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Mini_Shocks.JPG/330px-Mini_Shocks.JPG"
+      )
+    ).toBe("Mini_Shocks.JPG");
+  });
+
+  it("takes the last segment when the file is served whole", () => {
+    // Small enough to need no thumbnail, so it comes from its own path.
+    expect(
+      commonsFileNameFrom(
+        "https://upload.wikimedia.org/wikipedia/commons/8/8c/Heckscheibenwischer_kl.jpg"
+      )
+    ).toBe("Heckscheibenwischer_kl.jpg");
+  });
+
+  it("decodes a name Wikimedia escaped", () => {
+    expect(
+      commonsFileNameFrom(
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Olejov%C3%BD_filtr.jpg/330px-Olejov%C3%BD_filtr.jpg"
+      )
+    ).toBe("Olejový_filtr.jpg");
   });
 });

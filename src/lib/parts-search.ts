@@ -300,6 +300,86 @@ function significantWords(partName: string): string[] {
 }
 
 /**
+ * The part's own English name, reduced to forms an archive might hold.
+ *
+ * A report writes a parts counter's name for a thing: "EPS Column Assembly
+ * with Torque Sensor", "Front Left ABS Wheel Speed Sensor", "Upstream Oxygen
+ * (O2) Sensor". Commons has never titled a photograph any of those, and the
+ * whole string was the only thing ever asked for — one query, one miss, and
+ * then the dictionary was allowed to answer with a different component
+ * entirely.
+ *
+ * Three reductions, applied in order and each tried as its own search, longest
+ * first so the most specific name that can succeed is the one that does:
+ *
+ * **The aside comes off.** "(O2)", "(سكاتولة فوقية)" — a catalogue's note to
+ * the reader, and a word an archive has never filed anything under.
+ *
+ * **What follows "with" comes off.** "EPS Column Assembly with Torque Sensor"
+ * names a second component that is sold attached to the first. Searching for
+ * both at once asks for a photograph of an assembly nobody has photographed;
+ * searching for the head asks for the part the card is actually about.
+ *
+ * **Position and packaging come off.** "Front Left ABS Wheel Speed Sensor" is
+ * three words about where it sits and four about what it is. `POSITIONAL`
+ * already knows which are which — this is the same list the relevance rule
+ * uses, for the same reason.
+ *
+ * Duplicates are dropped, so a name that survives all three reductions
+ * unchanged — "Ignition Coil" — still costs exactly one search.
+ */
+export function englishSearchVariants(partNameEn: string): string[] {
+  const name = partNameEn.replace(/\s+/g, " ").trim();
+  if (!name) return [];
+
+  const withoutAside = name
+    .replace(/\s*[([][^)\]]*[)\]]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const head = withoutAside
+    .split(/\s+(?:with|w\/|for|incl\.?|including|and)\s+/i)[0]
+    .trim();
+
+  const withoutPosition = head
+    .split(/\s+/)
+    .filter((w) => !POSITIONAL.has(w.toLowerCase()))
+    .join(" ")
+    .trim();
+
+  return [...new Set([name, withoutAside, head, withoutPosition])].filter(
+    isSearchableTerm
+  );
+}
+
+/**
+ * Is this dictionary term about the same part the report named in English?
+ *
+ * The dictionary is a Libyan glossary, and a compound workshop name matches an
+ * entry for each of its words. "عمود ستيرسو كهربائي مع حساس التورك" — an
+ * electric steering column — contains "ستيرسو", whose entry reads "Steering
+ * wheel (sterzo)". That gloss is right about the word and wrong about the
+ * part, and a card headed "EPS Column Assembly with Torque Sensor" was given a
+ * photograph of a Volvo steering wheel: a different component, in the same
+ * area of the car, at a very different price.
+ *
+ * So when the report has already said in English what the part is, a
+ * dictionary term has to agree with it — one significant word in common is
+ * enough, since the two are naming one thing from two directions. "Steering
+ * Angle Sensor" against its own entry agrees three times over; "Steering
+ * wheel" against "EPS Column Assembly with Torque Sensor" agrees nowhere.
+ *
+ * A part the report named only in Libyan has nothing to disagree with, and the
+ * dictionary remains the only tier that can answer for it.
+ */
+export function agreesWithEnglishName(term: string, partNameEn: string): boolean {
+  if (!hasLatinWord(partNameEn)) return true;
+  const named = new Set(significantWords(partNameEn));
+  if (named.size === 0) return true;
+  return significantWords(term).some((w) => named.has(w));
+}
+
+/**
  * Is this Commons result actually the part we asked for?
  *
  * Commons search is full text over the whole archive, and it always returns
@@ -596,6 +676,60 @@ async function searchWikimediaCommons(
  * The image is served from upload.wikimedia.org, the host the curated photos
  * already use, so this adds no origin to the CSP.
  */
+/**
+ * The file's name on Commons, read off a Wikimedia image URL.
+ *
+ * The last segment of a thumbnail URL is the rendering, not the file:
+ * ".../thumb/a/a4/Mini_Shocks.JPG/330px-Mini_Shocks.JPG" ends in a name that
+ * Commons has never heard of. Asked for "File:330px-Mini_Shocks.JPG" it
+ * answers with a missing page, which reads as "no categories" — so the
+ * strongest evidence about the picture was being discarded for every
+ * thumbnail, which is all of them. The file's own name is the segment in front
+ * of the rendering.
+ *
+ * An image small enough to need no thumbnail is served from its own path, with
+ * no "/thumb/" in it, and there the last segment is the file.
+ */
+export function commonsFileNameFrom(url: string): string {
+  const path = url.split("?")[0];
+  const segments = path.split("/").filter(Boolean);
+  const name = path.includes("/thumb/")
+    ? segments[segments.length - 2]
+    : segments[segments.length - 1];
+  try {
+    return decodeURIComponent(name ?? "");
+  } catch {
+    return name ?? "";
+  }
+}
+
+/**
+ * What Commons files this picture under, or `undefined` when it cannot say.
+ *
+ * Wikipedia hosts some of its own images rather than taking them from Commons,
+ * and Commons answers for those with a missing page. That is not evidence
+ * against the file — it is no evidence at all — so it is reported as absent
+ * and the caller falls back to what the article's prose says.
+ */
+async function commonsCategoriesFor(
+  filename: string
+): Promise<{ title?: string }[] | undefined> {
+  if (!filename) return undefined;
+  try {
+    const res = await fetch(
+      `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(
+        `File:${filename}`
+      )}&prop=categories&cllimit=50&format=json&origin=*`,
+      { headers: { "User-Agent": COMMONS_UA }, signal: AbortSignal.timeout(3000) }
+    );
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as CommonsImageInfo;
+    return Object.values(data.query?.pages ?? {})[0]?.categories;
+  } catch {
+    return undefined;
+  }
+}
+
 const AUTOMOTIVE_PROSE =
   /\b(car|cars|automobile|automotive|vehicle|vehicles|motor vehicle|engine|internal combustion|truck|lorry|motorcycle|chassis|drivetrain|exhaust)\b/i;
 
@@ -615,13 +749,30 @@ async function searchWikipediaLeadImage(term: string): Promise<string> {
     const image = data.thumbnail?.source;
     if (!image) return "";
 
-    const prose = `${data.description ?? ""} ${data.extract ?? ""}`;
-    if (!AUTOMOTIVE_PROSE.test(prose)) return "";
+    const filename = commonsFileNameFrom(image);
 
-    // The filename still has to be a photograph of the part rather than a
-    // diagram or an advertisement of it.
-    const filename = decodeURIComponent(image.split("/").pop() ?? "");
-    if (isDocumentNotPart(filename, undefined)) return "";
+    // What the picture itself is filed under, asked before the prose is.
+    //
+    // It is the stronger evidence of the two and it is the same evidence the
+    // Commons tiers already use. The lead image of "Shock absorber" is filed
+    // under "Automotive Parts" and is a photograph of a car's dampers, while
+    // the article's first paragraph defines a damper in general and never says
+    // car — so the prose rule alone threw away a correct photograph of one of
+    // the commonest parts in these reports. The same for the windscreen wiper.
+    const categories = await commonsCategoriesFor(filename);
+
+    // And a picture filed as a drawing of the part is not a picture of it.
+    // "Turbocharger" leads with an animation filed under "Cutaway diagrams of
+    // turbochargers", which the filename alone does not admit to.
+    if (isDocumentNotPart(filename, categories)) return "";
+
+    // Either proof will do. The categories settle the parts the prose cannot,
+    // and the prose settles the files Commons has never catalogued — including
+    // the ones Wikipedia hosts itself, which are not on Commons at all.
+    const prose = `${data.description ?? ""} ${data.extract ?? ""}`;
+    if (!isFiledAsAutomotive(categories) && !AUTOMOTIVE_PROSE.test(prose)) {
+      return "";
+    }
 
     // Wikimedia appends its own utm_* campaign parameters.
     return image.split("?")[0];
@@ -741,8 +892,16 @@ export async function searchPartImageOnline(
   // archive, not a parts catalogue: adding "Toyota" to "Thermostat" pushes the
   // results towards photographs of cars rather than of the component, and the
   // relevance check then rejects all of them.
+  //
+  // Asked for under each reduction of that name, longest first, rather than
+  // only as the whole catalogue phrase. "EPS Column Assembly with Torque
+  // Sensor" is not a title any archive holds, and one miss here used to hand
+  // the card to the dictionary, which answered with a steering wheel.
   if (!foundUrl && hasLatinWord(partNameEn)) {
-    foundUrl = await searchWikimediaCommons(partNameEn, partNameEn);
+    for (const variant of englishSearchVariants(partNameEn)) {
+      foundUrl = await searchWikimediaCommons(variant, variant);
+      if (foundUrl) break;
+    }
   }
 
   // Tier 3: the same search, under an English name the dictionary supplies for
@@ -762,10 +921,17 @@ export async function searchPartImageOnline(
     // when Commons had no clock spring, which it does not, the card was given
     // a photograph of a steering wheel instead. A different part, and the
     // reader has no way to tell.
+    //
+    // And it has to agree with the English name the report already gave, when
+    // there is one. Without that, "عمود ستيرسو كهربائي مع حساس التورك" reaches
+    // the entry for "ستيرسو" and a card headed "EPS Column Assembly with
+    // Torque Sensor" is answered with a photograph of a steering wheel.
     const [term] = [
       ...englishTermsFor(partNameLibyan),
       ...englishTermsFor(partNameEn),
-    ].filter(isSearchableTerm);
+    ]
+      .filter(isSearchableTerm)
+      .filter((t) => agreesWithEnglishName(t, partNameEn));
 
     if (term) foundUrl = await searchWikimediaCommons(term, term);
   }
@@ -783,8 +949,14 @@ export async function searchPartImageOnline(
     // tier repeated it: "Clock spring" has no automotive article, so it fell
     // through to "Steering wheel", which has a very good photograph of the
     // wrong part.
-    const [fallback] = englishTermsFor(partNameLibyan).filter(isSearchableTerm);
-    for (const term of [partNameEn, fallback].filter(
+    //
+    // The English name is offered under each of its reductions here too, and
+    // the dictionary's term only if it agrees with that name.
+    const [fallback] = englishTermsFor(partNameLibyan)
+      .filter(isSearchableTerm)
+      .filter((t) => agreesWithEnglishName(t, partNameEn));
+
+    for (const term of [...englishSearchVariants(partNameEn), fallback].filter(
       (t): t is string => !!t && isSearchableTerm(t)
     )) {
       foundUrl = await searchWikipediaLeadImage(term);

@@ -67,12 +67,13 @@ const PARTS: [english: string, libyan: string][] = [
 ];
 
 /**
- * Measured at 16 of these 30 on the day the host move was repaired. The floor
- * sits below that rather than at it: Commons is edited by other people, and a
- * file being recategorised is not a bug in this app. A tier going dark takes
- * the number well under this — losing the live tiers entirely leaves 10.
+ * Measured at 20 of these 30 once the search asked under the part's own
+ * English name rather than only the whole catalogue phrase. The floor sits
+ * below that rather than at it: Commons is edited by other people, and a file
+ * being recategorised is not a bug in this app. A tier going dark takes the
+ * number well under this — losing the live tiers entirely leaves 10.
  */
-const MIN_HITS = 13;
+const MIN_HITS = 15;
 
 let warnings: string[] = [];
 let warn: ReturnType<typeof vi.spyOn>;
@@ -117,3 +118,43 @@ it("finds photographs, and drops none of them on an unallowed origin", async () 
     `Only ${found.length} of ${PARTS.length} parts came back with a photo. Without the live tiers this number is about 10 — the curated registry alone.`
   ).toBeGreaterThanOrEqual(MIN_HITS);
 }, 300_000);
+
+/**
+ * Two cards from a real Hyundai Elantra HD report, neither of which has a
+ * photograph anywhere — and one of which was answered with a Volvo steering
+ * wheel.
+ *
+ * "عمود ستيرسو كهربائي مع حساس التورك" is an electric steering column. It
+ * contains "ستيرسو", whose dictionary gloss is "Steering wheel (sterzo)", and
+ * once the English name missed, that gloss was what the archive was asked for.
+ * The reader got a confident photograph of the wrong component in the same
+ * corner of the car at a very different price.
+ *
+ * The right answer for both of these is no photograph at all: Commons and
+ * Wikipedia have neither a steering angle sensor nor an EPS column. The card
+ * then draws its schematic, which names the part without claiming to be a
+ * picture of it.
+ */
+it("draws a schematic rather than answering with a different part", async () => {
+  const column = await searchPartImageOnline(
+    "",
+    "EPS Column Assembly with Torque Sensor",
+    "",
+    "",
+    "",
+    "عمود ستيرسو كهربائي مع حساس التورك (سكاتولة فوقية) النترا HD"
+  );
+  expect(column, "a steering column must never be shown as a steering wheel").not.toMatch(
+    /steering_wheel/i
+  );
+
+  const sensor = await searchPartImageOnline(
+    "",
+    "Steering Angle Sensor",
+    "",
+    "",
+    "",
+    "حساس زاوية الستيرسو / شريط الدومان النترا HD"
+  );
+  expect(sensor, "nor may the angle sensor be").not.toMatch(/steering_wheel/i);
+}, 120_000);
