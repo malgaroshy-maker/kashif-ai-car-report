@@ -67,13 +67,18 @@ const PARTS: [english: string, libyan: string][] = [
 ];
 
 /**
- * Measured at 20 of these 30 once the search asked under the part's own
- * English name rather than only the whole catalogue phrase. The floor sits
- * below that rather than at it: Commons is edited by other people, and a file
- * being recategorised is not a bug in this app. A tier going dark takes the
- * number well under this — losing the live tiers entirely leaves 10.
+ * Measured at 24 of these 30 once the five parts the live tiers could never
+ * answer were looked up by hand. The floor sits below that rather than at it:
+ * Commons is edited by other people, and a file being recategorised is not a
+ * bug in this app. A tier going dark takes the number well under this —
+ * losing the live tiers entirely leaves the registry's own count.
+ *
+ * The six that remain are photographed nowhere Wikimedia can reach: the
+ * camshaft position sensor, the clock spring, the engine mount, the knock
+ * sensor, the coolant temperature sensor and the EVAP purge valve. They are
+ * drawn, and `part-photos.test.ts` keeps them that way.
  */
-const MIN_HITS = 15;
+const MIN_HITS = 20;
 
 let warnings: string[] = [];
 let warn: ReturnType<typeof vi.spyOn>;

@@ -5,6 +5,7 @@ import {
   curatedPhotoFor,
   englishSearchVariants,
   isDocumentNotPart,
+  isFiledAsAnotherVehicle,
   isFiledAsAutomotive,
   isSearchableTerm,
   titleMatchesPart,
@@ -506,5 +507,111 @@ describe("reading a file's name off a Wikimedia URL", () => {
         "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Olejov%C3%BD_filtr.jpg/330px-Olejov%C3%BD_filtr.jpg"
       )
     ).toBe("Olejový_filtr.jpg");
+  });
+});
+
+describe("the photos added for parts the live search could never find", () => {
+  const photoFor = (text: string) =>
+    decodeURIComponent(curatedPhotoFor(text)).split("/").pop() ?? "";
+
+  it("shows a water pump, and does not take the other four pumps with it", () => {
+    // The dictionary lists a fuel pump, a power steering pump, a brake master
+    // cylinder and an inverter pump, and Libyan calls every one of them a
+    // "بومبة".
+    expect(photoFor("Water Pump بومبة ميه")).toContain("coolant_pump");
+    expect(photoFor("Fuel Pump بومبة بنزين")).toContain("Fuelpump");
+    expect(photoFor("Power steering pump بومبة ستيرسو")).not.toContain("coolant_pump");
+    expect(photoFor("Brake master cylinder بومبة فرينو")).toContain("master_cylinder");
+  });
+
+  it("shows a hub bearing for a wheel bearing and a sensor for a wheel speed sensor", () => {
+    // Both name a wheel. One is a lump of steel and one is an electrical part,
+    // and "bearing" is what tells them apart.
+    expect(photoFor("Wheel Hub Bearing كوشينتي")).toContain("Hub_Bearing");
+    expect(photoFor("Front Left ABS Wheel Speed Sensor")).toContain("1769855");
+  });
+
+  it("shows the EGR valve itself, not the engine it is bolted to", () => {
+    // The card used to be given the lead image of "Exhaust gas recirculation",
+    // which is a photograph of a whole Saab engine bay.
+    expect(photoFor("EGR Valve فالف الـ EGR")).toContain("EGR_valve");
+    // A word boundary, because "egr" sits inside "integrated".
+    expect(photoFor("Integrated Control Module")).not.toContain("EGR_valve");
+  });
+
+  it("shows a tie rod end as a photograph rather than a cross-section drawing", () => {
+    // The drawn schematic beside it is already a diagram, and a better one.
+    expect(photoFor("Tie Rod End بوكل دركسيون")).toContain("Tie_rod_end");
+    expect(photoFor("Ball joint فوزيلي")).toContain("Tie_rod_end");
+    expect(curatedPhotoFor("Ball joint")).not.toContain("cross_section");
+  });
+
+  it("shows an A/C compressor, and never the engine radiator", () => {
+    // Libyan calls the condenser and the radiator both "رداتوري"; the
+    // compressor is a third part again, and all three are in the same circuit
+    // diagram.
+    expect(photoFor("A/C Compressor كمبريسوري")).toContain("verdichter");
+    expect(photoFor("كمبروسر مكيف")).toContain("verdichter");
+    expect(photoFor("Radiator رداتوري")).toContain("Automobile_radiator");
+  });
+
+  it("shows a CV joint for a half shaft", () => {
+    expect(photoFor("CV Joint سمياص")).toContain("CV_joint");
+    expect(photoFor("CV Axle")).toContain("CV_joint");
+  });
+
+  it("still draws the parts nothing has photographed", () => {
+    // Searched under their English, German, French and Spanish names and under
+    // every Libyan word the dictionary has. A wrong photograph would be worse
+    // than the drawing — the camshaft sensor especially, which is nearly
+    // identical to the crankshaft sensor already in this list.
+    for (const part of [
+      "Camshaft Position Sensor حساس كامة",
+      "Clock Spring شريط إيرباق الدومان",
+      "Knock Sensor حساس الطرق",
+      "Coolant Temperature Sensor حساس حرارة المية",
+      "Engine Mount كرسي مكينة",
+      "Purge Valve فالف التبخير",
+    ]) {
+      expect(curatedPhotoFor(part), part).toBe("");
+    }
+  });
+});
+
+describe("a part for a different machine, and a picture of a box", () => {
+  it("refuses a bicycle's brake pads for a car's", () => {
+    // "Bicycle brake pads" satisfies `isFiledAsAutomotive`, because that rule
+    // accepts a category for naming a brake and a bicycle has brakes. A card
+    // for تيل فرينو was given a blister pack of Shimano disc pads: the right
+    // component for the wrong machine, and nothing on the card said so.
+    const shimano = [
+      { title: "Category:Bicycle brake pads" },
+      { title: "Category:Shimano bicycle parts" },
+    ];
+    expect(isFiledAsAutomotive(shimano)).toBe(true);
+    expect(isFiledAsAnotherVehicle(shimano)).toBe(true);
+  });
+
+  it("leaves a car's own categories alone", () => {
+    expect(
+      isFiledAsAnotherVehicle([
+        { title: "Category:Automobile disk brakes" },
+        { title: "Category:Brake blocks" },
+      ])
+    ).toBe(false);
+  });
+
+  it("refuses a photograph of the packaging", () => {
+    // A box with the part's name printed on it is not a picture of the part.
+    expect(
+      isDocumentNotPart("File:L05A-RF Shimano Disc Brake Pads packaging.jpg", undefined)
+    ).toBe(true);
+  });
+
+  it("shows the pads themselves for pads, and the disc for a disc", () => {
+    // Sold separately, priced differently, and Commons has answered "brake
+    // pads" with a photograph of a disc more than once.
+    expect(curatedPhotoFor("Brake Pads تيل فرينو")).toContain("Brake_pad.jpg");
+    expect(curatedPhotoFor("Brake Disc ديسكو فرينو")).toContain("Disk_brake");
   });
 });

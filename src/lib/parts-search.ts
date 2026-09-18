@@ -183,6 +183,20 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Just_a_fuel_filter..._%2822493933238%29.jpg/330px-Just_a_fuel_filter..._%2822493933238%29.jpg",
   },
   {
+    // Four pads laid out and numbered — the part itself, off the car.
+    //
+    // Curated because the live search kept changing its mind about this one:
+    // Commons has answered it with a photograph of a disc, with a mechanic
+    // holding a disc, and with a blister pack of Shimano *bicycle* pads. It is
+    // one of the two commonest things a Libyan workshop replaces and it cannot
+    // depend on the order Commons happens to return results in today.
+    //
+    // Before the disc entry, and matching only "pad": a disc and a pad are
+    // sold separately and cost differently.
+    pattern: /brake[\s_-]*pads?|تيل.*فرينو|باطني|فحمات/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Brake_pad.jpg/330px-Brake_pad.jpg",
+  },
+  {
     // Disc and caliper on the hub.
     pattern: /brake.*disc|ديسكو.*فرينو|هوبات/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Disk_brake_dsc03682.jpg/330px-Disk_brake_dsc03682.jpg",
@@ -241,8 +255,18 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Nockenwellenantrieb.jpg/330px-Nockenwellenantrieb.jpg",
   },
   {
-    pattern: /ball.*joint|بوكل/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Ball_joint_cross_section_%28from_English_Wikipedia_to_be_used_in_other_languages%29.jpg/330px-Ball_joint_cross_section_%28from_English_Wikipedia_to_be_used_in_other_languages%29.jpg",
+    // The joint in place under the car, its rubber boot and castellated nut
+    // visible, the car on a stand. What was here was a labelled cross-section
+    // drawing — a diagram of a ball joint, which is the one thing this
+    // registry exists to avoid: the drawn schematic beside it is already a
+    // diagram, and a better one, because it does not pretend to be a
+    // photograph.
+    //
+    // "فوزيلي" is the dictionary's own word for this part, and the English
+    // "Tie Rod End" now matches too: the Elantra card that found this was
+    // matching on the Libyan name alone.
+    pattern: /ball[\s_-]*joint|tie[\s_-]*rod|track[\s_-]*rod|بوكل|فوزيلي|فازيلي/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Tie_rod_end.jpeg/330px-Tie_rod_end.jpeg",
   },
   {
     pattern: /master.*cylinder|بومب.*فرينو|اسطوانة.*رئيسية/i,
@@ -260,6 +284,82 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     pattern: /clutch|فرسيوني|طاقم.*فاصل|دبرياج|قابض/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Kupplungsscheibe2.jpg/330px-Kupplungsscheibe2.jpg",
   },
+
+  // ── Parts the live search could never answer ──────────────────────────
+  //
+  // Each of these came back empty from all three online tiers, every time.
+  // Commons has the photographs; its search cannot be made to hand them over
+  // for these words, because the words belong to something else first — a
+  // village hand pump, an industrial ball bearing, a magazine advertisement.
+  // So they are looked up by hand, once, here.
+  //
+  // Every one was fetched and opened before it was written down, which is the
+  // rule at the top of this list and the reason thirteen dead URLs once sat in
+  // it.
+  {
+    // The pump out of the engine, impeller and housing both visible, on
+    // white. Commons search answers "Water pump" with a Victorian village hand
+    // pump and a fire pump — and the encyclopedia answers it with a garden jet
+    // pump, which is the article that owns the words.
+    //
+    // Qualified by مية so it cannot take "بومبة بنزين" or "بومبة ستيرسو": the
+    // dictionary lists four different pumps under "بومبة".
+    pattern: /water[\s_-]*pump|coolant[\s_-]*pump|بومب.*مي[هة]|طرمب.*مي[هة]|مضخة.*ما[ءي]/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Automotive_coolant_pump_6C1Q-8K500-AF-3355.jpg/330px-Automotive_coolant_pump_6C1Q-8K500-AF-3355.jpg",
+  },
+  {
+    // A half shaft with the joint and its boot, on a workshop floor, as grimy
+    // as the ones these cars are running. Commons files its constant-velocity
+    // joints as animated GIFs of the mechanism — correct, and useless to
+    // somebody about to go and buy one.
+    pattern: /\bcv[\s_-]*(joint|axle|boot)|constant[\s_-]*velocity|half[\s_-]*axle|سمياص|بيضة|جلدة.*عكس/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/CV_joint_half_axle.jpg/330px-CV_joint_half_axle.jpg",
+  },
+  {
+    // The valve in a hand, off the engine. The tier that used to answer this
+    // took the lead image of "Exhaust gas recirculation", which is a
+    // photograph of a whole Saab engine bay: the system, not the part, and
+    // nothing on the card said which.
+    pattern: /\begr\b|exhaust[\s_-]*gas[\s_-]*recirc|صمام.*إعادة.*عادم|فالف.*egr|بلف.*egr/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Hydraulic_EGR_valve_open.JPG/330px-Hydraulic_EGR_valve_open.JPG",
+  },
+  {
+    // The hub unit with its studs and the ABS sensor plug beside it. Asked for
+    // a wheel bearing, Commons offers a 19th-century chariot hub and a
+    // diagram of a generic rolling-element bearing.
+    //
+    // This file lives on English Wikipedia rather than Commons — freely
+    // licensed, CC-BY-SA-3.0, and served from the same host. "Bearing" is
+    // required, so an ABS wheel speed sensor cannot reach it.
+    pattern: /wheel[\s_-]*(hub[\s_-]*)?bearing|hub[\s_-]*bearing|كوشينتي|كوشينيتي|رمان.*بلي|محمل.*عجل/i,
+    url: "https://upload.wikimedia.org/wikipedia/en/thumb/1/13/Prime_Choice_Auto_Parts_Hub_Bearing_Assembly.jpg/330px-Prime_Choice_Auto_Parts_Hub_Bearing_Assembly.jpg",
+  },
+  {
+    // A compressor cut open on a stand: the ribbed pulley, the clutch plate
+    // and the mounting ears are all where a mechanic looks for them, which is
+    // what identifies it. Sectioned rather than whole because Commons has no
+    // photograph of a whole one — it is still a photograph of the part, not a
+    // drawing of it.
+    //
+    // Before the exhaust and cooling patterns can see it, because "ضاغط
+    // التكييف" is the only thing in this list with "تكييف" in it and the
+    // radiator entry spends a negative lookahead excluding that word.
+    pattern: /(a\/?c|air[\s_-]*condition\w*|climate)[\s_-]*compressor|compressor.*(a\/?c|air[\s_-]*condition)|كمبريسور|كمبروسر|كومبروسر|ضاغط.*تكييف/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Taumelscheibenverdichter-Schnitt.JPG/330px-Taumelscheibenverdichter-Schnitt.JPG",
+  },
+
+  // Six more that a Libyan report names often and that are photographed
+  // nowhere Wikimedia can reach: the engine mount, the knock sensor, the
+  // coolant temperature sensor, the camshaft position sensor, the clock spring
+  // and the EVAP purge valve. Searched under their English, German, French and
+  // Spanish names, and under every Libyan word the dictionary has for them.
+  //
+  // Commons answers the knock sensor with an animation of engine knock, the
+  // camshaft sensor with two photographs of a Corvette, and the coolant
+  // temperature sensor with a school bus dashboard. The camshaft sensor is the
+  // dangerous one: it is nearly identical to the crankshaft sensor two entries
+  // above, and putting that photograph here would be the exact mistake this
+  // file keeps a record of. They are drawn instead.
 ];
 
 /**
@@ -522,7 +622,7 @@ export /**
  * sitting in the evidence the whole time and nothing was reading it.
  */
 const NOT_A_PART =
-  /advertis|magazine|periodical|patent|poster|catalogue|catalog|brochure|leaflet|drawing|diagram|schematic|blueprint|\bmaps?\b|logos|postcard|stamps/i;
+  /advertis|magazine|periodical|patent|poster|catalogue|catalog|brochure|leaflet|drawing|diagram|schematic|blueprint|\bmaps?\b|logos|postcard|stamps|packaging|packet|blister/i;
 
 /** A part on a shelf is not titled with the year the Model T was current. */
 const HISTORICAL_YEAR = /\b1[89]\d{2}\b/;
@@ -536,6 +636,29 @@ export function isDocumentNotPart(
   if (/\bads?\b/i.test(name)) return true;
   return (categories ?? []).some((c) =>
     NOT_A_PART.test((c.title ?? "").replace(/^Category:/, ""))
+  );
+}
+
+/**
+ * Categories that mean "this belongs to a vehicle, but not to a car".
+ *
+ * `AUTOMOTIVE_CATEGORY_WORD` accepts a category for naming a brake, and a
+ * bicycle has brakes: "Bicycle brake pads" reads as automotive evidence, and a
+ * card for تيل فرينو was given a photograph of a blister pack of Shimano disc
+ * pads. It is a brake pad, and it is for the wrong machine, and nothing about
+ * the card would tell the reader.
+ *
+ * Asked before the positive evidence, because a file filed under both is
+ * filed under the more specific one for a reason.
+ */
+const ANOTHER_VEHICLE =
+  /\b(bicycle|bike|cycling|motorcycle|moped|scooter|aircraft|aviation|locomotive|railway|railroad|tram|marine|boat|ship)/i;
+
+export function isFiledAsAnotherVehicle(
+  categories: { title?: string }[] | undefined
+): boolean {
+  return (categories ?? []).some((c) =>
+    ANOTHER_VEHICLE.test((c.title ?? "").replace(/^Category:/, ""))
   );
 }
 
@@ -634,6 +757,7 @@ async function searchWikimediaCommons(
       // water pump — both match two words of the part name, and both are the
       // kind of confident wrong photograph that is worse than the drawing,
       // because the drawing never claims to be a photograph of anything.
+      if (isFiledAsAnotherVehicle(page?.categories)) return "";
       if (!isFiledAsAutomotive(page?.categories)) return "";
       if (isDocumentNotPart(title, page?.categories)) return "";
 
@@ -764,6 +888,7 @@ async function searchWikipediaLeadImage(term: string): Promise<string> {
     // And a picture filed as a drawing of the part is not a picture of it.
     // "Turbocharger" leads with an animation filed under "Cutaway diagrams of
     // turbochargers", which the filename alone does not admit to.
+    if (isFiledAsAnotherVehicle(categories)) return "";
     if (isDocumentNotPart(filename, categories)) return "";
 
     // Either proof will do. The categories settle the parts the prose cannot,
