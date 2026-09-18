@@ -44,8 +44,21 @@ const SEARCH_URL = "https://api.ebay.com/buy/browse/v1/item_summary/search";
  */
 const MARKETPLACE = "EBAY_US";
 
-/** Enough listings that the number can be matched in a title; few enough to stay cheap. */
-const LIMIT = 10;
+/**
+ * How many listings to look through for one that quotes the number.
+ *
+ * Twenty-five rather than ten, and the difference is measured rather than
+ * guessed. eBay's search is fuzzy about part numbers: asked for 84306-06140 it
+ * answers with 84306-0E010 and 84306-48030 — different clock springs, for a
+ * Tundra and a Highlander — because they share a prefix. Checked against the
+ * three numbers on a real Camry report, the first listing that actually quotes
+ * the number sits at rank 7, 14 and 1.
+ *
+ * A limit of ten would have found two of those three and shown the vapour
+ * pressure sensor nothing. One search costs the same against the daily limit
+ * whether it returns ten rows or twenty-five.
+ */
+const LIMIT = 25;
 
 /** The photo is decoration on a card, not the report. It never delays it long. */
 const TIMEOUT_MS = 5000;
@@ -172,6 +185,19 @@ export function normalizeOem(oem: string): string {
  */
 const MIN_OEM_LENGTH = 6;
 
+/**
+ * Why this is not "take the first result".
+ *
+ * Measured against eBay's own search for the three part numbers on a real
+ * Camry report: the top result for 84306-06140 is a clock spring numbered
+ * 84306-0E010, and the top result for 89460-06020 is a pressure sensor
+ * numbered 89458-20051. Both are real photographs of real parts, and both are
+ * the wrong part — sharing a prefix with the one the card is about.
+ *
+ * Taking the first result would have put a Tundra's clock spring on a Camry's
+ * card, priced differently, under a number that does not match it. Requiring
+ * the number turns two confident wrong answers into two honest drawings.
+ */
 export function listingMatchesOem(title: string, oem: string): boolean {
   const wanted = normalizeOem(oem);
   if (wanted.length < MIN_OEM_LENGTH) return false;
