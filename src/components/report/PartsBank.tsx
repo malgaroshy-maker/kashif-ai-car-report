@@ -11,6 +11,7 @@ interface PartPhotoResponse {
   imageUrl?: string | null;
   source?: PartPhoto["source"] | null;
   listingUrl?: string | null;
+  article?: string | null;
 }
 
 /**
@@ -166,6 +167,7 @@ function PartVisual({
   const found = photo.photo;
   const showPhoto = !!found && !failed;
   const fromListing = showPhoto && found.source === "ebay";
+  const fromCatalogue = showPhoto && found.source === "catalogue";
 
   return (
     <div className="w-full sm:w-[190px] sm:shrink-0">
@@ -224,6 +226,19 @@ function PartVisual({
 
           The link is also what eBay's licence expects of anyone displaying
           its content: it is there to take the reader to the listing. */}
+      {/* The catalogue's photograph is of the aftermarket part that fits where
+          the genuine one did — a Bosch or a Stellox, not the Toyota. For
+          somebody about to go and buy one that is usually the more useful
+          picture, and it is still not a picture of their car's part. Naming
+          the brand and number under it is the whole disclosure: a mechanic
+          reads "STELLOX 001 016B-SX" and knows exactly what he is looking at. */}
+      {fromCatalogue && (
+        <p className="k-label mt-[var(--s1)] normal-case">
+          صورة قطعة بديلة مطابقة لرقم الوكالة
+          {found.article ? ` — ${found.article}` : ""}
+        </p>
+      )}
+
       {fromListing && found.listingUrl && (
         <a
           href={found.listingUrl}
@@ -298,6 +313,7 @@ function usePartPhoto(
                 url: d.imageUrl,
                 source: d.source ?? "commons",
                 listingUrl: d.listingUrl ?? undefined,
+                article: d.article ?? undefined,
               }
             : null
         )

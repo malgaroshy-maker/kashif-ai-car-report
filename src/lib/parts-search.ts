@@ -22,6 +22,7 @@
 import { isAllowedPartImage } from "./part-image-hosts";
 import { englishTermsFor } from "./dictionary";
 import { searchEbayPartPhoto } from "./ebay-parts";
+import { searchCataloguePartPhoto } from "./autoparts";
 
 /**
  * A photograph, and where it came from.
@@ -34,9 +35,11 @@ import { searchEbayPartPhoto } from "./ebay-parts";
  */
 export interface PartPhoto {
   url: string;
-  source: "curated" | "ebay" | "commons" | "encyclopedia";
+  source: "curated" | "catalogue" | "ebay" | "commons" | "encyclopedia";
   /** Only ever set for `ebay`: the listing this photograph belongs to. */
   listingUrl?: string;
+  /** Only for `catalogue`: "BOSCH 0 280 218 135", what the picture is of. */
+  article?: string;
 }
 
 /** Only the two shapes we read out of the Commons API. */
@@ -1039,8 +1042,26 @@ export async function searchPartImageOnline(
   );
   let source: PartPhoto["source"] = "curated";
   let listingUrl: string | undefined;
+  let catalogueArticle: string | undefined;
 
-  // Tier 2: the parts catalogue, asked for the number on the card.
+  // Tier 2: the aftermarket catalogue, asked for the number on the card.
+  //
+  // First of the online tiers because it is the only one whose match cannot
+  // be wrong: it is keyed by the OEM number rather than searched by text. What
+  // it returns is the aftermarket equivalent — the Bosch or Stellox part that
+  // fits where the Toyota one did — which for somebody about to go and buy one
+  // is usually the more useful photograph, and is a different claim from "this
+  // is your car's part". The card says which.
+  if (!foundUrl && cleanOem) {
+    const fromCatalogue = await searchCataloguePartPhoto(cleanOem);
+    if (fromCatalogue) {
+      foundUrl = fromCatalogue.imageUrl;
+      source = "catalogue";
+      catalogueArticle = fromCatalogue.article;
+    }
+  }
+
+  // Tier 3: the marketplace, asked for the same number.
   //
   // The only source here that can answer the question the report actually
   // poses. Everything below is searched by name against an encyclopedia, and
@@ -1063,7 +1084,7 @@ export async function searchPartImageOnline(
     }
   }
 
-  // Tier 3: Commons under the part's own English name.
+  // Tier 4: Commons under the part's own English name.
   //
   // The make is deliberately left out of the search text. Commons is a general
   // archive, not a parts catalogue: adding "Toyota" to "Thermostat" pushes the
@@ -1082,7 +1103,7 @@ export async function searchPartImageOnline(
     if (foundUrl) source = "commons";
   }
 
-  // Tier 4: the same search, under an English name the dictionary supplies for
+  // Tier 5: the same search, under an English name the dictionary supplies for
   // the Libyan one.
   //
   // This tier was dead. `englishTermsFor` matches Libyan workshop terms, and
@@ -1115,7 +1136,7 @@ export async function searchPartImageOnline(
     if (foundUrl) source = "commons";
   }
 
-  // Tier 5: the article about the part, and its lead image.
+  // Tier 6: the article about the part, and its lead image.
   //
   // Last because it is the broadest: an article's picture is of the subject in
   // general, where the tiers above are pinned to this part by a hand-check or
@@ -1171,7 +1192,12 @@ export async function searchPartImageOnline(
 
   const result: PartPhoto | null =
     allowed && foundUrl
-      ? { url: foundUrl, source, ...(listingUrl ? { listingUrl } : {}) }
+      ? {
+          url: foundUrl,
+          source,
+          ...(listingUrl ? { listingUrl } : {}),
+          ...(catalogueArticle ? { article: catalogueArticle } : {}),
+        }
       : null;
 
   // The miss is cached too. Only hits used to be, so every card without a

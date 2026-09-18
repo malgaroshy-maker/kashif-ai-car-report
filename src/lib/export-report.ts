@@ -201,7 +201,12 @@ export async function downloadReportHtml(
         // prints is the opposite of intermediate. On screen that photo is
         // shown as what it is, linked to its listing; in the offline file the
         // card falls back to its drawing.
-        src.includes("ebayimg.com")
+        src.includes("ebayimg.com") ||
+        // Nor the aftermarket catalogue's media, for the same reason and one
+        // more: it is a redistribution of somebody else's parts library, and
+        // baking it into a file that gets forwarded and printed is a further
+        // step than showing it on a card.
+        src.includes("your-objectstorage.com")
       ) {
         part.partImageUrl = undefined;
         continue;

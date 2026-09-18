@@ -10,3 +10,8 @@ GEMINI_API_KEY=
 # Production keyset from https://developer.ebay.com/my/keys
 EBAY_CLIENT_ID=
 EBAY_CLIENT_SECRET=
+
+# Optional. Part photos by OEM number from the aftermarket catalogue.
+# Free plan is 100 requests/month; two are spent per part looked up.
+AUTOPARTS_API_KEY=
+AUTOPARTS_BASE_URL=

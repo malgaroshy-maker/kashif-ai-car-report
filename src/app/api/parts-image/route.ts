@@ -53,6 +53,7 @@ export async function GET(req: NextRequest) {
         imageUrl: photo?.url ?? null,
         source: photo?.source ?? null,
         listingUrl: photo?.listingUrl ?? null,
+        article: photo?.article ?? null,
       },
       { headers: { "Cache-Control": CACHE } }
     );
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
     // upstream message is not ours to forward. Answer "no photo".
     console.warn("[parts-image] lookup failed:", error);
     return NextResponse.json(
-      { success: true, imageUrl: null, source: null, listingUrl: null },
+      { success: true, imageUrl: null, source: null, listingUrl: null, article: null },
       { headers: { "Cache-Control": "no-store" } }
     );
   }

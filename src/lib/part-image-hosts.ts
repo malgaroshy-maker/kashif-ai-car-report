@@ -30,6 +30,10 @@ export const PART_IMAGE_HOSTS = [
   // `ebay-parts.ts`, only for a listing whose title quotes the OEM number on
   // the card, and only when this deployment has eBay credentials at all.
   "https://i.ebayimg.com",
+  // Where the aftermarket catalogue keeps its media. Object storage rather
+  // than a CDN, which is one of several reasons that source is documented as
+  // the least durable one here.
+  "https://fsn1.your-objectstorage.com",
 ] as const;
 
 // cdn4.pelicanparts.com was here for one photograph. That host answers 403 to
