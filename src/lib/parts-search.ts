@@ -803,7 +803,20 @@ export async function searchPartImageOnline(
   // hand-edited. Anything off the allowlist would be blocked by the CSP in the
   // browser anyway; drop it here so the UI falls back to its vector schematic
   // instead of rendering a broken image.
-  const result = foundUrl && isAllowedPartImage(foundUrl) ? foundUrl : "";
+  //
+  // The drop is said out loud. When Wikimedia moved its thumbnails to
+  // `thumb.wikimedia.org` this line quietly threw away every photograph the
+  // three live tiers found, for every part outside the curated registry, and
+  // nothing anywhere recorded that it had happened — the card fell back to its
+  // drawing, which is exactly what it does when there honestly is no photo.
+  // `npm run audit:live` fails on this warning.
+  const allowed = !foundUrl || isAllowedPartImage(foundUrl);
+  if (!allowed) {
+    console.warn(
+      `[parts-image] dropped a photo on an origin that is not allowed: ${foundUrl} — if this host is Wikimedia's, add it to PART_IMAGE_HOSTS`
+    );
+  }
+  const result = allowed ? foundUrl : "";
 
   // The miss is cached too. Only hits used to be, so every card without a
   // photo — which is most of them — re-ran two Commons queries on every single

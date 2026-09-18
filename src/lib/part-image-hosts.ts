@@ -12,6 +12,19 @@
  */
 export const PART_IMAGE_HOSTS = [
   "https://upload.wikimedia.org",
+  // Wikimedia now hands out thumbnails on this host. Both the Commons
+  // `imageinfo` API and the Wikipedia REST summary return `thumb.wikimedia.org`
+  // where they used to return `upload.wikimedia.org/.../thumb/...`, and the two
+  // serve the same bytes on the same path.
+  //
+  // Everything the live search found was being discarded here: the Commons
+  // tiers and the encyclopedia tier did their work, passed every relevance and
+  // category check, and were then dropped one line before returning, because
+  // the host they came back on was not on this list. Only the curated registry
+  // still showed a photo, because its URLs are written out by hand against the
+  // old host — which is why it read as "some parts have no picture" rather than
+  // as a broken feature. `npm run audit:live` fails when this happens again.
+  "https://thumb.wikimedia.org",
   "https://assets.turnermotorsport.com",
 ] as const;
 
