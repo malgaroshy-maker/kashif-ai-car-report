@@ -1,4 +1,6 @@
 @echo off
+chcp 65001 >nul
+cd /d "%~dp0"
 title Kashif AI Development Server
 echo ======================================================
 echo   كاشف — Kashif AI Car Diagnostic Report Assistant   
@@ -23,3 +25,8 @@ echo [INFO] Starting Next.js development server...
 echo [INFO] Open http://localhost:3000 in your browser.
 echo.
 call npm run dev
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] Server stopped unexpectedly.
+    pause
+)

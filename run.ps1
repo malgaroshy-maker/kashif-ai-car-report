@@ -6,6 +6,7 @@
 #>
 
 $ErrorActionPreference = "Stop"
+Set-Location -LiteralPath $PSScriptRoot
 
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host "  كاشف — Kashif AI Car Diagnostic Report Assistant   " -ForegroundColor Yellow
