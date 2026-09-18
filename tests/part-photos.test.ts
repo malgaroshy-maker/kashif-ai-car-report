@@ -615,3 +615,25 @@ describe("a part for a different machine, and a picture of a box", () => {
     expect(curatedPhotoFor("Brake Disc ديسكو فرينو")).toContain("Disk_brake");
   });
 });
+
+describe("a title that matches only the words every part shares", () => {
+  it("refuses a Geo Storm's dashboard loom for a side airbag connector", () => {
+    // From a real Camry report. "Wiring" and "harness" are two matching words
+    // and neither says which loom: the word that would, "airbag", is not in
+    // the title at all.
+    expect(
+      titleMatchesPart(
+        "File:2008-04-17 Geo Storm instrument cluster wiring harness.jpg",
+        "Side Airbag Wiring Connector Harness",
+        { insideAutomotiveCategory: true }
+      )
+    ).toBe(false);
+  });
+
+  it("still accepts a match that names the part", () => {
+    // "Pads" is not a category word, so this one carries real evidence.
+    expect(titleMatchesPart("File:Brake pads.JPG", "Brake Pads")).toBe(true);
+    // Neither is "timing", against a category word for the other half.
+    expect(isSearchableTerm("Timing Belt")).toBe(true);
+  });
+});

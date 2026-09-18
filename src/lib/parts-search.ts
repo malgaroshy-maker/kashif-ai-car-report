@@ -531,7 +531,17 @@ export function titleMatchesPart(
     new RegExp(String.raw`\b${w}(?:e?s)?\b`).test(haystack)
   );
 
-  if (words.length >= 2) return matched.length >= 2;
+  if (words.length >= 2) {
+    if (matched.length < 2) return false;
+    // And at least one of them has to say *which* one.
+    //
+    // A real Camry card for "Side Airbag Wiring Connector Harness" was given a
+    // photograph of a Geo Storm's instrument cluster loom. Two words matched —
+    // "wiring" and "harness" — and both of them name a category rather than a
+    // part: every loom in the archive matches them, and the word that would
+    // have told the two apart, "airbag", is nowhere in that title.
+    return matched.some((w) => !TOO_GENERAL.test(w));
+  }
 
   // The search that produced this title was confined to the automotive
   // category tree, so "is this about a car at all" is already settled and the
@@ -927,7 +937,7 @@ const THUMB_WIDTH = 320;
  * out of it.
  */
 const TOO_GENERAL =
-  /^(pump|sensor|filter|switch|belt|valve|motor|engine|module|unit|relay|fuse|wire|wiring|hose|pipe|bearing|gasket|seal|cover|housing|bracket|arm|light|lamp|system|assembly)$/i;
+  /^(pump|sensor|filter|switch|belt|valve|motor|engine|module|unit|relay|fuse|wire|wiring|harness|loom|connector|plug|cable|socket|terminal|hose|pipe|bearing|gasket|seal|cover|housing|bracket|arm|light|lamp|system|assembly)$/i;
 
 export function isSearchableTerm(term: string): boolean {
   const t = term.trim();
