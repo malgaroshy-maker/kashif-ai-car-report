@@ -4,3 +4,9 @@
 # Optional. Kashif is bring-your-own-key: users paste their own Google AI Studio
 # key in Settings. This only exists so local development does not need one.
 GEMINI_API_KEY=
+
+# Optional. Part photos looked up by OEM number through eBay's Browse API.
+# Leave blank and that source is simply switched off.
+# Production keyset from https://developer.ebay.com/my/keys
+EBAY_CLIENT_ID=
+EBAY_CLIENT_SECRET=

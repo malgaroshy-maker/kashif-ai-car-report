@@ -194,7 +194,14 @@ export async function downloadReportHtml(
       if (
         !src ||
         !(src.startsWith("http://") || src.startsWith("https://")) ||
-        src.includes("/parts/")
+        src.includes("/parts/") ||
+        // Never a listing photograph. eBay licenses its content for "limited
+        // intermediate copies… deleted when they are no longer required", and
+        // a data: URI baked into a file the mechanic keeps, forwards and
+        // prints is the opposite of intermediate. On screen that photo is
+        // shown as what it is, linked to its listing; in the offline file the
+        // card falls back to its drawing.
+        src.includes("ebayimg.com")
       ) {
         part.partImageUrl = undefined;
         continue;

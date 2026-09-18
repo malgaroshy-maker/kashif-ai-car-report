@@ -3,7 +3,15 @@
 import * as React from "react";
 import { Cell, CodePlate, Field } from "@/components/ui/primitives";
 import { getPartSvg } from "@/lib/part-visuals";
+import type { PartPhoto } from "@/lib/parts-search";
 import type { SparePartItem } from "@/lib/types";
+
+/** What /api/parts-image answers with. */
+interface PartPhotoResponse {
+  imageUrl?: string | null;
+  source?: PartPhoto["source"] | null;
+  listingUrl?: string | null;
+}
 
 /**
  * The parts list: what to buy, and what to say at the counter.
@@ -152,12 +160,15 @@ function PartVisual({
   photo,
 }: {
   part: SparePartItem;
-  photo: { url: string; loading: boolean };
+  photo: { photo: PartPhoto | null; loading: boolean };
 }) {
   const [failed, setFailed] = React.useState(false);
-  const showPhoto = photo.url && !failed;
+  const found = photo.photo;
+  const showPhoto = !!found && !failed;
+  const fromListing = showPhoto && found.source === "ebay";
 
   return (
+    <div className="w-full sm:w-[190px] sm:shrink-0">
     <div
       // 72px was a thumbnail of a thing nobody could identify from it, and
       // identifying the part is the only reason it is here — the mechanic is
@@ -172,7 +183,7 @@ function PartVisual({
       // `max-height: 100%` then measured itself against the row instead of the
       // box — no constraint at all, and thirty pixels of the photo clipped. A
       // flex line gives the percentage a definite box to resolve against.
-      className="flex h-[190px] w-full items-center justify-center overflow-hidden border border-[var(--rib)] bg-[var(--board-sunk)] p-[var(--s2)] sm:w-[190px] sm:shrink-0"
+      className="flex h-[190px] w-full items-center justify-center overflow-hidden border border-[var(--rib)] bg-[var(--board-sunk)] p-[var(--s2)]"
       aria-hidden
     >
       {showPhoto ? (
@@ -180,7 +191,7 @@ function PartVisual({
         // these are lazy thumbnails on a Worker with no image optimiser.
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={photo.url}
+          src={found.url}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
@@ -201,6 +212,27 @@ function PartVisual({
             ),
           }}
         />
+      )}
+    </div>
+
+      {/* Where the picture came from, when that changes what it is claiming.
+          A hand-checked photograph of a radiator is a picture of the part; a
+          seller's photograph found by the number on this card is a picture of
+          *an* item somebody has listed under that number — and the number
+          itself came from the assistant, not the scan. Saying so costs one
+          line and stops the card overclaiming.
+
+          The link is also what eBay's licence expects of anyone displaying
+          its content: it is there to take the reader to the listing. */}
+      {fromListing && found.listingUrl && (
+        <a
+          href={found.listingUrl}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="k-label mt-[var(--s1)] block normal-case underline decoration-[var(--rib)] underline-offset-2 hover:text-(color:--ink)"
+        >
+          صورة من إعلان eBay على رقم القطعة — مش صورة قطعة سيارتك
+        </a>
       )}
     </div>
   );
@@ -229,7 +261,9 @@ function usePartPhoto(
   // Storing a separate `loading` flag meant setting it inside the effect
   // before the fetch, which is a synchronous setState in an effect body and an
   // extra render on every card. Deriving it needs neither.
-  const [fetched, setFetched] = React.useState<string | undefined>(undefined);
+  const [fetched, setFetched] = React.useState<PartPhoto | null | undefined>(
+    undefined
+  );
 
   const make = vehicle?.make ?? "";
   const model = vehicle?.model ?? "";
@@ -257,20 +291,28 @@ function usePartPhoto(
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]),
     })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: { imageUrl?: string | null } | null) =>
-        setFetched(d?.imageUrl ?? "")
+      .then((d: PartPhotoResponse | null) =>
+        setFetched(
+          d?.imageUrl
+            ? {
+                url: d.imageUrl,
+                source: d.source ?? "commons",
+                listingUrl: d.listingUrl ?? undefined,
+              }
+            : null
+        )
       )
       .catch(() => {
         // No photo is an ordinary outcome. The schematic already names the
         // part, so the card is complete without one.
-        if (!controller.signal.aborted) setFetched("");
+        if (!controller.signal.aborted) setFetched(null);
       });
 
     return () => controller.abort();
   }, [supplied, make, model, year, oem, name, libyan]);
 
   return {
-    url: supplied || fetched || "",
+    photo: supplied ? { url: supplied, source: "curated" as const } : fetched ?? null,
     loading: !supplied && fetched === undefined,
   };
 }

@@ -26,6 +26,10 @@ export const PART_IMAGE_HOSTS = [
   // as a broken feature. `npm run audit:live` fails when this happens again.
   "https://thumb.wikimedia.org",
   "https://assets.turnermotorsport.com",
+  // Where eBay serves its listing photographs. Reached only through
+  // `ebay-parts.ts`, only for a listing whose title quotes the OEM number on
+  // the card, and only when this deployment has eBay credentials at all.
+  "https://i.ebayimg.com",
 ] as const;
 
 // cdn4.pelicanparts.com was here for one photograph. That host answers 403 to

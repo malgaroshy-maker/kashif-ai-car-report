@@ -21,6 +21,23 @@
 
 import { isAllowedPartImage } from "./part-image-hosts";
 import { englishTermsFor } from "./dictionary";
+import { searchEbayPartPhoto } from "./ebay-parts";
+
+/**
+ * A photograph, and where it came from.
+ *
+ * The source travels with the URL because the card says it out loud. A
+ * hand-checked photograph of a radiator and a photograph from somebody's eBay
+ * listing for part 84306-06140 are different kinds of claim, and the second
+ * one is only honest with the listing attached to it — which is also what
+ * eBay's licence expects of anyone displaying it.
+ */
+export interface PartPhoto {
+  url: string;
+  source: "curated" | "ebay" | "commons" | "encyclopedia";
+  /** Only ever set for `ebay`: the listing this photograph belongs to. */
+  listingUrl?: string;
+}
 
 /** Only the two shapes we read out of the Commons API. */
 interface CommonsSearchResult {
@@ -47,7 +64,7 @@ interface CommonsImageInfo {
 }
 
 // In-memory cache for fast response and deduplication
-const imageSearchCache = new Map<string, string>();
+const imageSearchCache = new Map<string, PartPhoto | null>();
 
 /**
  * Hand-checked photographs, tried before anything is searched for.
@@ -960,12 +977,12 @@ function hasLatinWord(name: string): boolean {
  */
 const CACHE_LIMIT = 500;
 
-function rememberPhoto(key: string, url: string): void {
+function rememberPhoto(key: string, photo: PartPhoto | null): void {
   if (imageSearchCache.size >= CACHE_LIMIT) {
     const oldest = imageSearchCache.keys().next().value;
     if (oldest !== undefined) imageSearchCache.delete(oldest);
   }
-  imageSearchCache.set(key, url);
+  imageSearchCache.set(key, photo);
 }
 
 /** The first curated photo whose pattern matches, or "". Exported to be tested. */
@@ -992,7 +1009,7 @@ export async function searchPartImageOnline(
   model?: string,
   year?: string | number,
   partNameLibyan: string = ""
-): Promise<string> {
+): Promise<PartPhoto | null> {
   const cleanOem = oemNumber ? oemNumber.replace(/[^a-zA-Z0-9-]/g, " ").trim() : "";
 
   // The key is what the answer actually depends on.
@@ -1020,8 +1037,33 @@ export async function searchPartImageOnline(
   let foundUrl = curatedPhotoFor(
     `${partNameEn} ${partNameLibyan} ${cleanOem}`.trim()
   );
+  let source: PartPhoto["source"] = "curated";
+  let listingUrl: string | undefined;
 
-  // Tier 2: Commons under the part's own English name.
+  // Tier 2: the parts catalogue, asked for the number on the card.
+  //
+  // The only source here that can answer the question the report actually
+  // poses. Everything below is searched by name against an encyclopedia, and
+  // an encyclopedia has one photograph of "a clock spring" if it has any at
+  // all — never the one Toyota sells as 84306-06140.
+  //
+  // Below the curated registry rather than above it: those photographs are
+  // hand-checked, cost no round trip, survive into the exported offline file,
+  // and belong to nobody. This tier runs for the parts that have never had a
+  // photograph, which is what it was added for.
+  //
+  // The match is the one piece of relevance in this whole file that can be
+  // proved instead of argued: the listing's title has to quote the number.
+  if (!foundUrl && cleanOem) {
+    const listing = await searchEbayPartPhoto(cleanOem);
+    if (listing) {
+      foundUrl = listing.imageUrl;
+      source = "ebay";
+      listingUrl = listing.listingUrl;
+    }
+  }
+
+  // Tier 3: Commons under the part's own English name.
   //
   // The make is deliberately left out of the search text. Commons is a general
   // archive, not a parts catalogue: adding "Toyota" to "Thermostat" pushes the
@@ -1037,9 +1079,10 @@ export async function searchPartImageOnline(
       foundUrl = await searchWikimediaCommons(variant, variant);
       if (foundUrl) break;
     }
+    if (foundUrl) source = "commons";
   }
 
-  // Tier 3: the same search, under an English name the dictionary supplies for
+  // Tier 4: the same search, under an English name the dictionary supplies for
   // the Libyan one.
   //
   // This tier was dead. `englishTermsFor` matches Libyan workshop terms, and
@@ -1069,9 +1112,10 @@ export async function searchPartImageOnline(
       .filter((t) => agreesWithEnglishName(t, partNameEn));
 
     if (term) foundUrl = await searchWikimediaCommons(term, term);
+    if (foundUrl) source = "commons";
   }
 
-  // Tier 4: the article about the part, and its lead image.
+  // Tier 5: the article about the part, and its lead image.
   //
   // Last because it is the broadest: an article's picture is of the subject in
   // general, where the tiers above are pinned to this part by a hand-check or
@@ -1097,6 +1141,7 @@ export async function searchPartImageOnline(
       foundUrl = await searchWikipediaLeadImage(term);
       if (foundUrl) break;
     }
+    if (foundUrl) source = "encyclopedia";
   }
 
   // A limit that no rule over titles and categories can close, written down
@@ -1123,7 +1168,11 @@ export async function searchPartImageOnline(
       `[parts-image] dropped a photo on an origin that is not allowed: ${foundUrl} — if this host is Wikimedia's, add it to PART_IMAGE_HOSTS`
     );
   }
-  const result = allowed ? foundUrl : "";
+
+  const result: PartPhoto | null =
+    allowed && foundUrl
+      ? { url: foundUrl, source, ...(listingUrl ? { listingUrl } : {}) }
+      : null;
 
   // The miss is cached too. Only hits used to be, so every card without a
   // photo — which is most of them — re-ran two Commons queries on every single

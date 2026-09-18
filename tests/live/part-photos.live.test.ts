@@ -96,7 +96,8 @@ it("finds photographs, and drops none of them on an unallowed origin", async () 
   const found: string[] = [];
 
   for (const [english, libyan] of PARTS) {
-    const url = await searchPartImageOnline("", english, "", "", "", libyan);
+    const photo = await searchPartImageOnline("", english, "", "", "", libyan);
+    const url = photo?.url ?? "";
     if (url) found.push(english);
     const file = url ? decodeURIComponent(url).split("/").pop() : "";
     process.stdout.write(
@@ -141,25 +142,25 @@ it("finds photographs, and drops none of them on an unallowed origin", async () 
  * picture of it.
  */
 it("draws a schematic rather than answering with a different part", async () => {
-  const column = await searchPartImageOnline(
+  const column = (await searchPartImageOnline(
     "",
     "EPS Column Assembly with Torque Sensor",
     "",
     "",
     "",
     "عمود ستيرسو كهربائي مع حساس التورك (سكاتولة فوقية) النترا HD"
-  );
+  ))?.url ?? "";
   expect(column, "a steering column must never be shown as a steering wheel").not.toMatch(
     /steering_wheel/i
   );
 
-  const sensor = await searchPartImageOnline(
+  const sensor = (await searchPartImageOnline(
     "",
     "Steering Angle Sensor",
     "",
     "",
     "",
     "حساس زاوية الستيرسو / شريط الدومان النترا HD"
-  );
+  ))?.url ?? "";
   expect(sensor, "nor may the angle sensor be").not.toMatch(/steering_wheel/i);
 }, 120_000);

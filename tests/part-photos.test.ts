@@ -12,6 +12,7 @@ import {
 } from "@/lib/parts-search";
 import { englishTermsFor, LIBYAN_DICTIONARY } from "@/lib/dictionary";
 import { isAllowedPartImage } from "@/lib/part-image-hosts";
+import { listingMatchesOem, normalizeOem } from "@/lib/ebay-parts";
 import { readFileSync } from "node:fs";
 
 /**
@@ -635,5 +636,39 @@ describe("a title that matches only the words every part shares", () => {
     expect(titleMatchesPart("File:Brake pads.JPG", "Brake Pads")).toBe(true);
     // Neither is "timing", against a category word for the other half.
     expect(isSearchableTerm("Timing Belt")).toBe(true);
+  });
+});
+
+describe("a part photo found by its OEM number", () => {
+  it("accepts a listing whose title quotes the number, however it is punctuated", () => {
+    // Toyota writes 84306-06140; sellers write it every other way.
+    for (const title of [
+      "Genuine Toyota 84306-06140 Clock Spring Spiral Cable",
+      "TOYOTA 8430606140 CLOCK SPRING OEM",
+      "Spiral cable 84306 06140 fits Camry 2007-2011",
+    ]) {
+      expect(listingMatchesOem(title, "84306-06140"), title).toBe(true);
+    }
+  });
+
+  it("refuses a listing that never names the part number", () => {
+    // The relevance rules everywhere else in this file argue from words. This
+    // one can be proved, and so it is the only tier allowed to answer from a
+    // marketplace: a seller who does not quote the number is not claiming to
+    // sell that part.
+    expect(
+      listingMatchesOem("Clock Spring Spiral Cable for Toyota Camry", "84306-06140")
+    ).toBe(false);
+  });
+
+  it("refuses a number too short to be one", () => {
+    // Four characters is a fragment, and it will turn up inside somebody
+    // else's part number.
+    expect(listingMatchesOem("Widget 1234 for sale", "1234")).toBe(false);
+  });
+
+  it("strips punctuation from both sides before comparing", () => {
+    expect(normalizeOem(" 84306-06140 ")).toBe("8430606140");
+    expect(normalizeOem("06A906036F")).toBe("06A906036F");
   });
 });
