@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizeDiagnosticReport } from "@/lib/gemini";
 import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "@/lib/sample-data";
+import type { KashifDiagnosticReport } from "@/lib/types";
 import { KashifError } from "@/lib/errors";
 
 /**
@@ -292,4 +293,24 @@ describe("the demo reports", () => {
       );
     });
   }
+});
+
+describe("which model read the scan", () => {
+  it("is carried on the report, because the ladder falls through silently", () => {
+    // `modelsToTry` walks seven models. Google returns 503 freely on the free
+    // tier — it did so twice while this was being measured — so the same PDF
+    // can be read by a different model on the next upload, and two reports
+    // that disagree about how many parts a car needs then look like the app
+    // changing its mind rather than two models answering.
+    const report: Pick<KashifDiagnosticReport, "analyzedByModel"> = {
+      analyzedByModel: "gemini-3.7-flash",
+    };
+    expect(report.analyzedByModel).toBe("gemini-3.7-flash");
+  });
+
+  it("is absent on the demo boards, which no model read", () => {
+    for (const sample of [SAMPLE_TOYOTA_COROLLA, SAMPLE_BMW_528I]) {
+      expect(sample.analyzedByModel ?? null).toBeNull();
+    }
+  });
 });
