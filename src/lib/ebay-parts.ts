@@ -161,6 +161,27 @@ async function applicationToken(): Promise<string> {
 }
 
 /**
+ * The same photograph at a size worth sending to a phone in a workshop.
+ *
+ * eBay names its renderings in the URL — ".../s-l1600.jpg" — and `search`
+ * often leaves `thumbnailImages` empty, so what comes back is the seller's
+ * original. Measured on one real listing: s-l1600 is 534KB, s-l400 is 49KB,
+ * and the card renders it in a 190px box. The whole report around it is
+ * lighter than that original.
+ *
+ * 400 rather than 225, because the box is 190 CSS pixels and a phone screen
+ * asks for two device pixels per one of those.
+ *
+ * A URL that does not carry a size is left exactly as it is: guessing at a
+ * rewrite of something unrecognised is how a working photo becomes a 404.
+ */
+const CARD_WIDTH = 400;
+
+export function atCardSize(url: string): string {
+  return url.replace(/\/s-l\d+(\.[a-z]+)$/i, `/s-l${CARD_WIDTH}$1`);
+}
+
+/**
  * A part number with everything that is only punctuation taken out.
  *
  * Toyota writes "84306-06140", a seller writes "8430606140", "84306 06140" or
@@ -242,20 +263,20 @@ export async function searchEbayPartPhoto(
       const title = item.title ?? "";
       if (!listingMatchesOem(title, oem)) continue;
 
-      // The gallery thumbnail before the full-size image: this is rendered in
-      // a 190px box, and a seller's original is frequently a 2MB phone
-      // photograph on the connection this app is actually used on.
-      const imageUrl =
-        item.thumbnailImages?.[0]?.imageUrl || item.image?.imageUrl || "";
+      // The campaign parameters come off first: the size lives at the end of
+      // the path, and a "?utm_source=..." after it means the rewrite below
+      // finds nothing to rewrite and the seller's original ships instead.
+      const raw = (
+        item.thumbnailImages?.[0]?.imageUrl ||
+        item.image?.imageUrl ||
+        ""
+      ).split("?")[0];
+
+      const imageUrl = atCardSize(raw);
       const listingUrl = item.itemWebUrl ?? "";
       if (!imageUrl || !listingUrl) continue;
 
-      // eBay appends its own campaign parameters to both.
-      return {
-        imageUrl: imageUrl.split("?")[0],
-        listingUrl,
-        title,
-      };
+      return { imageUrl, listingUrl, title };
     }
   } catch (error) {
     // A missing photo is an ordinary outcome and never the user's problem.

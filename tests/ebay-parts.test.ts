@@ -196,7 +196,7 @@ describe("searching for the number", () => {
     expect(await searchEbayPartPhoto("84306-06140")).toBeNull();
   });
 
-  it("prefers the gallery thumbnail to the seller's full-size photograph", async () => {
+  it("asks for the card's size, not the seller's full-size photograph", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
         itemSummaries: [listing("Toyota 84306-06140 clock spring", "https://i.ebayimg.com/s-l225.jpg")],
@@ -204,10 +204,12 @@ describe("searching for the number", () => {
     );
 
     // Rendered in a 190px box, on a phone connection, and a seller's original
-    // is frequently a 2MB photograph off their phone.
+    // is frequently a 2MB photograph off their phone. `search` often leaves
+    // `thumbnailImages` empty, so the size is asked for in the URL rather than
+    // hoped for in the payload.
     const { searchEbayPartPhoto } = await load();
     expect((await searchEbayPartPhoto("84306-06140"))?.imageUrl).toBe(
-      "https://i.ebayimg.com/s-l225.jpg"
+      "https://i.ebayimg.com/s-l400.jpg"
     );
   });
 
@@ -225,7 +227,7 @@ describe("searching for the number", () => {
 
     const { searchEbayPartPhoto } = await load();
     expect((await searchEbayPartPhoto("84306-06140"))?.imageUrl).toBe(
-      "https://i.ebayimg.com/s-l225.jpg"
+      "https://i.ebayimg.com/s-l400.jpg"
     );
   });
 
@@ -248,5 +250,27 @@ describe("a number too short to be one", () => {
     expect(await searchEbayPartPhoto("1234")).toBeNull();
     expect(await searchEbayPartPhoto("")).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("the size of the photograph that actually gets sent", () => {
+  it("asks eBay for the card's size rather than the seller's original", async () => {
+    const { atCardSize } = await load();
+    // 534KB against 49KB on a real listing, rendered in a 190px box, on the
+    // phone connection this app is used on.
+    expect(atCardSize("https://i.ebayimg.com/images/g/Z4w/s-l1600.jpg")).toBe(
+      "https://i.ebayimg.com/images/g/Z4w/s-l400.jpg"
+    );
+    expect(atCardSize("https://i.ebayimg.com/images/g/g30/s-l1200.webp")).toBe(
+      "https://i.ebayimg.com/images/g/g30/s-l400.webp"
+    );
+  });
+
+  it("leaves a URL it does not recognise alone", async () => {
+    // Guessing at a rewrite of something unrecognised is how a working photo
+    // becomes a 404.
+    const odd = "https://i.ebayimg.com/images/g/abc/picture.jpg";
+    const { atCardSize } = await load();
+    expect(atCardSize(odd)).toBe(odd);
   });
 });
