@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   agreesWithEnglishName,
   commonsFileNameFrom,
+  curatedEntryFor,
   curatedPhotoFor,
   englishSearchVariants,
   isDocumentNotPart,
@@ -670,5 +671,27 @@ describe("a part photo found by its OEM number", () => {
   it("strips punctuation from both sides before comparing", () => {
     expect(normalizeOem(" 84306-06140 ")).toBe("8430606140");
     expect(normalizeOem("06A906036F")).toBe("06A906036F");
+  });
+});
+
+describe("a curated photo of where the part sits", () => {
+  it("still answers when there is no part number to look up", () => {
+    // The location shot is what this registry is good for when nothing else
+    // can say anything: the mechanic is going to be looking at that view.
+    expect(curatedEntryFor("Mass Air Flow Sensor حساس ماف")?.inSitu).toBe(true);
+    expect(curatedPhotoFor("Mass Air Flow Sensor")).toContain("location_in_the_engine_bay");
+  });
+
+  it("is marked on the four entries that are views rather than parts", () => {
+    // An arrow into an engine bay, a filter under a car, a converter in the
+    // exhaust line, an arm numbered against the suspension around it.
+    const inSitu = ["Mass Air Flow Sensor", "Fuel Filter", "Catalytic Converter", "Control Arm"];
+    for (const name of inSitu) {
+      expect(curatedEntryFor(name)?.inSitu, name).toBe(true);
+    }
+    // And not on the ones that photograph the part itself.
+    for (const name of ["Brake Pads", "Ignition Coil", "Spark Plug", "Water Pump", "Alternator"]) {
+      expect(curatedEntryFor(name)?.inSitu, name).toBeUndefined();
+    }
   });
 });

@@ -88,7 +88,23 @@ const imageSearchCache = new Map<string, PartPhoto | null>();
  * `npm run audit:photos` refetches every URL here and fails on a dead or
  * oversized one, because nothing else will notice when one goes.
  */
-const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
+interface CuratedPhoto {
+  pattern: RegExp;
+  url: string;
+  /**
+   * True when the photograph shows where the part *sits* rather than what it
+   * is: an arrow pointing into an engine bay, a filter seen from under a car.
+   *
+   * These earn their place when nothing better exists — the mechanic is going
+   * to be looking at that view — but they are the wrong answer when the part
+   * has an OEM number and a catalogue can show the component itself on white.
+   * A card for 22204-22010 was showing an Opel Antara's engine bay with a
+   * yellow arrow while the catalogue had a photograph of the sensor.
+   */
+  inSitu?: true;
+}
+
+const CURATED_PARTS_PHOTO_REGISTRY: CuratedPhoto[] = [
   // ── Safety / SRS ──────────────────────────────────────────────────────
   //
   // Added after a real Camry report needed four of these and Commons could
@@ -145,6 +161,7 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
   {
     pattern: /mass[\s_-]*air|\bmaf\b|حساس.*ماف|حساس.*هواء|air.*flow/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bosch_Mass_Air_Flow_Sensor_location_in_the_engine_bay_%28Opel_Antara_2.0_CDTI%29.jpg/330px-Bosch_Mass_Air_Flow_Sensor_location_in_the_engine_bay_%28Opel_Antara_2.0_CDTI%29.jpg",
+    inSitu: true,
   },
   {
     // Before the oxygen sensor, and this order is the whole point: "مرميط"
@@ -154,6 +171,7 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // seen from under the car.
     pattern: /catalytic|علبة.*كربون|كتلايزر|دبة.*بيئة/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Catalytic_Converter.JPG/330px-Catalytic_Converter.JPG",
+    inSitu: true,
   },
   {
     // "عادم" and "شكمان" are the exhaust and the muffler, not the sensor
@@ -201,6 +219,7 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // what one looks like at the age these cars are.
     pattern: /fuel.*filter|فيلترو.*بنزين|فلتر.*وقود/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Just_a_fuel_filter..._%2822493933238%29.jpg/330px-Just_a_fuel_filter..._%2822493933238%29.jpg",
+    inSitu: true,
   },
   {
     // Four pads laid out and numbered — the part itself, off the car.
@@ -226,6 +245,7 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // suspension. Busy, but it is where the mechanic will be looking.
     pattern: /control.*arm|براتشو|مقص|نوتشي/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Control_Arm_Fahrwerk.JPG/330px-Control_Arm_Fahrwerk.JPG",
+    inSitu: true,
   },
   {
     pattern: /oil.*sensor|حساس.*زيت|ستاقوب/i,
@@ -989,11 +1009,12 @@ function rememberPhoto(key: string, photo: PartPhoto | null): void {
 }
 
 /** The first curated photo whose pattern matches, or "". Exported to be tested. */
+export function curatedEntryFor(text: string): CuratedPhoto | null {
+  return CURATED_PARTS_PHOTO_REGISTRY.find((i) => i.pattern.test(text)) ?? null;
+}
+
 export function curatedPhotoFor(text: string): string {
-  for (const item of CURATED_PARTS_PHOTO_REGISTRY) {
-    if (item.pattern.test(text)) return item.url;
-  }
-  return "";
+  return curatedEntryFor(text)?.url ?? "";
 }
 
 /**
@@ -1037,9 +1058,22 @@ export async function searchPartImageOnline(
   // The make, model, year and the words "genuine auto part" used to be in
   // this text too. None of them can make a pattern match more correct, and
   // any of them can make one match that should not have.
-  let foundUrl = curatedPhotoFor(
+  const curated = curatedEntryFor(
     `${partNameEn} ${partNameLibyan} ${cleanOem}`.trim()
   );
+
+  // A curated photograph that shows where the part sits does not block the
+  // catalogue.
+  //
+  // A Corolla card for 22204-22010 was showing an Opel Antara's engine bay
+  // with a yellow arrow in it — a correct, hand-checked picture of where a
+  // mass air flow sensor lives — while the catalogue held a photograph of the
+  // sensor itself on white, found by that exact number. For a card whose only
+  // job is "identify the thing you are about to go and buy", the second one
+  // wins. The location shot stays as the fallback, which is what it was always
+  // good for.
+  const curatedBlocks = curated && !(curated.inSitu && cleanOem);
+  let foundUrl = curatedBlocks ? curated.url : "";
   let source: PartPhoto["source"] = "curated";
   let listingUrl: string | undefined;
   let catalogueArticle: string | undefined;
@@ -1183,6 +1217,15 @@ export async function searchPartImageOnline(
   // nothing anywhere recorded that it had happened — the card fell back to its
   // drawing, which is exactly what it does when there honestly is no photo.
   // `npm run audit:live` fails on this warning.
+  // Nothing with a number could answer, so the location shot is the best
+  // picture there is after all.
+  if (!foundUrl && curated) {
+    foundUrl = curated.url;
+    source = "curated";
+    listingUrl = undefined;
+    catalogueArticle = undefined;
+  }
+
   const allowed = !foundUrl || isAllowedPartImage(foundUrl);
   if (!allowed) {
     console.warn(
