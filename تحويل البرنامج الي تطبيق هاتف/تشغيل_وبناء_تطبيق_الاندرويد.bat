@@ -1,24 +1,109 @@
 @echo off
 chcp 65001 > nul
-echo ===================================================
-echo     كاشف AI - تشغيل وبناء تطبيق الأندرويد للهاتف
-echo ===================================================
-echo.
+setlocal enabledelayedexpansion
 
-echo [1/3] تثبيت حزم Capacitor للأندرويد...
-call npm install @capacitor/core @capacitor/cli @capacitor/android
+:: الانتقال إلى المجلد الرئيسي للمشروع
+cd /d "%~dp0.."
 
+cls
+echo ================================================================
+echo        كاشف AI — تشغيل وتثبيت تطبيق الأندرويد على الهاتف
+echo ================================================================
 echo.
-echo [2/3] بناء المشروع ومزامنة ملفات الأندرويد...
-call npm run build
-call npx cap add android 2>nul
-call npx cap sync
+echo  اختر الطريقة المناسبة لك:
+echo.
+echo  [1] تشغيل السيرفر للتثبيت المباشر على هاتفك عبر الواي فاي (PWA)
+echo      (الأسرع والأسهل: يثبت التطبيق فوراً على الهاتف كأنه APK دون برامج)
+echo.
+echo  [2] مزامنة وتحديث ملفات الأندرويد لمشروع أندرويد ستوديو (Capacitor)
+echo.
+echo  [3] فتح مجلد مشروع أندرويد الأصلي (مجلد android)
+echo.
+echo  [4] فحص حالة برامج بناء APK محلياً (Android Studio / Java)
+echo.
+echo  [0] خروج
+echo ================================================================
+set /p choice="أدخل رقم الخيار (1-4): "
 
-echo.
-echo [3/3] فتح المشروع في أندرويد ستوديو (Android Studio)...
-call npx cap open android
+if "%choice%"=="1" goto start_pwa
+if "%choice%"=="2" goto sync_cap
+if "%choice%"=="3" goto open_folder
+if "%choice%"=="4" goto check_tools
+if "%choice%"=="0" exit /b
+goto invalid
 
+:start_pwa
+cls
+echo ================================================================
+echo              تشغيل التطبيق للتثبيت على الهاتف
+echo ================================================================
 echo.
-echo تم بنجاح! من داخل Android Studio اضغط على:
-echo Build -^> Build Bundle(s) / APK(s) -^> Build APK(s)
+echo 1. تأكد أن هاتفك متصل بنفس شبكة الواي فاي (Wi-Fi) الخاصة بهذا الكمبيوتر.
+echo 2. افتح متصفح Chrome على هاتفك واكتب أحد الرابطين التاليين:
+echo.
+echo    الرابط المباشر لشاشة الهاتف:
+echo    http://192.168.1.100:3000/mobile
+echo.
+echo    أو الرابط العام:
+echo    http://192.168.1.100:3000
+echo.
+echo 3. ستظهر لك في أسفل الشاشة رسالة: "تثبيت التطبيق" أو "Install App"
+echo    أو اضغط على زر خيارات المتصفح (ثلاث نقاط) ثم اختر "تثبيت التطبيق".
+echo    سيتم تثبيت التطبيق رسمياً بأيقونته على شاشة هاتفك الرئيسية!
+echo.
+echo ================================================================
+echo جاري تشغيل الخادم الآن... (لإيقافه اضغط Ctrl + C)
+echo ================================================================
+call npx next dev -H 0.0.0.0
 pause
+exit /b
+
+:sync_cap
+cls
+echo ================================================================
+echo               مزامنة ملفات أندرويد (Capacitor Sync)
+echo ================================================================
+echo.
+echo جاري مزامنة ملفات الويب مع بيئة أندرويد...
+call npx cap sync android
+echo.
+echo تم التحديث والمزامنة بنجاح!
+echo مجلد الأندرويد جاهز داخل مجلد: android
+pause
+exit /b
+
+:open_folder
+cls
+echo جاري فتح مجلد أندرويد في مستكشف الملفات...
+explorer "%cd%\android"
+exit /b
+
+:check_tools
+cls
+echo ================================================================
+echo                 فحص بيئة بناء APK على جهازك
+echo ================================================================
+echo.
+where java >nul 2>nul
+if %errorlevel% equ 0 (
+    echo [OK] الجافا موجودة على جهازك.
+) else (
+    echo [تنبيه] الجافا غير مثبتة.
+)
+
+if exist "C:\Program Files\Android\Android Studio\bin\studio64.exe" (
+    echo [OK] برنامج Android Studio مثبت على جهازك.
+) else (
+    echo [تنبيه] برنامج Android Studio غير مثبت في المسار الافتراضي.
+    echo لبناء ملف APK محلياً، يرجى تثبيت Android Studio المجاني،
+    echo ثم فتح مجلد (android) من داخله واختيار: Build -^> Build APK(s).
+    echo أو استخدم الخيار [1] لتثبيته فوراً على الهاتف بدون برامج.
+)
+echo.
+pause
+exit /b
+
+:invalid
+echo خيار غير صحيح. يرجى المحاولة مرة أخرى.
+pause
+exit /b
