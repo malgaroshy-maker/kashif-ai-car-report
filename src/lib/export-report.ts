@@ -194,7 +194,19 @@ export async function downloadReportHtml(
       if (
         !src ||
         !(src.startsWith("http://") || src.startsWith("https://")) ||
-        src.includes("/parts/")
+        src.includes("/parts/") ||
+        // Never a listing photograph. eBay licenses its content for "limited
+        // intermediate copies… deleted when they are no longer required", and
+        // a data: URI baked into a file the mechanic keeps, forwards and
+        // prints is the opposite of intermediate. On screen that photo is
+        // shown as what it is, linked to its listing; in the offline file the
+        // card falls back to its drawing.
+        src.includes("ebayimg.com") ||
+        // Nor the aftermarket catalogue's media, for the same reason and one
+        // more: it is a redistribution of somebody else's parts library, and
+        // baking it into a file that gets forwarded and printed is a further
+        // step than showing it on a card.
+        src.includes("your-objectstorage.com")
       ) {
         part.partImageUrl = undefined;
         continue;
@@ -693,6 +705,11 @@ export async function downloadReportHtml(
       <div>
         <div style="font-size: 13px; font-weight: 700; color: inherit; margin-bottom: 2px;">توقيع الأسطى</div>
         <p style="font-size: 11px; color: var(--ink-2);">كاشف قرا تقرير جهاز الفحص وترجمه. الاعتماد يجي من الأسطى اللي كشف على السيارة.</p>
+        ${
+          safe.analyzedByModel
+            ? `<p style="font-size: 10px; color: var(--ink-3); margin-top: 2px;">قراءة الملف تمت بـ <span dir="ltr">${safe.analyzedByModel}</span></p>`
+            : ""
+        }
       </div>
 
       <div style="display: flex; gap: 20px; font-size: 11px; color: var(--ink-2);">

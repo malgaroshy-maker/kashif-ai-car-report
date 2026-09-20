@@ -122,6 +122,27 @@ function classify4xx(err: unknown, status: number): KashifError {
     : new KashifError("UPSTREAM_ERROR", String(status));
 }
 
+/**
+ * How much the model is allowed to invent when reading a scan.
+ *
+ * Nothing. This value was never set, so every analysis ran at the API's
+ * default of about 1.0 — the setting for writing prose, on the one call in
+ * this app whose whole job is to copy facts out of a PDF without adding any.
+ *
+ * It showed. The same Camry PDF, uploaded twice, produced four spare parts and
+ * then two; the vapour pressure sensor came back as 89460-06020 on one run and
+ * 89460-06010 on the next. Both are plausible Toyota numbers and one of them
+ * is wrong, and nothing on the card could tell the reader which run they were
+ * holding. A mechanic who re-reads the same scan and gets a different parts
+ * list has no reason to trust either list.
+ *
+ * Zero does not make the model correct. It makes it *consistent*, which is
+ * the property a report has to have before anyone can check whether it is
+ * correct — and it is what the rest of this file already assumes, every time
+ * it says the report must not state a finding it did not read.
+ */
+const ANALYSIS_TEMPERATURE = 0;
+
 async function generateWithModelFallback(
   ai: GoogleGenAI,
   params: {
@@ -129,6 +150,7 @@ async function generateWithModelFallback(
     contents: unknown[];
     responseMimeType?: string;
     model?: string;
+    temperature?: number;
   }
 ) {
   const candidates = modelsToTry(params.model || process.env.GEMINI_MODEL);
@@ -141,6 +163,9 @@ async function generateWithModelFallback(
           model,
           config: {
             systemInstruction: params.systemInstruction,
+            ...(params.temperature !== undefined
+              ? { temperature: params.temperature }
+              : {}),
             ...(params.responseMimeType
               ? { responseMimeType: params.responseMimeType }
               : {}),
@@ -149,7 +174,10 @@ async function generateWithModelFallback(
         }),
         MODEL_TIMEOUT_MS
       );
-      if (response?.text) return response;
+      // Which model answered, not which was asked for. The ladder is silent
+      // about falling through, and that silence is what makes two runs of one
+      // scan impossible to compare.
+      if (response?.text) return { response, model };
     } catch (err) {
       if (err instanceof KashifError) throw err;
       const status = (err as { status?: number; code?: number })?.status;
@@ -356,15 +384,19 @@ ${rawInput.vehicleInfo?.make ? `الصانع: ${rawInput.vehicleInfo.make} ${raw
     responseMimeType: "application/json",
     contents,
     model: modelId,
+    // Reading a scan is extraction, not writing. See ANALYSIS_TEMPERATURE.
+    temperature: ANALYSIS_TEMPERATURE,
   });
 
-  const parsedData = safeJsonParseOrRepair(response?.text || "");
+  const parsedData = safeJsonParseOrRepair(response.response?.text || "");
 
   // An unreadable response means we do not know what is wrong with this car.
   // Saying so is the only safe answer.
   if (!parsedData) throw new KashifError("UNREADABLE_RESPONSE");
 
-  return normalizeDiagnosticReport(parsedData, rawInput);
+  const report = normalizeDiagnosticReport(parsedData, rawInput);
+  report.analyzedByModel = response.model;
+  return report;
 }
 
 /**
@@ -837,6 +869,10 @@ async function streamWithModelFallback(
       const stream = await withTimeout(
         ai.models.generateContentStream({
           model,
+          // No temperature here on purpose. This one is a conversation with a
+          // mechanic — "وش نعمل في الشمعات؟" — where the default is right and
+          // two phrasings of the same advice are not a contradiction. The
+          // analysis is the call that has to come back the same twice.
           config: { systemInstruction: params.systemInstruction },
           contents: params.contents as never,
         }),

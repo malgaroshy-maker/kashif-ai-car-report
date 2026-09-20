@@ -14,7 +14,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy",
-    "audit:photos": "node scripts/audit-photos.mjs"
+    "audit:photos": "node scripts/audit-photos.mjs",
+    "audit:live": "vitest run --config vitest.live.mts"
   },
   "dependencies": {
     "@google/genai": "^2.18.0",

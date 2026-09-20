@@ -21,6 +21,26 @@
 
 import { isAllowedPartImage } from "./part-image-hosts";
 import { englishTermsFor } from "./dictionary";
+import { searchEbayPartPhoto } from "./ebay-parts";
+import { searchCataloguePartPhoto } from "./autoparts";
+
+/**
+ * A photograph, and where it came from.
+ *
+ * The source travels with the URL because the card says it out loud. A
+ * hand-checked photograph of a radiator and a photograph from somebody's eBay
+ * listing for part 84306-06140 are different kinds of claim, and the second
+ * one is only honest with the listing attached to it — which is also what
+ * eBay's licence expects of anyone displaying it.
+ */
+export interface PartPhoto {
+  url: string;
+  source: "curated" | "catalogue" | "ebay" | "commons" | "encyclopedia";
+  /** Only ever set for `ebay`: the listing this photograph belongs to. */
+  listingUrl?: string;
+  /** Only for `catalogue`: "BOSCH 0 280 218 135", what the picture is of. */
+  article?: string;
+}
 
 /** Only the two shapes we read out of the Commons API. */
 interface CommonsSearchResult {
@@ -47,7 +67,7 @@ interface CommonsImageInfo {
 }
 
 // In-memory cache for fast response and deduplication
-const imageSearchCache = new Map<string, string>();
+const imageSearchCache = new Map<string, PartPhoto | null>();
 
 /**
  * Hand-checked photographs, tried before anything is searched for.
@@ -68,7 +88,23 @@ const imageSearchCache = new Map<string, string>();
  * `npm run audit:photos` refetches every URL here and fails on a dead or
  * oversized one, because nothing else will notice when one goes.
  */
-const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
+interface CuratedPhoto {
+  pattern: RegExp;
+  url: string;
+  /**
+   * True when the photograph shows where the part *sits* rather than what it
+   * is: an arrow pointing into an engine bay, a filter seen from under a car.
+   *
+   * These earn their place when nothing better exists — the mechanic is going
+   * to be looking at that view — but they are the wrong answer when the part
+   * has an OEM number and a catalogue can show the component itself on white.
+   * A card for 22204-22010 was showing an Opel Antara's engine bay with a
+   * yellow arrow while the catalogue had a photograph of the sensor.
+   */
+  inSitu?: true;
+}
+
+const CURATED_PARTS_PHOTO_REGISTRY: CuratedPhoto[] = [
   // ── Safety / SRS ──────────────────────────────────────────────────────
   //
   // Added after a real Camry report needed four of these and Commons could
@@ -125,6 +161,7 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
   {
     pattern: /mass[\s_-]*air|\bmaf\b|حساس.*ماف|حساس.*هواء|air.*flow/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bosch_Mass_Air_Flow_Sensor_location_in_the_engine_bay_%28Opel_Antara_2.0_CDTI%29.jpg/330px-Bosch_Mass_Air_Flow_Sensor_location_in_the_engine_bay_%28Opel_Antara_2.0_CDTI%29.jpg",
+    inSitu: true,
   },
   {
     // Before the oxygen sensor, and this order is the whole point: "مرميط"
@@ -134,6 +171,7 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // seen from under the car.
     pattern: /catalytic|علبة.*كربون|كتلايزر|دبة.*بيئة/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Catalytic_Converter.JPG/330px-Catalytic_Converter.JPG",
+    inSitu: true,
   },
   {
     // "عادم" and "شكمان" are the exhaust and the muffler, not the sensor
@@ -181,6 +219,21 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // what one looks like at the age these cars are.
     pattern: /fuel.*filter|فيلترو.*بنزين|فلتر.*وقود/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Just_a_fuel_filter..._%2822493933238%29.jpg/330px-Just_a_fuel_filter..._%2822493933238%29.jpg",
+    inSitu: true,
+  },
+  {
+    // Four pads laid out and numbered — the part itself, off the car.
+    //
+    // Curated because the live search kept changing its mind about this one:
+    // Commons has answered it with a photograph of a disc, with a mechanic
+    // holding a disc, and with a blister pack of Shimano *bicycle* pads. It is
+    // one of the two commonest things a Libyan workshop replaces and it cannot
+    // depend on the order Commons happens to return results in today.
+    //
+    // Before the disc entry, and matching only "pad": a disc and a pad are
+    // sold separately and cost differently.
+    pattern: /brake[\s_-]*pads?|تيل.*فرينو|باطني|فحمات/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Brake_pad.jpg/330px-Brake_pad.jpg",
   },
   {
     // Disc and caliper on the hub.
@@ -192,6 +245,7 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     // suspension. Busy, but it is where the mechanic will be looking.
     pattern: /control.*arm|براتشو|مقص|نوتشي/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Control_Arm_Fahrwerk.JPG/330px-Control_Arm_Fahrwerk.JPG",
+    inSitu: true,
   },
   {
     pattern: /oil.*sensor|حساس.*زيت|ستاقوب/i,
@@ -241,8 +295,18 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Nockenwellenantrieb.jpg/330px-Nockenwellenantrieb.jpg",
   },
   {
-    pattern: /ball.*joint|بوكل/i,
-    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Ball_joint_cross_section_%28from_English_Wikipedia_to_be_used_in_other_languages%29.jpg/330px-Ball_joint_cross_section_%28from_English_Wikipedia_to_be_used_in_other_languages%29.jpg",
+    // The joint in place under the car, its rubber boot and castellated nut
+    // visible, the car on a stand. What was here was a labelled cross-section
+    // drawing — a diagram of a ball joint, which is the one thing this
+    // registry exists to avoid: the drawn schematic beside it is already a
+    // diagram, and a better one, because it does not pretend to be a
+    // photograph.
+    //
+    // "فوزيلي" is the dictionary's own word for this part, and the English
+    // "Tie Rod End" now matches too: the Elantra card that found this was
+    // matching on the Libyan name alone.
+    pattern: /ball[\s_-]*joint|tie[\s_-]*rod|track[\s_-]*rod|بوكل|فوزيلي|فازيلي/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Tie_rod_end.jpeg/330px-Tie_rod_end.jpeg",
   },
   {
     pattern: /master.*cylinder|بومب.*فرينو|اسطوانة.*رئيسية/i,
@@ -260,6 +324,82 @@ const CURATED_PARTS_PHOTO_REGISTRY: { pattern: RegExp; url: string }[] = [
     pattern: /clutch|فرسيوني|طاقم.*فاصل|دبرياج|قابض/i,
     url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Kupplungsscheibe2.jpg/330px-Kupplungsscheibe2.jpg",
   },
+
+  // ── Parts the live search could never answer ──────────────────────────
+  //
+  // Each of these came back empty from all three online tiers, every time.
+  // Commons has the photographs; its search cannot be made to hand them over
+  // for these words, because the words belong to something else first — a
+  // village hand pump, an industrial ball bearing, a magazine advertisement.
+  // So they are looked up by hand, once, here.
+  //
+  // Every one was fetched and opened before it was written down, which is the
+  // rule at the top of this list and the reason thirteen dead URLs once sat in
+  // it.
+  {
+    // The pump out of the engine, impeller and housing both visible, on
+    // white. Commons search answers "Water pump" with a Victorian village hand
+    // pump and a fire pump — and the encyclopedia answers it with a garden jet
+    // pump, which is the article that owns the words.
+    //
+    // Qualified by مية so it cannot take "بومبة بنزين" or "بومبة ستيرسو": the
+    // dictionary lists four different pumps under "بومبة".
+    pattern: /water[\s_-]*pump|coolant[\s_-]*pump|بومب.*مي[هة]|طرمب.*مي[هة]|مضخة.*ما[ءي]/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Automotive_coolant_pump_6C1Q-8K500-AF-3355.jpg/330px-Automotive_coolant_pump_6C1Q-8K500-AF-3355.jpg",
+  },
+  {
+    // A half shaft with the joint and its boot, on a workshop floor, as grimy
+    // as the ones these cars are running. Commons files its constant-velocity
+    // joints as animated GIFs of the mechanism — correct, and useless to
+    // somebody about to go and buy one.
+    pattern: /\bcv[\s_-]*(joint|axle|boot)|constant[\s_-]*velocity|half[\s_-]*axle|سمياص|بيضة|جلدة.*عكس/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/CV_joint_half_axle.jpg/330px-CV_joint_half_axle.jpg",
+  },
+  {
+    // The valve in a hand, off the engine. The tier that used to answer this
+    // took the lead image of "Exhaust gas recirculation", which is a
+    // photograph of a whole Saab engine bay: the system, not the part, and
+    // nothing on the card said which.
+    pattern: /\begr\b|exhaust[\s_-]*gas[\s_-]*recirc|صمام.*إعادة.*عادم|فالف.*egr|بلف.*egr/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Hydraulic_EGR_valve_open.JPG/330px-Hydraulic_EGR_valve_open.JPG",
+  },
+  {
+    // The hub unit with its studs and the ABS sensor plug beside it. Asked for
+    // a wheel bearing, Commons offers a 19th-century chariot hub and a
+    // diagram of a generic rolling-element bearing.
+    //
+    // This file lives on English Wikipedia rather than Commons — freely
+    // licensed, CC-BY-SA-3.0, and served from the same host. "Bearing" is
+    // required, so an ABS wheel speed sensor cannot reach it.
+    pattern: /wheel[\s_-]*(hub[\s_-]*)?bearing|hub[\s_-]*bearing|كوشينتي|كوشينيتي|رمان.*بلي|محمل.*عجل/i,
+    url: "https://upload.wikimedia.org/wikipedia/en/thumb/1/13/Prime_Choice_Auto_Parts_Hub_Bearing_Assembly.jpg/330px-Prime_Choice_Auto_Parts_Hub_Bearing_Assembly.jpg",
+  },
+  {
+    // A compressor cut open on a stand: the ribbed pulley, the clutch plate
+    // and the mounting ears are all where a mechanic looks for them, which is
+    // what identifies it. Sectioned rather than whole because Commons has no
+    // photograph of a whole one — it is still a photograph of the part, not a
+    // drawing of it.
+    //
+    // Before the exhaust and cooling patterns can see it, because "ضاغط
+    // التكييف" is the only thing in this list with "تكييف" in it and the
+    // radiator entry spends a negative lookahead excluding that word.
+    pattern: /(a\/?c|air[\s_-]*condition\w*|climate)[\s_-]*compressor|compressor.*(a\/?c|air[\s_-]*condition)|كمبريسور|كمبروسر|كومبروسر|ضاغط.*تكييف/i,
+    url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Taumelscheibenverdichter-Schnitt.JPG/330px-Taumelscheibenverdichter-Schnitt.JPG",
+  },
+
+  // Six more that a Libyan report names often and that are photographed
+  // nowhere Wikimedia can reach: the engine mount, the knock sensor, the
+  // coolant temperature sensor, the camshaft position sensor, the clock spring
+  // and the EVAP purge valve. Searched under their English, German, French and
+  // Spanish names, and under every Libyan word the dictionary has for them.
+  //
+  // Commons answers the knock sensor with an animation of engine knock, the
+  // camshaft sensor with two photographs of a Corvette, and the coolant
+  // temperature sensor with a school bus dashboard. The camshaft sensor is the
+  // dangerous one: it is nearly identical to the crankshaft sensor two entries
+  // above, and putting that photograph here would be the exact mistake this
+  // file keeps a record of. They are drawn instead.
 ];
 
 /**
@@ -297,6 +437,86 @@ function significantWords(partName: string): string[] {
         .filter((w) => w.length > 3 && !POSITIONAL.has(w))
     ),
   ];
+}
+
+/**
+ * The part's own English name, reduced to forms an archive might hold.
+ *
+ * A report writes a parts counter's name for a thing: "EPS Column Assembly
+ * with Torque Sensor", "Front Left ABS Wheel Speed Sensor", "Upstream Oxygen
+ * (O2) Sensor". Commons has never titled a photograph any of those, and the
+ * whole string was the only thing ever asked for — one query, one miss, and
+ * then the dictionary was allowed to answer with a different component
+ * entirely.
+ *
+ * Three reductions, applied in order and each tried as its own search, longest
+ * first so the most specific name that can succeed is the one that does:
+ *
+ * **The aside comes off.** "(O2)", "(سكاتولة فوقية)" — a catalogue's note to
+ * the reader, and a word an archive has never filed anything under.
+ *
+ * **What follows "with" comes off.** "EPS Column Assembly with Torque Sensor"
+ * names a second component that is sold attached to the first. Searching for
+ * both at once asks for a photograph of an assembly nobody has photographed;
+ * searching for the head asks for the part the card is actually about.
+ *
+ * **Position and packaging come off.** "Front Left ABS Wheel Speed Sensor" is
+ * three words about where it sits and four about what it is. `POSITIONAL`
+ * already knows which are which — this is the same list the relevance rule
+ * uses, for the same reason.
+ *
+ * Duplicates are dropped, so a name that survives all three reductions
+ * unchanged — "Ignition Coil" — still costs exactly one search.
+ */
+export function englishSearchVariants(partNameEn: string): string[] {
+  const name = partNameEn.replace(/\s+/g, " ").trim();
+  if (!name) return [];
+
+  const withoutAside = name
+    .replace(/\s*[([][^)\]]*[)\]]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const head = withoutAside
+    .split(/\s+(?:with|w\/|for|incl\.?|including|and)\s+/i)[0]
+    .trim();
+
+  const withoutPosition = head
+    .split(/\s+/)
+    .filter((w) => !POSITIONAL.has(w.toLowerCase()))
+    .join(" ")
+    .trim();
+
+  return [...new Set([name, withoutAside, head, withoutPosition])].filter(
+    isSearchableTerm
+  );
+}
+
+/**
+ * Is this dictionary term about the same part the report named in English?
+ *
+ * The dictionary is a Libyan glossary, and a compound workshop name matches an
+ * entry for each of its words. "عمود ستيرسو كهربائي مع حساس التورك" — an
+ * electric steering column — contains "ستيرسو", whose entry reads "Steering
+ * wheel (sterzo)". That gloss is right about the word and wrong about the
+ * part, and a card headed "EPS Column Assembly with Torque Sensor" was given a
+ * photograph of a Volvo steering wheel: a different component, in the same
+ * area of the car, at a very different price.
+ *
+ * So when the report has already said in English what the part is, a
+ * dictionary term has to agree with it — one significant word in common is
+ * enough, since the two are naming one thing from two directions. "Steering
+ * Angle Sensor" against its own entry agrees three times over; "Steering
+ * wheel" against "EPS Column Assembly with Torque Sensor" agrees nowhere.
+ *
+ * A part the report named only in Libyan has nothing to disagree with, and the
+ * dictionary remains the only tier that can answer for it.
+ */
+export function agreesWithEnglishName(term: string, partNameEn: string): boolean {
+  if (!hasLatinWord(partNameEn)) return true;
+  const named = new Set(significantWords(partNameEn));
+  if (named.size === 0) return true;
+  return significantWords(term).some((w) => named.has(w));
 }
 
 /**
@@ -351,7 +571,17 @@ export function titleMatchesPart(
     new RegExp(String.raw`\b${w}(?:e?s)?\b`).test(haystack)
   );
 
-  if (words.length >= 2) return matched.length >= 2;
+  if (words.length >= 2) {
+    if (matched.length < 2) return false;
+    // And at least one of them has to say *which* one.
+    //
+    // A real Camry card for "Side Airbag Wiring Connector Harness" was given a
+    // photograph of a Geo Storm's instrument cluster loom. Two words matched —
+    // "wiring" and "harness" — and both of them name a category rather than a
+    // part: every loom in the archive matches them, and the word that would
+    // have told the two apart, "airbag", is nowhere in that title.
+    return matched.some((w) => !TOO_GENERAL.test(w));
+  }
 
   // The search that produced this title was confined to the automotive
   // category tree, so "is this about a car at all" is already settled and the
@@ -442,7 +672,7 @@ export /**
  * sitting in the evidence the whole time and nothing was reading it.
  */
 const NOT_A_PART =
-  /advertis|magazine|periodical|patent|poster|catalogue|catalog|brochure|leaflet|drawing|diagram|schematic|blueprint|\bmaps?\b|logos|postcard|stamps/i;
+  /advertis|magazine|periodical|patent|poster|catalogue|catalog|brochure|leaflet|drawing|diagram|schematic|blueprint|\bmaps?\b|logos|postcard|stamps|packaging|packet|blister/i;
 
 /** A part on a shelf is not titled with the year the Model T was current. */
 const HISTORICAL_YEAR = /\b1[89]\d{2}\b/;
@@ -456,6 +686,29 @@ export function isDocumentNotPart(
   if (/\bads?\b/i.test(name)) return true;
   return (categories ?? []).some((c) =>
     NOT_A_PART.test((c.title ?? "").replace(/^Category:/, ""))
+  );
+}
+
+/**
+ * Categories that mean "this belongs to a vehicle, but not to a car".
+ *
+ * `AUTOMOTIVE_CATEGORY_WORD` accepts a category for naming a brake, and a
+ * bicycle has brakes: "Bicycle brake pads" reads as automotive evidence, and a
+ * card for تيل فرينو was given a photograph of a blister pack of Shimano disc
+ * pads. It is a brake pad, and it is for the wrong machine, and nothing about
+ * the card would tell the reader.
+ *
+ * Asked before the positive evidence, because a file filed under both is
+ * filed under the more specific one for a reason.
+ */
+const ANOTHER_VEHICLE =
+  /\b(bicycle|bike|cycling|motorcycle|moped|scooter|aircraft|aviation|locomotive|railway|railroad|tram|marine|boat|ship)/i;
+
+export function isFiledAsAnotherVehicle(
+  categories: { title?: string }[] | undefined
+): boolean {
+  return (categories ?? []).some((c) =>
+    ANOTHER_VEHICLE.test((c.title ?? "").replace(/^Category:/, ""))
   );
 }
 
@@ -554,6 +807,7 @@ async function searchWikimediaCommons(
       // water pump — both match two words of the part name, and both are the
       // kind of confident wrong photograph that is worse than the drawing,
       // because the drawing never claims to be a photograph of anything.
+      if (isFiledAsAnotherVehicle(page?.categories)) return "";
       if (!isFiledAsAutomotive(page?.categories)) return "";
       if (isDocumentNotPart(title, page?.categories)) return "";
 
@@ -596,6 +850,60 @@ async function searchWikimediaCommons(
  * The image is served from upload.wikimedia.org, the host the curated photos
  * already use, so this adds no origin to the CSP.
  */
+/**
+ * The file's name on Commons, read off a Wikimedia image URL.
+ *
+ * The last segment of a thumbnail URL is the rendering, not the file:
+ * ".../thumb/a/a4/Mini_Shocks.JPG/330px-Mini_Shocks.JPG" ends in a name that
+ * Commons has never heard of. Asked for "File:330px-Mini_Shocks.JPG" it
+ * answers with a missing page, which reads as "no categories" — so the
+ * strongest evidence about the picture was being discarded for every
+ * thumbnail, which is all of them. The file's own name is the segment in front
+ * of the rendering.
+ *
+ * An image small enough to need no thumbnail is served from its own path, with
+ * no "/thumb/" in it, and there the last segment is the file.
+ */
+export function commonsFileNameFrom(url: string): string {
+  const path = url.split("?")[0];
+  const segments = path.split("/").filter(Boolean);
+  const name = path.includes("/thumb/")
+    ? segments[segments.length - 2]
+    : segments[segments.length - 1];
+  try {
+    return decodeURIComponent(name ?? "");
+  } catch {
+    return name ?? "";
+  }
+}
+
+/**
+ * What Commons files this picture under, or `undefined` when it cannot say.
+ *
+ * Wikipedia hosts some of its own images rather than taking them from Commons,
+ * and Commons answers for those with a missing page. That is not evidence
+ * against the file — it is no evidence at all — so it is reported as absent
+ * and the caller falls back to what the article's prose says.
+ */
+async function commonsCategoriesFor(
+  filename: string
+): Promise<{ title?: string }[] | undefined> {
+  if (!filename) return undefined;
+  try {
+    const res = await fetch(
+      `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(
+        `File:${filename}`
+      )}&prop=categories&cllimit=50&format=json&origin=*`,
+      { headers: { "User-Agent": COMMONS_UA }, signal: AbortSignal.timeout(3000) }
+    );
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as CommonsImageInfo;
+    return Object.values(data.query?.pages ?? {})[0]?.categories;
+  } catch {
+    return undefined;
+  }
+}
+
 const AUTOMOTIVE_PROSE =
   /\b(car|cars|automobile|automotive|vehicle|vehicles|motor vehicle|engine|internal combustion|truck|lorry|motorcycle|chassis|drivetrain|exhaust)\b/i;
 
@@ -615,13 +923,31 @@ async function searchWikipediaLeadImage(term: string): Promise<string> {
     const image = data.thumbnail?.source;
     if (!image) return "";
 
-    const prose = `${data.description ?? ""} ${data.extract ?? ""}`;
-    if (!AUTOMOTIVE_PROSE.test(prose)) return "";
+    const filename = commonsFileNameFrom(image);
 
-    // The filename still has to be a photograph of the part rather than a
-    // diagram or an advertisement of it.
-    const filename = decodeURIComponent(image.split("/").pop() ?? "");
-    if (isDocumentNotPart(filename, undefined)) return "";
+    // What the picture itself is filed under, asked before the prose is.
+    //
+    // It is the stronger evidence of the two and it is the same evidence the
+    // Commons tiers already use. The lead image of "Shock absorber" is filed
+    // under "Automotive Parts" and is a photograph of a car's dampers, while
+    // the article's first paragraph defines a damper in general and never says
+    // car — so the prose rule alone threw away a correct photograph of one of
+    // the commonest parts in these reports. The same for the windscreen wiper.
+    const categories = await commonsCategoriesFor(filename);
+
+    // And a picture filed as a drawing of the part is not a picture of it.
+    // "Turbocharger" leads with an animation filed under "Cutaway diagrams of
+    // turbochargers", which the filename alone does not admit to.
+    if (isFiledAsAnotherVehicle(categories)) return "";
+    if (isDocumentNotPart(filename, categories)) return "";
+
+    // Either proof will do. The categories settle the parts the prose cannot,
+    // and the prose settles the files Commons has never catalogued — including
+    // the ones Wikipedia hosts itself, which are not on Commons at all.
+    const prose = `${data.description ?? ""} ${data.extract ?? ""}`;
+    if (!isFiledAsAutomotive(categories) && !AUTOMOTIVE_PROSE.test(prose)) {
+      return "";
+    }
 
     // Wikimedia appends its own utm_* campaign parameters.
     return image.split("?")[0];
@@ -651,7 +977,7 @@ const THUMB_WIDTH = 320;
  * out of it.
  */
 const TOO_GENERAL =
-  /^(pump|sensor|filter|switch|belt|valve|motor|engine|module|unit|relay|fuse|wire|wiring|hose|pipe|bearing|gasket|seal|cover|housing|bracket|arm|light|lamp|system|assembly)$/i;
+  /^(pump|sensor|filter|switch|belt|valve|motor|engine|module|unit|relay|fuse|wire|wiring|harness|loom|connector|plug|cable|socket|terminal|hose|pipe|bearing|gasket|seal|cover|housing|bracket|arm|light|lamp|system|assembly)$/i;
 
 export function isSearchableTerm(term: string): boolean {
   const t = term.trim();
@@ -674,20 +1000,21 @@ function hasLatinWord(name: string): boolean {
  */
 const CACHE_LIMIT = 500;
 
-function rememberPhoto(key: string, url: string): void {
+function rememberPhoto(key: string, photo: PartPhoto | null): void {
   if (imageSearchCache.size >= CACHE_LIMIT) {
     const oldest = imageSearchCache.keys().next().value;
     if (oldest !== undefined) imageSearchCache.delete(oldest);
   }
-  imageSearchCache.set(key, url);
+  imageSearchCache.set(key, photo);
 }
 
 /** The first curated photo whose pattern matches, or "". Exported to be tested. */
+export function curatedEntryFor(text: string): CuratedPhoto | null {
+  return CURATED_PARTS_PHOTO_REGISTRY.find((i) => i.pattern.test(text)) ?? null;
+}
+
 export function curatedPhotoFor(text: string): string {
-  for (const item of CURATED_PARTS_PHOTO_REGISTRY) {
-    if (item.pattern.test(text)) return item.url;
-  }
-  return "";
+  return curatedEntryFor(text)?.url ?? "";
 }
 
 /**
@@ -706,7 +1033,7 @@ export async function searchPartImageOnline(
   model?: string,
   year?: string | number,
   partNameLibyan: string = ""
-): Promise<string> {
+): Promise<PartPhoto | null> {
   const cleanOem = oemNumber ? oemNumber.replace(/[^a-zA-Z0-9-]/g, " ").trim() : "";
 
   // The key is what the answer actually depends on.
@@ -731,21 +1058,86 @@ export async function searchPartImageOnline(
   // The make, model, year and the words "genuine auto part" used to be in
   // this text too. None of them can make a pattern match more correct, and
   // any of them can make one match that should not have.
-  let foundUrl = curatedPhotoFor(
+  const curated = curatedEntryFor(
     `${partNameEn} ${partNameLibyan} ${cleanOem}`.trim()
   );
 
-  // Tier 2: Commons under the part's own English name.
+  // A curated photograph that shows where the part sits does not block the
+  // catalogue.
+  //
+  // A Corolla card for 22204-22010 was showing an Opel Antara's engine bay
+  // with a yellow arrow in it — a correct, hand-checked picture of where a
+  // mass air flow sensor lives — while the catalogue held a photograph of the
+  // sensor itself on white, found by that exact number. For a card whose only
+  // job is "identify the thing you are about to go and buy", the second one
+  // wins. The location shot stays as the fallback, which is what it was always
+  // good for.
+  const curatedBlocks = curated && !(curated.inSitu && cleanOem);
+  let foundUrl = curatedBlocks ? curated.url : "";
+  let source: PartPhoto["source"] = "curated";
+  let listingUrl: string | undefined;
+  let catalogueArticle: string | undefined;
+
+  // Tier 2: the aftermarket catalogue, asked for the number on the card.
+  //
+  // First of the online tiers because it is the only one whose match cannot
+  // be wrong: it is keyed by the OEM number rather than searched by text. What
+  // it returns is the aftermarket equivalent — the Bosch or Stellox part that
+  // fits where the Toyota one did — which for somebody about to go and buy one
+  // is usually the more useful photograph, and is a different claim from "this
+  // is your car's part". The card says which.
+  if (!foundUrl && cleanOem) {
+    const fromCatalogue = await searchCataloguePartPhoto(cleanOem);
+    if (fromCatalogue) {
+      foundUrl = fromCatalogue.imageUrl;
+      source = "catalogue";
+      catalogueArticle = fromCatalogue.article;
+    }
+  }
+
+  // Tier 3: the marketplace, asked for the same number.
+  //
+  // The only source here that can answer the question the report actually
+  // poses. Everything below is searched by name against an encyclopedia, and
+  // an encyclopedia has one photograph of "a clock spring" if it has any at
+  // all — never the one Toyota sells as 84306-06140.
+  //
+  // Below the curated registry rather than above it: those photographs are
+  // hand-checked, cost no round trip, survive into the exported offline file,
+  // and belong to nobody. This tier runs for the parts that have never had a
+  // photograph, which is what it was added for.
+  //
+  // The match is the one piece of relevance in this whole file that can be
+  // proved instead of argued: the listing's title has to quote the number.
+  if (!foundUrl && cleanOem) {
+    const listing = await searchEbayPartPhoto(cleanOem);
+    if (listing) {
+      foundUrl = listing.imageUrl;
+      source = "ebay";
+      listingUrl = listing.listingUrl;
+    }
+  }
+
+  // Tier 4: Commons under the part's own English name.
   //
   // The make is deliberately left out of the search text. Commons is a general
   // archive, not a parts catalogue: adding "Toyota" to "Thermostat" pushes the
   // results towards photographs of cars rather than of the component, and the
   // relevance check then rejects all of them.
+  //
+  // Asked for under each reduction of that name, longest first, rather than
+  // only as the whole catalogue phrase. "EPS Column Assembly with Torque
+  // Sensor" is not a title any archive holds, and one miss here used to hand
+  // the card to the dictionary, which answered with a steering wheel.
   if (!foundUrl && hasLatinWord(partNameEn)) {
-    foundUrl = await searchWikimediaCommons(partNameEn, partNameEn);
+    for (const variant of englishSearchVariants(partNameEn)) {
+      foundUrl = await searchWikimediaCommons(variant, variant);
+      if (foundUrl) break;
+    }
+    if (foundUrl) source = "commons";
   }
 
-  // Tier 3: the same search, under an English name the dictionary supplies for
+  // Tier 5: the same search, under an English name the dictionary supplies for
   // the Libyan one.
   //
   // This tier was dead. `englishTermsFor` matches Libyan workshop terms, and
@@ -762,15 +1154,23 @@ export async function searchPartImageOnline(
     // when Commons had no clock spring, which it does not, the card was given
     // a photograph of a steering wheel instead. A different part, and the
     // reader has no way to tell.
+    //
+    // And it has to agree with the English name the report already gave, when
+    // there is one. Without that, "عمود ستيرسو كهربائي مع حساس التورك" reaches
+    // the entry for "ستيرسو" and a card headed "EPS Column Assembly with
+    // Torque Sensor" is answered with a photograph of a steering wheel.
     const [term] = [
       ...englishTermsFor(partNameLibyan),
       ...englishTermsFor(partNameEn),
-    ].filter(isSearchableTerm);
+    ]
+      .filter(isSearchableTerm)
+      .filter((t) => agreesWithEnglishName(t, partNameEn));
 
     if (term) foundUrl = await searchWikimediaCommons(term, term);
+    if (foundUrl) source = "commons";
   }
 
-  // Tier 4: the article about the part, and its lead image.
+  // Tier 6: the article about the part, and its lead image.
   //
   // Last because it is the broadest: an article's picture is of the subject in
   // general, where the tiers above are pinned to this part by a hand-check or
@@ -783,13 +1183,20 @@ export async function searchPartImageOnline(
     // tier repeated it: "Clock spring" has no automotive article, so it fell
     // through to "Steering wheel", which has a very good photograph of the
     // wrong part.
-    const [fallback] = englishTermsFor(partNameLibyan).filter(isSearchableTerm);
-    for (const term of [partNameEn, fallback].filter(
+    //
+    // The English name is offered under each of its reductions here too, and
+    // the dictionary's term only if it agrees with that name.
+    const [fallback] = englishTermsFor(partNameLibyan)
+      .filter(isSearchableTerm)
+      .filter((t) => agreesWithEnglishName(t, partNameEn));
+
+    for (const term of [...englishSearchVariants(partNameEn), fallback].filter(
       (t): t is string => !!t && isSearchableTerm(t)
     )) {
       foundUrl = await searchWikipediaLeadImage(term);
       if (foundUrl) break;
     }
+    if (foundUrl) source = "encyclopedia";
   }
 
   // A limit that no rule over titles and categories can close, written down
@@ -803,7 +1210,38 @@ export async function searchPartImageOnline(
   // hand-edited. Anything off the allowlist would be blocked by the CSP in the
   // browser anyway; drop it here so the UI falls back to its vector schematic
   // instead of rendering a broken image.
-  const result = foundUrl && isAllowedPartImage(foundUrl) ? foundUrl : "";
+  //
+  // The drop is said out loud. When Wikimedia moved its thumbnails to
+  // `thumb.wikimedia.org` this line quietly threw away every photograph the
+  // three live tiers found, for every part outside the curated registry, and
+  // nothing anywhere recorded that it had happened — the card fell back to its
+  // drawing, which is exactly what it does when there honestly is no photo.
+  // `npm run audit:live` fails on this warning.
+  // Nothing with a number could answer, so the location shot is the best
+  // picture there is after all.
+  if (!foundUrl && curated) {
+    foundUrl = curated.url;
+    source = "curated";
+    listingUrl = undefined;
+    catalogueArticle = undefined;
+  }
+
+  const allowed = !foundUrl || isAllowedPartImage(foundUrl);
+  if (!allowed) {
+    console.warn(
+      `[parts-image] dropped a photo on an origin that is not allowed: ${foundUrl} — if this host is Wikimedia's, add it to PART_IMAGE_HOSTS`
+    );
+  }
+
+  const result: PartPhoto | null =
+    allowed && foundUrl
+      ? {
+          url: foundUrl,
+          source,
+          ...(listingUrl ? { listingUrl } : {}),
+          ...(catalogueArticle ? { article: catalogueArticle } : {}),
+        }
+      : null;
 
   // The miss is cached too. Only hits used to be, so every card without a
   // photo — which is most of them — re-ran two Commons queries on every single

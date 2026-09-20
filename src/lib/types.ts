@@ -148,6 +148,18 @@ export interface KashifDiagnosticReport {
     serialNumber?: string | null;
     testTime?: string | null;
   };
+  /**
+   * The model that actually read the scan.
+   *
+   * Not the one that was asked for. `modelsToTry` walks a ladder of seven, and
+   * a 503 from the first — which Google returns freely on the free tier — hands
+   * the same PDF to a different model with no record of it anywhere. Two runs
+   * of one scan then disagree about how many parts it needs, and nothing on
+   * either report says why.
+   *
+   * `null` for the demo boards, which no model read.
+   */
+  analyzedByModel?: string | null;
   /** A scanner report often omits half of this. `null` means the scan did not
    *  say — the UI renders "غير محدد" rather than guessing a year or a VIN. */
   vehicle: {

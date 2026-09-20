@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
+  agreesWithEnglishName,
+  commonsFileNameFrom,
+  curatedEntryFor,
   curatedPhotoFor,
+  englishSearchVariants,
   isDocumentNotPart,
+  isFiledAsAnotherVehicle,
   isFiledAsAutomotive,
   isSearchableTerm,
   titleMatchesPart,
 } from "@/lib/parts-search";
 import { englishTermsFor, LIBYAN_DICTIONARY } from "@/lib/dictionary";
 import { isAllowedPartImage } from "@/lib/part-image-hosts";
+import { listingMatchesOem, normalizeOem } from "@/lib/ebay-parts";
 import { readFileSync } from "node:fs";
 
 /**
@@ -408,5 +414,284 @@ describe("names that overlap between two different parts", () => {
     // circuits, at different prices.
     expect(curatedPhotoFor("رداتوري المكيف")).not.toContain("Automobile_radiator");
     expect(curatedPhotoFor("رداتوري")).toContain("Automobile_radiator");
+  });
+});
+
+describe("searching under the name the report actually gave", () => {
+  it("asks for the head of a catalogue name, not only the whole phrase", () => {
+    // A real card from an Elantra HD report. No archive has titled anything
+    // this, and the single miss handed the card to the dictionary — which
+    // answered with a photograph of a Volvo steering wheel.
+    expect(englishSearchVariants("EPS Column Assembly with Torque Sensor")).toEqual([
+      "EPS Column Assembly with Torque Sensor",
+      "EPS Column Assembly",
+      "EPS Column",
+    ]);
+  });
+
+  it("drops where the part sits, which no archive files anything under", () => {
+    expect(englishSearchVariants("Front Left ABS Wheel Speed Sensor")).toEqual([
+      "Front Left ABS Wheel Speed Sensor",
+      "ABS Wheel Speed Sensor",
+    ]);
+  });
+
+  it("keeps the word a catalogue put in brackets", () => {
+    // Cutting at the bracket unconditionally is how "Upstream Oxygen (O2)
+    // Sensor" once became "Upstream Oxygen", losing the component's name.
+    expect(englishSearchVariants("Upstream Oxygen (O2) Sensor")).toEqual([
+      "Upstream Oxygen (O2) Sensor",
+      "Upstream Oxygen Sensor",
+    ]);
+  });
+
+  it("costs one search for a name that is already a part name", () => {
+    expect(englishSearchVariants("Ignition Coil")).toEqual(["Ignition Coil"]);
+  });
+
+  it("offers nothing for a name that is only a category", () => {
+    // `isSearchableTerm` throws these out: an archive asked for "Sensor"
+    // answers with something, and whatever it answers with is wrong.
+    expect(englishSearchVariants("Sensor")).toEqual([]);
+  });
+});
+
+describe("a dictionary term standing in for the part's own name", () => {
+  it("refuses a steering wheel for a steering column", () => {
+    // "عمود ستيرسو كهربائي مع حساس التورك" contains "ستيرسو", whose gloss reads
+    // "Steering wheel (sterzo)". Right about the word, wrong about the part.
+    expect(
+      agreesWithEnglishName("Steering wheel", "EPS Column Assembly with Torque Sensor")
+    ).toBe(false);
+  });
+
+  it("accepts a term that names the same part the report did", () => {
+    expect(
+      agreesWithEnglishName("Steering Angle Sensor", "Steering Angle Sensor")
+    ).toBe(true);
+    expect(agreesWithEnglishName("Shock absorber", "Rear Shock Absorber Assembly")).toBe(
+      true
+    );
+  });
+
+  it("still answers for a part the report named only in Libyan", () => {
+    // Nothing to disagree with, and the dictionary is the only tier that can
+    // say anything at all about "براتشو".
+    expect(agreesWithEnglishName("Control arm", "")).toBe(true);
+    expect(agreesWithEnglishName("Control arm", "براتشو")).toBe(true);
+  });
+});
+
+describe("reading a file's name off a Wikimedia URL", () => {
+  it("takes the file, not the rendering, out of a thumbnail URL", () => {
+    // "330px-Mini_Shocks.JPG" is a size Commons has never heard of. Asking it
+    // about that name returns a missing page, which reads as "no categories" —
+    // and the categories are the strongest evidence there is about a picture.
+    expect(
+      commonsFileNameFrom(
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Mini_Shocks.JPG/330px-Mini_Shocks.JPG"
+      )
+    ).toBe("Mini_Shocks.JPG");
+  });
+
+  it("takes the last segment when the file is served whole", () => {
+    // Small enough to need no thumbnail, so it comes from its own path.
+    expect(
+      commonsFileNameFrom(
+        "https://upload.wikimedia.org/wikipedia/commons/8/8c/Heckscheibenwischer_kl.jpg"
+      )
+    ).toBe("Heckscheibenwischer_kl.jpg");
+  });
+
+  it("decodes a name Wikimedia escaped", () => {
+    expect(
+      commonsFileNameFrom(
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Olejov%C3%BD_filtr.jpg/330px-Olejov%C3%BD_filtr.jpg"
+      )
+    ).toBe("Olejový_filtr.jpg");
+  });
+});
+
+describe("the photos added for parts the live search could never find", () => {
+  const photoFor = (text: string) =>
+    decodeURIComponent(curatedPhotoFor(text)).split("/").pop() ?? "";
+
+  it("shows a water pump, and does not take the other four pumps with it", () => {
+    // The dictionary lists a fuel pump, a power steering pump, a brake master
+    // cylinder and an inverter pump, and Libyan calls every one of them a
+    // "بومبة".
+    expect(photoFor("Water Pump بومبة ميه")).toContain("coolant_pump");
+    expect(photoFor("Fuel Pump بومبة بنزين")).toContain("Fuelpump");
+    expect(photoFor("Power steering pump بومبة ستيرسو")).not.toContain("coolant_pump");
+    expect(photoFor("Brake master cylinder بومبة فرينو")).toContain("master_cylinder");
+  });
+
+  it("shows a hub bearing for a wheel bearing and a sensor for a wheel speed sensor", () => {
+    // Both name a wheel. One is a lump of steel and one is an electrical part,
+    // and "bearing" is what tells them apart.
+    expect(photoFor("Wheel Hub Bearing كوشينتي")).toContain("Hub_Bearing");
+    expect(photoFor("Front Left ABS Wheel Speed Sensor")).toContain("1769855");
+  });
+
+  it("shows the EGR valve itself, not the engine it is bolted to", () => {
+    // The card used to be given the lead image of "Exhaust gas recirculation",
+    // which is a photograph of a whole Saab engine bay.
+    expect(photoFor("EGR Valve فالف الـ EGR")).toContain("EGR_valve");
+    // A word boundary, because "egr" sits inside "integrated".
+    expect(photoFor("Integrated Control Module")).not.toContain("EGR_valve");
+  });
+
+  it("shows a tie rod end as a photograph rather than a cross-section drawing", () => {
+    // The drawn schematic beside it is already a diagram, and a better one.
+    expect(photoFor("Tie Rod End بوكل دركسيون")).toContain("Tie_rod_end");
+    expect(photoFor("Ball joint فوزيلي")).toContain("Tie_rod_end");
+    expect(curatedPhotoFor("Ball joint")).not.toContain("cross_section");
+  });
+
+  it("shows an A/C compressor, and never the engine radiator", () => {
+    // Libyan calls the condenser and the radiator both "رداتوري"; the
+    // compressor is a third part again, and all three are in the same circuit
+    // diagram.
+    expect(photoFor("A/C Compressor كمبريسوري")).toContain("verdichter");
+    expect(photoFor("كمبروسر مكيف")).toContain("verdichter");
+    expect(photoFor("Radiator رداتوري")).toContain("Automobile_radiator");
+  });
+
+  it("shows a CV joint for a half shaft", () => {
+    expect(photoFor("CV Joint سمياص")).toContain("CV_joint");
+    expect(photoFor("CV Axle")).toContain("CV_joint");
+  });
+
+  it("still draws the parts nothing has photographed", () => {
+    // Searched under their English, German, French and Spanish names and under
+    // every Libyan word the dictionary has. A wrong photograph would be worse
+    // than the drawing — the camshaft sensor especially, which is nearly
+    // identical to the crankshaft sensor already in this list.
+    for (const part of [
+      "Camshaft Position Sensor حساس كامة",
+      "Clock Spring شريط إيرباق الدومان",
+      "Knock Sensor حساس الطرق",
+      "Coolant Temperature Sensor حساس حرارة المية",
+      "Engine Mount كرسي مكينة",
+      "Purge Valve فالف التبخير",
+    ]) {
+      expect(curatedPhotoFor(part), part).toBe("");
+    }
+  });
+});
+
+describe("a part for a different machine, and a picture of a box", () => {
+  it("refuses a bicycle's brake pads for a car's", () => {
+    // "Bicycle brake pads" satisfies `isFiledAsAutomotive`, because that rule
+    // accepts a category for naming a brake and a bicycle has brakes. A card
+    // for تيل فرينو was given a blister pack of Shimano disc pads: the right
+    // component for the wrong machine, and nothing on the card said so.
+    const shimano = [
+      { title: "Category:Bicycle brake pads" },
+      { title: "Category:Shimano bicycle parts" },
+    ];
+    expect(isFiledAsAutomotive(shimano)).toBe(true);
+    expect(isFiledAsAnotherVehicle(shimano)).toBe(true);
+  });
+
+  it("leaves a car's own categories alone", () => {
+    expect(
+      isFiledAsAnotherVehicle([
+        { title: "Category:Automobile disk brakes" },
+        { title: "Category:Brake blocks" },
+      ])
+    ).toBe(false);
+  });
+
+  it("refuses a photograph of the packaging", () => {
+    // A box with the part's name printed on it is not a picture of the part.
+    expect(
+      isDocumentNotPart("File:L05A-RF Shimano Disc Brake Pads packaging.jpg", undefined)
+    ).toBe(true);
+  });
+
+  it("shows the pads themselves for pads, and the disc for a disc", () => {
+    // Sold separately, priced differently, and Commons has answered "brake
+    // pads" with a photograph of a disc more than once.
+    expect(curatedPhotoFor("Brake Pads تيل فرينو")).toContain("Brake_pad.jpg");
+    expect(curatedPhotoFor("Brake Disc ديسكو فرينو")).toContain("Disk_brake");
+  });
+});
+
+describe("a title that matches only the words every part shares", () => {
+  it("refuses a Geo Storm's dashboard loom for a side airbag connector", () => {
+    // From a real Camry report. "Wiring" and "harness" are two matching words
+    // and neither says which loom: the word that would, "airbag", is not in
+    // the title at all.
+    expect(
+      titleMatchesPart(
+        "File:2008-04-17 Geo Storm instrument cluster wiring harness.jpg",
+        "Side Airbag Wiring Connector Harness",
+        { insideAutomotiveCategory: true }
+      )
+    ).toBe(false);
+  });
+
+  it("still accepts a match that names the part", () => {
+    // "Pads" is not a category word, so this one carries real evidence.
+    expect(titleMatchesPart("File:Brake pads.JPG", "Brake Pads")).toBe(true);
+    // Neither is "timing", against a category word for the other half.
+    expect(isSearchableTerm("Timing Belt")).toBe(true);
+  });
+});
+
+describe("a part photo found by its OEM number", () => {
+  it("accepts a listing whose title quotes the number, however it is punctuated", () => {
+    // Toyota writes 84306-06140; sellers write it every other way.
+    for (const title of [
+      "Genuine Toyota 84306-06140 Clock Spring Spiral Cable",
+      "TOYOTA 8430606140 CLOCK SPRING OEM",
+      "Spiral cable 84306 06140 fits Camry 2007-2011",
+    ]) {
+      expect(listingMatchesOem(title, "84306-06140"), title).toBe(true);
+    }
+  });
+
+  it("refuses a listing that never names the part number", () => {
+    // The relevance rules everywhere else in this file argue from words. This
+    // one can be proved, and so it is the only tier allowed to answer from a
+    // marketplace: a seller who does not quote the number is not claiming to
+    // sell that part.
+    expect(
+      listingMatchesOem("Clock Spring Spiral Cable for Toyota Camry", "84306-06140")
+    ).toBe(false);
+  });
+
+  it("refuses a number too short to be one", () => {
+    // Four characters is a fragment, and it will turn up inside somebody
+    // else's part number.
+    expect(listingMatchesOem("Widget 1234 for sale", "1234")).toBe(false);
+  });
+
+  it("strips punctuation from both sides before comparing", () => {
+    expect(normalizeOem(" 84306-06140 ")).toBe("8430606140");
+    expect(normalizeOem("06A906036F")).toBe("06A906036F");
+  });
+});
+
+describe("a curated photo of where the part sits", () => {
+  it("still answers when there is no part number to look up", () => {
+    // The location shot is what this registry is good for when nothing else
+    // can say anything: the mechanic is going to be looking at that view.
+    expect(curatedEntryFor("Mass Air Flow Sensor حساس ماف")?.inSitu).toBe(true);
+    expect(curatedPhotoFor("Mass Air Flow Sensor")).toContain("location_in_the_engine_bay");
+  });
+
+  it("is marked on the four entries that are views rather than parts", () => {
+    // An arrow into an engine bay, a filter under a car, a converter in the
+    // exhaust line, an arm numbered against the suspension around it.
+    const inSitu = ["Mass Air Flow Sensor", "Fuel Filter", "Catalytic Converter", "Control Arm"];
+    for (const name of inSitu) {
+      expect(curatedEntryFor(name)?.inSitu, name).toBe(true);
+    }
+    // And not on the ones that photograph the part itself.
+    for (const name of ["Brake Pads", "Ignition Coil", "Spark Plug", "Water Pump", "Alternator"]) {
+      expect(curatedEntryFor(name)?.inSitu, name).toBeUndefined();
+    }
   });
 });

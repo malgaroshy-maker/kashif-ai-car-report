@@ -12,7 +12,28 @@
  */
 export const PART_IMAGE_HOSTS = [
   "https://upload.wikimedia.org",
+  // Wikimedia now hands out thumbnails on this host. Both the Commons
+  // `imageinfo` API and the Wikipedia REST summary return `thumb.wikimedia.org`
+  // where they used to return `upload.wikimedia.org/.../thumb/...`, and the two
+  // serve the same bytes on the same path.
+  //
+  // Everything the live search found was being discarded here: the Commons
+  // tiers and the encyclopedia tier did their work, passed every relevance and
+  // category check, and were then dropped one line before returning, because
+  // the host they came back on was not on this list. Only the curated registry
+  // still showed a photo, because its URLs are written out by hand against the
+  // old host — which is why it read as "some parts have no picture" rather than
+  // as a broken feature. `npm run audit:live` fails when this happens again.
+  "https://thumb.wikimedia.org",
   "https://assets.turnermotorsport.com",
+  // Where eBay serves its listing photographs. Reached only through
+  // `ebay-parts.ts`, only for a listing whose title quotes the OEM number on
+  // the card, and only when this deployment has eBay credentials at all.
+  "https://i.ebayimg.com",
+  // Where the aftermarket catalogue keeps its media. Object storage rather
+  // than a CDN, which is one of several reasons that source is documented as
+  // the least durable one here.
+  "https://fsn1.your-objectstorage.com",
 ] as const;
 
 // cdn4.pelicanparts.com was here for one photograph. That host answers 403 to

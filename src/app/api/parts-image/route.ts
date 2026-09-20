@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const imageUrl = await searchPartImageOnline(
+    const photo = await searchPartImageOnline(
       oem,
       partName,
       make,
@@ -42,8 +42,19 @@ export async function GET(req: NextRequest) {
       year,
       partNameLibyan
     );
+    // `source` and `listingUrl` ride along because the card says where the
+    // picture came from. A hand-checked photograph of a radiator and somebody's
+    // eBay listing for part 84306-06140 are different kinds of claim, and the
+    // second is only honest with its listing attached — which is also what
+    // eBay's licence expects of anyone displaying it.
     return NextResponse.json(
-      { success: true, imageUrl: imageUrl || null },
+      {
+        success: true,
+        imageUrl: photo?.url ?? null,
+        source: photo?.source ?? null,
+        listingUrl: photo?.listingUrl ?? null,
+        article: photo?.article ?? null,
+      },
       { headers: { "Cache-Control": CACHE } }
     );
   } catch (error) {
@@ -51,7 +62,7 @@ export async function GET(req: NextRequest) {
     // upstream message is not ours to forward. Answer "no photo".
     console.warn("[parts-image] lookup failed:", error);
     return NextResponse.json(
-      { success: true, imageUrl: null },
+      { success: true, imageUrl: null, source: null, listingUrl: null, article: null },
       { headers: { "Cache-Control": "no-store" } }
     );
   }

@@ -20,7 +20,7 @@ import { orUnknown, type KashifDiagnosticReport } from "@/lib/types";
  * not say, which is a true statement about the scan.
  */
 export function VehiclePlate({ report }: { report: KashifDiagnosticReport }) {
-  const { vehicle, summary, scannerInfo } = report;
+  const { vehicle, summary, scannerInfo, analyzedByModel } = report;
   const severity = severityFromScore(summary.overallHealthScore);
 
   const name = [vehicle.make, vehicle.model].filter(Boolean).join(" ");
@@ -76,6 +76,12 @@ export function VehiclePlate({ report }: { report: KashifDiagnosticReport }) {
         <PlateField label="رقم الهيكل (VIN)" value={vehicle.vin} mono />
         <PlateField label="الممشى" value={vehicle.mileage} mono />
         <PlateField label="جهاز الفحص" value={scannerInfo.toolName} />
+        {/* Which model read the scan. The ladder falls through on a 503 — which
+            Google returns freely on the free tier — so the same PDF can be read
+            by a different model on the next upload. Two reports that disagree
+            are then at least explainable, instead of looking like the app
+            changed its mind. */}
+        <PlateField label="قرأه" value={analyzedByModel ?? null} mono />
         <PlateField
           label="المنظومات المفحوصة"
           value={`${summary.systemsCheckedCount} — ${summary.faultsFoundCount} عطل`}

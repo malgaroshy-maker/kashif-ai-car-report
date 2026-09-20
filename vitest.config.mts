@@ -10,8 +10,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    // e2e/ belongs to Playwright; vitest must not try to run it.
-    exclude: ["e2e/**", "node_modules/**", ".open-next/**"],
+    // e2e/ belongs to Playwright; vitest must not try to run it. tests/live/
+    // needs the network and belongs to `npm run audit:live`, which has its own
+    // config — this suite stays offline and fast.
+    exclude: ["e2e/**", "tests/live/**", "node_modules/**", ".open-next/**"],
   },
   resolve: {
     alias: {
