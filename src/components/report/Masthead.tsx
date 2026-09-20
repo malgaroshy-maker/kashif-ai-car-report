@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/primitives";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
@@ -28,6 +29,12 @@ export function Masthead({
 
         <span className="flex-1" aria-hidden />
 
+        <Link
+          href="/mobile"
+          className="text-(length:--t-plate) px-3 py-1.5 rounded border border-[var(--rib)] hover:bg-[var(--board)] transition inline-flex items-center gap-1 font-bold text-xs"
+        >
+          <span>📱 تطبيق الهاتف</span>
+        </Link>
         <Button onClick={onOpenDictionary} className="text-(length:--t-plate)">
           القاموس
         </Button>

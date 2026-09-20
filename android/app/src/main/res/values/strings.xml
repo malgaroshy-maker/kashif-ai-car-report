@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">كاشف للأعطال وكشف الكمبيوتر</string>
+    <string name="title_activity_main">كاشف للأعطال وكشف الكمبيوتر</string>
+    <string name="package_name">ly.kashif.ai.carreport</string>
+    <string name="custom_url_scheme">ly.kashif.ai.carreport</string>
+</resources>

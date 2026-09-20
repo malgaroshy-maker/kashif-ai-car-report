@@ -1,0 +1,15 @@
+{
+  "appId": "ly.kashif.ai.carreport",
+  "appName": "كاشف للأعطال وكشف الكمبيوتر",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "backgroundColor": "#071321"
+  }
+}

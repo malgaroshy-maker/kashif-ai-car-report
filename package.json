@@ -15,9 +15,14 @@
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy",
     "audit:photos": "node scripts/audit-photos.mjs",
-    "audit:live": "vitest run --config vitest.live.mts"
+    "audit:live": "vitest run --config vitest.live.mts",
+    "mobile:sync": "next build && npx cap sync",
+    "mobile:open": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
     "@google/genai": "^2.18.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
