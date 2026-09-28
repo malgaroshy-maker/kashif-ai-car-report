@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 
-:: إعداد مسارات البرامج
+:: Setup PATH
 if exist "F:\flutter\bin" set "PATH=F:\flutter\bin;%PATH%"
 if exist "C:\flutter\bin" set "PATH=C:\flutter\bin;%PATH%"
 if exist "D:\flutter\bin" set "PATH=D:\flutter\bin;%PATH%"
@@ -25,8 +25,6 @@ echo   - Press [ q ] here to Stop
 echo ====================================================================
 echo.
 echo Launching Chrome in Mobile Dimensions (420 x 880)...
-echo (Note: Building the web version takes about 30-60 seconds on first run...)
 echo.
 flutter run -d chrome --web-browser-flag "--window-size=420,880" --web-browser-flag "--window-position=50,50" --web-browser-flag "--disable-web-security" --web-browser-flag "--user-data-dir=%USERPROFILE%\.flutter_chrome_dev"
 pause
-
