@@ -299,7 +299,7 @@ ${dictionaryContext}
         "module": "ECM",
         "moduleNameArabic": "كمبيوتر المحرك (DME)",
         "standardDescriptionEn": "Ignition Coil / Misfire Cylinder 4",
-        "libyanTerm": "بوبينة وشمعات السلندر الرابع (البسطوني 4)",
+        "libyanTerm": "بوبينة وشمعات البسطوني الرابع",
         "standardArabicDescription": "خلل في دائرة إشعال واحتراق الاسطوانة رقم 4",
         "driverSymptoms": ["رعشة قوية واهتزاز في المحرك", "ضعف عزم"],
         "rootCauses": ["تلف البوبينة", "تآكل الشمعة"],
@@ -339,7 +339,7 @@ ${dictionaryContext}
   "workshopChecklist": [
     {
       "stepNumber": 1,
-      "targetComponent": "فحص بوبينة وشمعة السلندر 4",
+      "targetComponent": "فحص بوبينة وشمعة البسطوني 4",
       "actionRequiredLibyan": "بدل بوبينة 4 مع 2 وشوف هل ينتقل العطل",
       "toolNeeded": "مفتاح شمعات + جهاز كشف",
       "isCompleted": false

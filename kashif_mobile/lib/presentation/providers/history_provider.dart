@@ -17,6 +17,7 @@ class HistoryNotifier extends StateNotifier<List<DiagnosticReport>> {
   }
 }
 
-final historyProvider = StateNotifierProvider<HistoryNotifier, List<DiagnosticReport>>((ref) {
-  return HistoryNotifier();
-});
+final historyProvider =
+    StateNotifierProvider<HistoryNotifier, List<DiagnosticReport>>((ref) {
+      return HistoryNotifier();
+    });

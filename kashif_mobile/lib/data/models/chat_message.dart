@@ -29,11 +29,11 @@ class ChatMessage {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'text': text,
-        'isUser': isUser,
-        'timestamp': timestamp.toIso8601String(),
-        'isAudio': isAudio,
-        'audioPath': audioPath,
-      };
+    'id': id,
+    'text': text,
+    'isUser': isUser,
+    'timestamp': timestamp.toIso8601String(),
+    'isAudio': isAudio,
+    'audioPath': audioPath,
+  };
 }

@@ -54,20 +54,27 @@ class DictionaryNotifier extends StateNotifier<DictionaryState> {
 
   Future<void> search(String query) async {
     state = state.copyWith(searchQuery: query);
-    final results = await _repository.search(query, category: state.selectedCategory);
+    final results = await _repository.search(
+      query,
+      category: state.selectedCategory,
+    );
     state = state.copyWith(entries: results);
   }
 
   Future<void> selectCategory(String category) async {
     state = state.copyWith(selectedCategory: category);
-    final results = await _repository.search(state.searchQuery, category: category);
+    final results = await _repository.search(
+      state.searchQuery,
+      category: category,
+    );
     state = state.copyWith(entries: results);
   }
 }
 
 final dictionaryRepositoryProvider = Provider((ref) => DictionaryRepository());
 
-final dictionaryProvider = StateNotifierProvider<DictionaryNotifier, DictionaryState>((ref) {
-  final repo = ref.watch(dictionaryRepositoryProvider);
-  return DictionaryNotifier(repo);
-});
+final dictionaryProvider =
+    StateNotifierProvider<DictionaryNotifier, DictionaryState>((ref) {
+      final repo = ref.watch(dictionaryRepositoryProvider);
+      return DictionaryNotifier(repo);
+    });

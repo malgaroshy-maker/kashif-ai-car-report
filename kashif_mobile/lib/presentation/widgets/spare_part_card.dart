@@ -39,16 +39,22 @@ class SparePartCard extends StatelessWidget {
                           child: Center(child: CircularProgressIndicator()),
                         );
                       },
-                      errorBuilder: (context, error, stackTrace) => const SizedBox(
-                        height: 150,
-                        child: Center(child: Icon(Icons.broken_image_rounded, size: 48)),
-                      ),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const SizedBox(
+                            height: 150,
+                            child: Center(
+                              child: Icon(Icons.broken_image_rounded, size: 48),
+                            ),
+                          ),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     part.partNameLibyan,
-                    style: KashifTypography.arabic(fontSize: 14, fontWeight: FontWeight.bold),
+                    style: KashifTypography.arabic(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   if (part.oemPartNumber != null)
                     Text(
@@ -84,31 +90,40 @@ class SparePartCard extends StatelessWidget {
             children: [
               // Photo Thumbnail or Visual Schematic Icon
               GestureDetector(
-                onTap: hasImage ? () => _showImageDialog(context, part.partImageUrl!) : null,
+                onTap: hasImage
+                    ? () => _showImageDialog(context, part.partImageUrl!)
+                    : null,
                 child: Container(
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-                    borderRadius: BorderRadius.circular(4),
+                    color: isDark
+                        ? const Color(0xFF132347)
+                        : const Color(0xFFE8F0FC),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                      color: isDark
+                          ? KashifColors.goldPrimary.withValues(alpha: 0.4)
+                          : KashifColors.royalBlue.withValues(alpha: 0.3),
                     ),
                   ),
                   child: hasImage
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(7),
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
                               Image.network(
                                 part.partImageUrl!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Icon(
-                                  Icons.settings_suggest_rounded,
-                                  size: 28,
-                                  color: isDark ? Colors.white38 : Colors.black38,
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(
+                                      Icons.settings_suggest_rounded,
+                                      size: 28,
+                                      color: isDark
+                                          ? KashifColors.goldLight
+                                          : KashifColors.royalBlue,
+                                    ),
                               ),
                               Positioned(
                                 bottom: 2,
@@ -117,9 +132,13 @@ class SparePartCard extends StatelessWidget {
                                   padding: const EdgeInsets.all(2),
                                   decoration: BoxDecoration(
                                     color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(2),
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: const Icon(Icons.zoom_in_rounded, size: 12, color: Colors.white),
+                                  child: const Icon(
+                                    Icons.zoom_in_rounded,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],
@@ -128,7 +147,9 @@ class SparePartCard extends StatelessWidget {
                       : Icon(
                           Icons.build_rounded,
                           size: 28,
-                          color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                          color: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
                         ),
                 ),
               ),
@@ -147,18 +168,27 @@ class SparePartCard extends StatelessWidget {
                             style: KashifTypography.arabic(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                              color: isDark
+                                  ? KashifColors.darkTextPrimary
+                                  : KashifColors.lightTextPrimary,
                             ),
                           ),
                         ),
                         if (part.estimatedPriceRangeLYD != null) ...[
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E2822) : const Color(0xFFEBF5EE),
-                              borderRadius: BorderRadius.circular(2),
+                              color: isDark
+                                  ? const Color(0xFF221D0E)
+                                  : const Color(0xFFFFF9E6),
+                              borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                                color: isDark
+                                    ? KashifColors.goldLight
+                                    : KashifColors.goldDark,
                                 width: 0.8,
                               ),
                             ),
@@ -167,7 +197,9 @@ class SparePartCard extends StatelessWidget {
                               style: KashifTypography.mono(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w900,
-                                color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                                color: isDark
+                                    ? KashifColors.goldLight
+                                    : KashifColors.goldDark,
                               ),
                             ),
                           ),
@@ -179,7 +211,9 @@ class SparePartCard extends StatelessWidget {
                       part.partNameEnglish,
                       style: KashifTypography.mono(
                         fontSize: 11,
-                        color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                        color: isDark
+                            ? KashifColors.darkTextMuted
+                            : KashifColors.lightTextMuted,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -189,9 +223,14 @@ class SparePartCard extends StatelessWidget {
                       children: [
                         if (part.diagramCategory.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
+                              color: isDark
+                                  ? KashifColors.darkBoard
+                                  : KashifColors.lightBoard,
                               borderRadius: BorderRadius.circular(2),
                             ),
                             child: Text(
@@ -199,34 +238,49 @@ class SparePartCard extends StatelessWidget {
                               style: KashifTypography.arabic(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                                color: isDark
+                                    ? KashifColors.fuse15AInkDark
+                                    : KashifColors.fuse15AInkLight,
                               ),
                             ),
                           ),
                         if (part.relatedCode.isNotEmpty) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: isDark ? Colors.white10 : Colors.black12,
                               borderRadius: BorderRadius.circular(2),
                             ),
                             child: Text(
                               part.relatedCode,
-                              style: KashifTypography.mono(fontSize: 10, fontWeight: FontWeight.bold),
+                              style: KashifTypography.mono(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
-                        if (part.replacementUrgency != null && part.replacementUrgency!.isNotEmpty) ...[
+                        if (part.replacementUrgency != null &&
+                            part.replacementUrgency!.isNotEmpty) ...[
                           const SizedBox(width: 6),
                           Text(
                             part.replacementUrgency!,
                             style: KashifTypography.arabic(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: part.replacementUrgency!.contains('حرج') || part.replacementUrgency!.contains('عاجل')
-                                  ? (isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight)
-                                  : (isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight),
+                              color:
+                                  part.replacementUrgency!.contains('حرج') ||
+                                      part.replacementUrgency!.contains('عاجل')
+                                  ? (isDark
+                                        ? KashifColors.fuse10AInkDark
+                                        : KashifColors.fuse10AInkLight)
+                                  : (isDark
+                                        ? KashifColors.fuse20AInkDark
+                                        : KashifColors.fuse20AInkLight),
                             ),
                           ),
                         ],
@@ -248,16 +302,25 @@ class SparePartCard extends StatelessWidget {
                   style: KashifTypography.arabic(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                    color: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-                    borderRadius: BorderRadius.circular(2),
+                    color: isDark
+                        ? const Color(0xFF132347)
+                        : const Color(0xFFE8F0FC),
+                    borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                      color: isDark
+                          ? KashifColors.goldPrimary.withValues(alpha: 0.5)
+                          : KashifColors.royalBlue.withValues(alpha: 0.4),
                     ),
                   ),
                   child: Text(
@@ -265,7 +328,9 @@ class SparePartCard extends StatelessWidget {
                     style: KashifTypography.mono(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                      color: isDark
+                          ? KashifColors.goldLight
+                          : KashifColors.royalBlue,
                     ),
                   ),
                 ),
@@ -278,7 +343,9 @@ class SparePartCard extends StatelessWidget {
                     Clipboard.setData(ClipboardData(text: part.oemPartNumber!));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('تم نسخ رقم القطعة OEM: ${part.oemPartNumber}'),
+                        content: Text(
+                          'تم نسخ رقم القطعة OEM: ${part.oemPartNumber}',
+                        ),
                         duration: const Duration(seconds: 1),
                       ),
                     );
@@ -295,7 +362,9 @@ class SparePartCard extends StatelessWidget {
               'الشركات البديلة (تجارية): ${part.aftermarketReplacements.join(", ")}',
               style: KashifTypography.arabic(
                 fontSize: 11,
-                color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                color: isDark
+                    ? KashifColors.darkTextMuted
+                    : KashifColors.lightTextMuted,
               ),
             ),
           ],

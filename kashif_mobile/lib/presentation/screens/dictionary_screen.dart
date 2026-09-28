@@ -38,7 +38,10 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
               style: KashifTypography.arabic(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'ابحث عن مصطلح (مثال: بوبينة، باطنيات، امبروكم)...',
-                hintStyle: KashifTypography.arabic(fontSize: 12, color: Colors.grey),
+                hintStyle: KashifTypography.arabic(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -50,14 +53,21 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: isDark ? KashifColors.darkCell : KashifColors.lightCell,
+                fillColor: isDark
+                    ? KashifColors.darkCell
+                    : KashifColors.lightCell,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                    color: isDark
+                        ? KashifColors.goldPrimary.withValues(alpha: 0.4)
+                        : KashifColors.royalBlue.withValues(alpha: 0.3),
                   ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
               ),
               onChanged: (val) {
                 ref.read(dictionaryProvider.notifier).search(val);
@@ -82,20 +92,36 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                     cat,
                     style: KashifTypography.arabic(
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.normal,
                       color: isSelected
-                          ? Colors.white
-                          : (isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary),
+                          ? (isDark ? const Color(0xFF070E1E) : Colors.white)
+                          : (isDark
+                                ? KashifColors.darkTextPrimary
+                                : KashifColors.lightTextPrimary),
                     ),
                   ),
                   selected: isSelected,
-                  selectedColor: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                  backgroundColor: isDark ? KashifColors.darkCell : KashifColors.lightCell,
+                  selectedColor: isDark
+                      ? KashifColors.goldPrimary
+                      : KashifColors.royalBlue,
+                  backgroundColor: isDark
+                      ? const Color(0xFF0F1E3D)
+                      : const Color(0xFFEBF2FD),
                   side: BorderSide(
-                    color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                    color: isSelected
+                        ? (isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue)
+                        : (isDark
+                              ? KashifColors.darkBorder
+                              : KashifColors.lightBorder),
                     width: 0.8,
                   ),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   onSelected: (_) {
                     ref.read(dictionaryProvider.notifier).selectCategory(cat);
                   },
@@ -115,7 +141,10 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     itemCount: dictState.entries.length,
                     itemBuilder: (context, index) {
                       final item = dictState.entries[index];
@@ -143,14 +172,18 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                   style: KashifTypography.arabic(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                    color: isDark
+                        ? KashifColors.darkTextPrimary
+                        : KashifColors.lightTextPrimary,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
+                  color: isDark
+                      ? KashifColors.darkBoard
+                      : KashifColors.lightBoard,
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: Text(
@@ -158,7 +191,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                   style: KashifTypography.arabic(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                    color: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
                   ),
                 ),
               ),
@@ -173,7 +208,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                 style: KashifTypography.arabic(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
                 ),
               ),
               Expanded(
@@ -193,7 +230,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                 style: KashifTypography.mono(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
                 ),
               ),
               Expanded(
@@ -201,7 +240,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                   item.english,
                   style: KashifTypography.mono(
                     fontSize: 11,
-                    color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                    color: isDark
+                        ? KashifColors.fuse15AInkDark
+                        : KashifColors.fuse15AInkLight,
                   ),
                 ),
               ),

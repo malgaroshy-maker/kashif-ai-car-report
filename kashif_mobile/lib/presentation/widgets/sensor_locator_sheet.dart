@@ -85,7 +85,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
             color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             border: Border.all(
-              color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+              color: isDark
+                  ? KashifColors.darkBorder
+                  : KashifColors.lightBorder,
             ),
           ),
           child: Column(
@@ -103,12 +105,17 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
 
               // Sheet title bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.electric_bolt_rounded,
-                      color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                      color: isDark
+                          ? KashifColors.fuse20AInkDark
+                          : KashifColors.fuse20AInkLight,
                       size: 22,
                     ),
                     const SizedBox(width: 8),
@@ -117,7 +124,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                       style: KashifTypography.arabic(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                        color: isDark
+                            ? KashifColors.darkTextPrimary
+                            : KashifColors.lightTextPrimary,
                       ),
                     ),
                     const Spacer(),
@@ -163,17 +172,23 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isDark ? KashifColors.darkCell : KashifColors.lightCell,
+                        color: isDark
+                            ? KashifColors.darkCell
+                            : KashifColors.lightCell,
                         borderRadius: BorderRadius.circular(2),
                         border: Border.all(
-                          color: isDark ? KashifColors.darkRib : KashifColors.lightRib,
+                          color: isDark
+                              ? KashifColors.darkRib
+                              : KashifColors.lightRib,
                         ),
                       ),
                       child: Text(
                         '💡 ملاحظة هامة: افحص الفيوز والفيشة بالأفوميتر قبل شراء أي قطعة جديدة. ترتيب الفيوزات المطبوع على غطاء العلبة في سيارتك هو المرجع الأكيد للوكالة.',
                         style: KashifTypography.arabic(
                           fontSize: 11,
-                          color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -200,10 +215,14 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
+                  color: isDark
+                      ? KashifColors.darkBoard
+                      : KashifColors.lightBoard,
                   borderRadius: BorderRadius.circular(2),
                   border: Border.all(
-                    color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                    color: isDark
+                        ? KashifColors.darkBorder
+                        : KashifColors.lightBorder,
                   ),
                 ),
                 child: Text(
@@ -219,8 +238,11 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight)
-                      .withValues(alpha: 0.15),
+                  color:
+                      (isDark
+                              ? KashifColors.fuse15AInkDark
+                              : KashifColors.fuse15AInkLight)
+                          .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: Text(
@@ -228,7 +250,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                   style: KashifTypography.arabic(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                    color: isDark
+                        ? KashifColors.fuse15AInkDark
+                        : KashifColors.fuse15AInkLight,
                   ),
                 ),
               ),
@@ -239,7 +263,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                   style: KashifTypography.arabic(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                    color: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
                   ),
                 ),
             ],
@@ -250,7 +276,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
             style: KashifTypography.arabic(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+              color: isDark
+                  ? KashifColors.darkTextPrimary
+                  : KashifColors.lightTextPrimary,
             ),
           ),
         ],
@@ -265,7 +293,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
         color: isDark ? const Color(0xFF3B1E1E) : const Color(0xFFFDE8E8),
         borderRadius: BorderRadius.circular(2),
         border: Border.all(
-          color: isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight,
+          color: isDark
+              ? KashifColors.fuse10AInkDark
+              : KashifColors.fuse10AInkLight,
           width: 1.2,
         ),
       ),
@@ -274,7 +304,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
         children: [
           Icon(
             Icons.warning_amber_rounded,
-            color: isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight,
+            color: isDark
+                ? KashifColors.fuse10AInkDark
+                : KashifColors.fuse10AInkLight,
             size: 20,
           ),
           const SizedBox(width: 8),
@@ -284,7 +316,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               style: KashifTypography.arabic(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight,
+                color: isDark
+                    ? KashifColors.fuse10AInkDark
+                    : KashifColors.fuse10AInkLight,
               ),
             ),
           ),
@@ -304,7 +338,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               Icon(
                 Icons.location_searching_rounded,
                 size: 18,
-                color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                color: isDark
+                    ? KashifColors.fuse15AInkDark
+                    : KashifColors.fuse15AInkLight,
               ),
               const SizedBox(width: 6),
               Text(
@@ -312,7 +348,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                 style: KashifTypography.arabic(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                  color: isDark
+                      ? KashifColors.darkTextPrimary
+                      : KashifColors.lightTextPrimary,
                 ),
               ),
             ],
@@ -327,7 +365,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               color: isDark ? const Color(0xFF14191F) : const Color(0xFFE8EEF5),
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
-                color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                color: isDark
+                    ? KashifColors.darkBorder
+                    : KashifColors.lightBorder,
               ),
             ),
             child: Stack(
@@ -353,7 +393,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                             height: 28,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: KashifColors.fuse10ATab.withValues(alpha: 0.35),
+                              color: KashifColors.fuse10ATab.withValues(
+                                alpha: 0.35,
+                              ),
                               border: Border.all(
                                 color: KashifColors.fuse10ATab,
                                 width: 2,
@@ -379,14 +421,21 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                   right: 0,
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.7),
+                        color: (isDark ? Colors.black : Colors.white)
+                            .withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         '▲ مقدمة السيارة (الرادياتير والشبك الأمامي) ▲',
-                        style: KashifTypography.arabic(fontSize: 9, fontWeight: FontWeight.bold),
+                        style: KashifTypography.arabic(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -418,7 +467,10 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
             children: [
               Text(
                 'المنطقة: ',
-                style: KashifTypography.arabic(fontSize: 12, fontWeight: FontWeight.bold),
+                style: KashifTypography.arabic(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Expanded(
                 child: Text(
@@ -426,7 +478,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                   style: KashifTypography.arabic(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                    color: isDark
+                        ? KashifColors.fuse15AInkDark
+                        : KashifColors.fuse15AInkLight,
                   ),
                 ),
               ),
@@ -438,7 +492,10 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
             children: [
               Text(
                 'الفك والوصول: ',
-                style: KashifTypography.arabic(fontSize: 12, fontWeight: FontWeight.bold),
+                style: KashifTypography.arabic(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Expanded(
                 child: Text(
@@ -464,7 +521,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               Icon(
                 Icons.check_box_outline_blank_rounded,
                 size: 18,
-                color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                color: isDark
+                    ? KashifColors.fuse20AInkDark
+                    : KashifColors.fuse20AInkLight,
               ),
               const SizedBox(width: 6),
               Text(
@@ -472,7 +531,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                 style: KashifTypography.arabic(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                  color: isDark
+                      ? KashifColors.darkTextPrimary
+                      : KashifColors.lightTextPrimary,
                 ),
               ),
             ],
@@ -480,7 +541,12 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
           const SizedBox(height: 10),
           _buildInfoRow('موقع علبة الفيوزات:', fuse.boxLocation, isDark),
           _buildInfoRow('رقم الفيوز:', fuse.fuseNumber, isDark, mono: true),
-          _buildInfoRow('قوة الفيوز (الأمبير):', fuse.rating, isDark, mono: true),
+          _buildInfoRow(
+            'قوة الفيوز (الأمبير):',
+            fuse.rating,
+            isDark,
+            mono: true,
+          ),
           if (fuse.relayName != null)
             _buildInfoRow('الكتاوت المرتبط:', fuse.relayName!, isDark),
           _buildInfoRow('الدائرة الكهربائية:', fuse.circuitDescription, isDark),
@@ -500,7 +566,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               Icon(
                 Icons.speed_rounded,
                 size: 18,
-                color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                color: isDark
+                    ? KashifColors.fuse30AInkDark
+                    : KashifColors.fuse30AInkLight,
               ),
               const SizedBox(width: 6),
               Text(
@@ -508,7 +576,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                 style: KashifTypography.arabic(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                  color: isDark
+                      ? KashifColors.darkTextPrimary
+                      : KashifColors.lightTextPrimary,
                 ),
               ),
             ],
@@ -516,9 +586,19 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
           const SizedBox(height: 10),
           _buildInfoRow('خط الكهرباء (+):', multi.powerPin, isDark, mono: true),
           _buildInfoRow('خط الأرضي (-):', multi.groundPin, isDark, mono: true),
-          _buildInfoRow('خط الإشارة (Signal):', multi.signalPin, isDark, mono: true),
+          _buildInfoRow(
+            'خط الإشارة (Signal):',
+            multi.signalPin,
+            isDark,
+            mono: true,
+          ),
           if (multi.referenceVoltage != null)
-            _buildInfoRow('الجهد المرجعي (Ref):', multi.referenceVoltage!, isDark, mono: true),
+            _buildInfoRow(
+              'الجهد المرجعي (Ref):',
+              multi.referenceVoltage!,
+              isDark,
+              mono: true,
+            ),
           const Divider(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,13 +608,18 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
                 style: KashifTypography.arabic(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                  color: isDark
+                      ? KashifColors.fuse30AInkDark
+                      : KashifColors.fuse30AInkLight,
                 ),
               ),
               Expanded(
                 child: Text(
                   multi.testingTipLibyan,
-                  style: KashifTypography.arabic(fontSize: 12, fontWeight: FontWeight.w600),
+                  style: KashifTypography.arabic(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -544,7 +629,12 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
     );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isDark, {bool mono = false}) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    bool isDark, {
+    bool mono = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -556,7 +646,9 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
               label,
               style: KashifTypography.arabic(
                 fontSize: 12,
-                color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                color: isDark
+                    ? KashifColors.darkTextMuted
+                    : KashifColors.lightTextMuted,
               ),
             ),
           ),
@@ -564,8 +656,14 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
             child: Text(
               value,
               style: mono
-                  ? KashifTypography.mono(fontSize: 12, fontWeight: FontWeight.bold)
-                  : KashifTypography.arabic(fontSize: 12, fontWeight: FontWeight.w600),
+                  ? KashifTypography.mono(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    )
+                  : KashifTypography.arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
             ),
           ),
         ],
@@ -609,7 +707,12 @@ class _EngineBaySchematicPainter extends CustomPainter {
 
     // Battery / Fuse box on left
     final fuseRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.12, size.height * 0.30, size.width * 0.18, size.height * 0.28),
+      Rect.fromLTWH(
+        size.width * 0.12,
+        size.height * 0.30,
+        size.width * 0.18,
+        size.height * 0.28,
+      ),
       const Radius.circular(4),
     );
     canvas.drawRRect(fuseRect, fuseBoxPaint);
@@ -617,7 +720,12 @@ class _EngineBaySchematicPainter extends CustomPainter {
 
     // Air filter box on right
     final airRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.70, size.height * 0.28, size.width * 0.20, size.height * 0.32),
+      Rect.fromLTWH(
+        size.width * 0.70,
+        size.height * 0.28,
+        size.width * 0.20,
+        size.height * 0.32,
+      ),
       const Radius.circular(4),
     );
     canvas.drawRRect(airRect, fuseBoxPaint);
@@ -625,15 +733,30 @@ class _EngineBaySchematicPainter extends CustomPainter {
 
     // Radiator on top
     final radRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.22, size.height * 0.14, size.width * 0.56, size.height * 0.08),
+      Rect.fromLTWH(
+        size.width * 0.22,
+        size.height * 0.14,
+        size.width * 0.56,
+        size.height * 0.08,
+      ),
       const Radius.circular(2),
     );
     canvas.drawRRect(radRect, fuseBoxPaint);
     canvas.drawRRect(radRect, borderPaint);
 
     // Wheels on sides
-    final leftWheel = Rect.fromLTWH(size.width * 0.02, size.height * 0.45, size.width * 0.06, size.height * 0.30);
-    final rightWheel = Rect.fromLTWH(size.width * 0.92, size.height * 0.45, size.width * 0.06, size.height * 0.30);
+    final leftWheel = Rect.fromLTWH(
+      size.width * 0.02,
+      size.height * 0.45,
+      size.width * 0.06,
+      size.height * 0.30,
+    );
+    final rightWheel = Rect.fromLTWH(
+      size.width * 0.92,
+      size.height * 0.45,
+      size.width * 0.06,
+      size.height * 0.30,
+    );
     canvas.drawRect(leftWheel, fuseBoxPaint);
     canvas.drawRect(rightWheel, fuseBoxPaint);
   }

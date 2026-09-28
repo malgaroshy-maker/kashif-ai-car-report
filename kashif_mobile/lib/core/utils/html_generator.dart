@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -7,8 +9,20 @@ import '../../data/models/diagnostic_report.dart';
 import '../../data/storage/hive_storage.dart';
 import '../theme/colors.dart';
 import '../theme/typography.dart';
+import 'web_downloader.dart';
 
 class KashifHtmlGenerator {
+  // HTML escape helper
+  static String esc(String? s) {
+    if (s == null) return '';
+    return s
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+  }
+
   /// Generates a standalone, fully self-contained HTML report with offline styling
   static String buildHtml(DiagnosticReport report) {
     final v = report.vehicle;
@@ -16,23 +30,26 @@ class KashifHtmlGenerator {
     final workshopName = KashifStorage.workshopName;
     final workshopPhone = KashifStorage.workshopPhone;
 
+    final technicianName =
+        (workshopName.trim().isNotEmpty &&
+            workshopName.trim() != 'ورشة الفحص الفني')
+        ? workshopName.trim()
+        : '';
+    final technicianPhone = workshopPhone.trim();
+
+    final headerTechInfo = [
+      if (technicianName.isNotEmpty)
+        '<div class="workshop-name">${esc(technicianName)}</div>',
+      if (technicianPhone.isNotEmpty)
+        '<div class="workshop-phone">هاتف: ${esc(technicianPhone)}</div>',
+    ].join('\n');
+
     final score = summary.overallHealthScore;
     final healthColor = score >= 80
         ? '#2E9E5B'
         : score >= 50
-            ? '#F2C200'
-            : '#DE3B2F';
-
-    // HTML escape helper
-    String esc(String? s) {
-      if (s == null) return '';
-      return s
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;')
-          .replaceAll('"', '&quot;')
-          .replaceAll("'", '&#39;');
-    }
+        ? '#F2C200'
+        : '#DE3B2F';
 
     final critFaults = report.criticalFaults;
     final modFaults = report.moderateFaults;
@@ -103,13 +120,45 @@ class KashifHtmlGenerator {
       font-weight: 700;
       font-size: 13px;
     }
-    .vehicle-title { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
-    .vehicle-meta {
+    .vehicle-specs-card {
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 12px 0 16px 0;
+    }
+    .vehicle-specs-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    .vehicle-specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 6px 16px;
+      font-size: 12.5px;
+    }
+    .spec-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      font-size: 12px;
-      color: var(--text-muted);
+      align-items: center;
+      gap: 6px;
+    }
+    .spec-bullet {
+      color: #2E7FC4;
+      font-size: 9px;
+      line-height: 1;
+    }
+    .spec-label {
+      font-weight: 700;
+      color: #334155;
+      min-width: 75px;
+    }
+    .spec-value {
+      color: #0f172a;
+    }
+    .font-bold {
+      font-weight: 800;
     }
     .vin-code {
       font-family: monospace;
@@ -241,18 +290,55 @@ class KashifHtmlGenerator {
     <div class="card">
       <div class="header-bar">
         <div>
-          <div class="workshop-name">${esc(workshopName)}</div>
-          <div class="workshop-phone">هاتف: ${esc(workshopPhone)}</div>
+          $headerTechInfo
         </div>
-        <div class="brand-badge">كاشف AI | فحص وتشخيص</div>
+        <div class="brand-badge">Flow Cars | فحص وتشخيص</div>
       </div>
 
-      <div class="vehicle-title">${esc(v.make)} ${esc(v.model)} (${esc(v.year)})</div>
-      <div class="vehicle-meta">
-        <div>رقم الهيكل: <span class="vin-code">${esc(v.vin)}</span></div>
-        <div>الممشى: ${esc(v.mileage)}</div>
-        <div>جهاز الفحص: ${esc(report.scannerInfo.toolName)}</div>
-        <div>التاريخ: ${esc(report.generatedAt.split('T')[0])}</div>
+      <div class="vehicle-specs-card">
+        <div class="vehicle-specs-title">بيانات المركبة المفحوصة:</div>
+        <div class="vehicle-specs-grid">
+          <div class="spec-row">
+            <span class="spec-bullet">■</span>
+            <span class="spec-label">السيارة:</span>
+            <span class="spec-value font-bold">${esc(v.formattedTitle)}</span>
+          </div>
+          ${v.cleanVin.isNotEmpty ? '''
+          <div class="spec-row">
+            <span class="spec-bullet">■</span>
+            <span class="spec-label">رقم الهيكل:</span>
+            <span class="spec-value vin-code">${esc(v.cleanVin)}</span>
+          </div>
+          ''' : ''}
+          ${v.formattedEngine.isNotEmpty ? '''
+          <div class="spec-row">
+            <span class="spec-bullet">■</span>
+            <span class="spec-label">المحرك:</span>
+            <span class="spec-value">${esc(v.formattedEngine)}</span>
+          </div>
+          ''' : ''}
+          ${v.formattedTransmission.isNotEmpty ? '''
+          <div class="spec-row">
+            <span class="spec-bullet">■</span>
+            <span class="spec-label">ناقل الحركة:</span>
+            <span class="spec-value">${esc(v.formattedTransmission)}</span>
+          </div>
+          ''' : ''}
+          ${v.formattedMileage.isNotEmpty ? '''
+          <div class="spec-row">
+            <span class="spec-bullet">■</span>
+            <span class="spec-label">قراءة العداد:</span>
+            <span class="spec-value">${esc(v.formattedMileage)}</span>
+          </div>
+          ''' : ''}
+          ${report.generatedAt.isNotEmpty ? '''
+          <div class="spec-row">
+            <span class="spec-bullet">■</span>
+            <span class="spec-label">تاريخ الفحص:</span>
+            <span class="spec-value">${esc(report.generatedAt.split('T').first)}</span>
+          </div>
+          ''' : ''}
+        </div>
       </div>
 
       <div class="score-box">
@@ -262,7 +348,8 @@ class KashifHtmlGenerator {
         </div>
         <div style="flex: 1;">
           <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">الحالة: ${esc(summary.severityStatus)}</div>
-          <div class="summary-text">${esc(summary.briefSummaryArabic)}</div>
+          <div style="font-weight: 800; font-size: 12.5px; color: #1A4B84; margin-bottom: 3px;">خلاصة تقييم السيارة:</div>
+          <div class="summary-text">${esc(summary.briefSummaryArabic.replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</div>
         </div>
       </div>
     </div>
@@ -392,21 +479,13 @@ class KashifHtmlGenerator {
     </div>
     ''' : ''}
 
-    <div class="stamp-box">
-      <div class="stamp-col">
-        <div>اسم وتوقيع الفني المسئول:</div>
-        <div class="stamp-space"></div>
-        <div style="border-top: 1px solid var(--border); padding-top: 4px;">توقيع الفني: ....................</div>
-      </div>
-      <div class="stamp-col">
-        <div>اعتماد وختم الورشة:</div>
-        <div class="stamp-space"></div>
-        <div style="border-top: 1px solid var(--border); padding-top: 4px;">[ ختم الورشة المعتمد ]</div>
-      </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; margin-top: 16px; font-size: 13px;">
+      <div><strong>اسم الفني:</strong> ${technicianName.isNotEmpty ? esc(technicianName) : '—'}</div>
+      <div><strong>رقم الهاتف:</strong> ${technicianPhone.isNotEmpty ? esc(technicianPhone) : '—'}</div>
     </div>
 
     <div class="footer">
-      تم إنشاء هذا التقرير الفني آلياً بواسطة تطبيق <strong>كاشف AI</strong> — يعمل هذا الملف محلياً بدون إنترنت على جميع الأجهزة.
+      تم إنشاء هذا التقرير الفني آلياً بواسطة تطبيق <strong>Flow Cars</strong> • هاتف مطور التطبيق: <strong dir="ltr">0910077239</strong>
     </div>
   </div>
 </body>
@@ -420,9 +499,150 @@ class KashifHtmlGenerator {
   ) async {
     try {
       final htmlContent = buildHtml(report);
-      final cleanMake = report.vehicle.make.replaceAll(RegExp(r'[^\w\u0621-\u064A]'), '_');
-      final cleanModel = report.vehicle.model.replaceAll(RegExp(r'[^\w\u0621-\u064A]'), '_');
-      final filename = 'تقرير_كاشف_${cleanMake}_${cleanModel}_${DateTime.now().millisecondsSinceEpoch}.html';
+      final cleanMake = report.vehicle.make.replaceAll(
+        RegExp(r'[^\w\u0621-\u064A]'),
+        '_',
+      );
+      final cleanModel = report.vehicle.model.replaceAll(
+        RegExp(r'[^\w\u0621-\u064A]'),
+        '_',
+      );
+      final filename =
+          'تقرير_flowcars_${cleanMake}_${cleanModel}_${DateTime.now().millisecondsSinceEpoch}.html';
+
+      if (kIsWeb) {
+        final bytes = utf8.encode(htmlContent);
+        downloadWebFile(bytes, filename, 'text/html;charset=utf-8');
+
+        if (!context.mounted) return;
+
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (ctx) {
+            final isDark = Theme.of(ctx).brightness == Brightness.dark;
+            return SafeArea(
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? KashifColors.darkBoard
+                        : KashifColors.lightBoard,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    border: Border.all(
+                      color: isDark
+                          ? KashifColors.darkBorder
+                          : KashifColors.lightBorder,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: KashifColors.fuse30ATab.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.check_circle_rounded,
+                              color: KashifColors.fuse30ATab,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'تم تنزيل تقرير HTML بنجاح',
+                                  style: KashifTypography.arabic(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? KashifColors.darkTextPrimary
+                                        : KashifColors.lightTextPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'تم حفظ الملف في مجلد التنزيلات (Downloads) ويعمل بدون إنترنت.',
+                                  style: KashifTypography.arabic(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? KashifColors.darkTextMuted
+                                        : KashifColors.lightTextMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? KashifColors.darkCell
+                              : KashifColors.lightCell,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Text(
+                          filename,
+                          style: KashifTypography.mono(fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark
+                              ? KashifColors.fuse15AInkDark
+                              : KashifColors.fuse15AInkLight,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          downloadWebFile(
+                            bytes,
+                            filename,
+                            'text/html;charset=utf-8',
+                          );
+                        },
+                        icon: const Icon(Icons.download_rounded, size: 20),
+                        label: Text(
+                          'إعادة تنزيل الملف',
+                          style: KashifTypography.arabic(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+        return;
+      }
 
       // Determine directory to save: Try downloads directory, fallback to documents
       Directory? dir;
@@ -443,121 +663,161 @@ class KashifHtmlGenerator {
       // Show success modal with Open & Share options
       showModalBottomSheet(
         context: context,
+        isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (ctx) {
           final isDark = Theme.of(ctx).brightness == Brightness.dark;
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              border: Border.all(
-                color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? KashifColors.darkBoard
+                      : KashifColors.lightBoard,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  border: Border.all(
+                    color: isDark
+                        ? KashifColors.darkBorder
+                        : KashifColors.lightBorder,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: KashifColors.fuse30ATab.withValues(
+                              alpha: 0.15,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.check_circle_rounded,
+                            color: KashifColors.fuse30ATab,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'تم تصدير تقرير HTML المستقل بنجاح',
+                                style: KashifTypography.arabic(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? KashifColors.darkTextPrimary
+                                      : KashifColors.lightTextPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'تم حفظ الملف في مجلد التنزيلات (يخدم بدون نت)',
+                                style: KashifTypography.arabic(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? KashifColors.darkTextMuted
+                                      : KashifColors.lightTextMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: KashifColors.fuse30ATab.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        color: isDark
+                            ? KashifColors.darkCell
+                            : KashifColors.lightCell,
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      child: const Icon(Icons.check_circle_rounded, color: KashifColors.fuse30ATab, size: 28),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'تم تصدير تقرير HTML المستقل بنجاح',
-                            style: KashifTypography.arabic(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'تم حفظ الملف في مجلد التنزيلات (يخدم بدون نت)',
-                            style: KashifTypography.arabic(
-                              fontSize: 12,
-                              color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        file.path,
+                        style: KashifTypography.mono(fontSize: 11),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Button 1: Open in Browser
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDark
+                            ? KashifColors.fuse15AInkDark
+                            : KashifColors.fuse15AInkLight,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        await OpenFilex.open(file.path);
+                      },
+                      icon: const Icon(Icons.open_in_browser_rounded, size: 20),
+                      label: Text(
+                        'فتح التقرير فوراً في المتصفح',
+                        style: KashifTypography.arabic(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Button 2: Share file
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark
+                            ? KashifColors.darkTextPrimary
+                            : KashifColors.lightTextPrimary,
+                        side: BorderSide(
+                          color: isDark
+                              ? KashifColors.darkBorder
+                              : KashifColors.lightBorder,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        await SharePlus.instance.share(
+                          ShareParams(
+                            files: [XFile(file.path, mimeType: 'text/html')],
+                            text:
+                                'تقرير فحص Flow Cars للسيارة ${report.vehicle.make} ${report.vehicle.model}',
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.share_rounded, size: 20),
+                      label: Text(
+                        'مشاركة الملف (واتساب / بلوتوث / درايف)',
+                        style: KashifTypography.arabic(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark ? KashifColors.darkCell : KashifColors.lightCell,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: Text(
-                    file.path,
-                    style: KashifTypography.mono(fontSize: 11),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Button 1: Open in Browser
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    await OpenFilex.open(file.path);
-                  },
-                  icon: const Icon(Icons.open_in_browser_rounded, size: 20),
-                  label: Text(
-                    'فتح التقرير فوراً في المتصفح',
-                    style: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Button 2: Share file
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
-                    side: BorderSide(
-                      color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  ),
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    await SharePlus.instance.share(
-                      ShareParams(
-                        files: [XFile(file.path, mimeType: 'text/html')],
-                        text: 'تقرير فحص كاشف AI للسيارة ${report.vehicle.make} ${report.vehicle.model}',
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.share_rounded, size: 20),
-                  label: Text(
-                    'مشاركة الملف (واتساب / بلوتوث / درايف)',
-                    style: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
+              ),
             ),
           );
         },

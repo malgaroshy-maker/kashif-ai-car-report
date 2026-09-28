@@ -8,9 +8,13 @@ class DictionaryRepository {
   Future<List<DictionaryEntry>> getEntries() async {
     if (_cachedEntries.isNotEmpty) return _cachedEntries;
     try {
-      final jsonString = await rootBundle.loadString('assets/data/dictionary.json');
+      final jsonString = await rootBundle.loadString(
+        'assets/data/dictionary.json',
+      );
       final List<dynamic> list = jsonDecode(jsonString);
-      _cachedEntries = list.map((e) => DictionaryEntry.fromJson(e as Map<String, dynamic>)).toList();
+      _cachedEntries = list
+          .map((e) => DictionaryEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
       return _cachedEntries;
     } catch (e) {
       return [];

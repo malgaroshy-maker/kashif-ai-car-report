@@ -72,10 +72,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           if (report != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              color: isDark ? KashifColors.darkCell : KashifColors.lightCell,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF0F1E3D)
+                    : const Color(0xFFEBF2FD),
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark
+                        ? KashifColors.goldPrimary.withValues(alpha: 0.3)
+                        : KashifColors.royalBlue.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
               child: Row(
                 children: [
-                  Icon(Icons.directions_car_rounded, size: 16, color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight),
+                  Icon(
+                    Icons.directions_car_rounded,
+                    size: 16,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -83,7 +100,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       style: KashifTypography.arabic(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                        color: isDark
+                            ? KashifColors.goldLight
+                            : KashifColors.royalBlue,
                       ),
                     ),
                   ),
@@ -120,7 +139,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     'الأسطى يكتب الرد بالمصطلحات الليبية...',
                     style: KashifTypography.arabic(
                       fontSize: 11,
-                      color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                      color: isDark
+                          ? KashifColors.darkTextMuted
+                          : KashifColors.lightTextMuted,
                     ),
                   ),
                 ],
@@ -133,7 +154,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               child: Text(
                 chatState.errorMessage!,
-                style: KashifTypography.arabic(fontSize: 11, color: KashifColors.fuse10ATab),
+                style: KashifTypography.arabic(
+                  fontSize: 11,
+                  color: KashifColors.fuse10ATab,
+                ),
               ),
             ),
 
@@ -150,14 +174,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 return ActionChip(
                   label: Text(
                     p,
-                    style: KashifTypography.arabic(fontSize: 11),
+                    style: KashifTypography.arabic(
+                      fontSize: 11,
+                      color: isDark
+                          ? KashifColors.goldLight
+                          : KashifColors.royalBlue,
+                    ),
                   ),
-                  backgroundColor: isDark ? KashifColors.darkCell : KashifColors.lightCell,
+                  backgroundColor: isDark
+                      ? const Color(0xFF0F1E3D)
+                      : const Color(0xFFEBF2FD),
                   side: BorderSide(
-                    color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                    color: isDark
+                        ? KashifColors.goldPrimary.withValues(alpha: 0.4)
+                        : KashifColors.royalBlue.withValues(alpha: 0.3),
                     width: 0.8,
                   ),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   onPressed: chatState.isSending ? null : () => _sendMessage(p),
                 );
               },
@@ -185,7 +220,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     chatState.isListening ? Icons.mic : Icons.mic_none,
                     color: chatState.isListening
                         ? KashifColors.fuse10ATab
-                        : (isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight),
+                        : (isDark
+                              ? KashifColors.fuse15AInkDark
+                              : KashifColors.fuse15AInkLight),
                   ),
                   tooltip: 'إملاء صوتي',
                   onPressed: _toggleDictation,
@@ -196,13 +233,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     controller: _controller,
                     style: KashifTypography.arabic(fontSize: 13),
                     decoration: InputDecoration(
-                      hintText: chatState.isListening ? 'تحدث الآن... جاري الاستماع' : 'اسأل الأسطى عن أي عطل أو قطعة...',
+                      hintText: chatState.isListening
+                          ? 'تحدث الآن... جاري الاستماع'
+                          : 'اسأل الأسطى عن أي عطل أو قطعة...',
                       hintStyle: KashifTypography.arabic(
                         fontSize: 12,
-                        color: chatState.isListening ? KashifColors.fuse10ATab : Colors.grey,
+                        color: chatState.isListening
+                            ? KashifColors.fuse10ATab
+                            : Colors.grey,
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                     ),
                     onSubmitted: (_) => _sendMessage(),
                   ),
@@ -211,7 +255,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.send_rounded,
-                    color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue,
                   ),
                   tooltip: 'إرسال',
                   onPressed: chatState.isSending ? null : () => _sendMessage(),
@@ -233,13 +279,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         constraints: const BoxConstraints(maxWidth: 320),
         child: FuseCell(
           backgroundColor: isUser
-              ? (isDark ? const Color(0xFF132333) : const Color(0xFFE4F0FA))
-              : (isDark ? KashifColors.darkCell : KashifColors.lightCell),
+              ? (isDark ? const Color(0xFF13274F) : const Color(0xFFE4EFFD))
+              : (isDark ? const Color(0xFF0F1B35) : KashifColors.lightCell),
           customBorder: Border.all(
             color: isUser
-                ? (isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight)
-                : (isDark ? KashifColors.darkBorder : KashifColors.lightBorder),
-            width: 0.8,
+                ? (isDark
+                      ? KashifColors.royalBlueLight
+                      : KashifColors.royalBlue)
+                : (isDark
+                      ? KashifColors.goldPrimary.withValues(alpha: 0.35)
+                      : KashifColors.goldDark.withValues(alpha: 0.3)),
+            width: 1,
           ),
           padding: const EdgeInsets.all(11),
           child: Column(
@@ -249,21 +299,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    isUser ? Icons.person_outline : Icons.engineering_outlined,
-                    size: 14,
+                    isUser ? Icons.person_rounded : Icons.engineering_rounded,
+                    size: 15,
                     color: isUser
-                        ? (isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight)
-                        : KashifColors.fuse20ATab,
+                        ? (isDark
+                              ? KashifColors.royalBlueElectric
+                              : KashifColors.royalBlue)
+                        : (isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.goldDark),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 5),
                   Text(
-                    isUser ? 'أنت' : 'الأسطى الذكي',
+                    isUser ? 'أنت' : 'الأسطى الذكي (Flow Cars)',
                     style: KashifTypography.arabic(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: isUser
-                          ? (isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight)
-                          : KashifColors.fuse20ATab,
+                          ? (isDark
+                                ? KashifColors.royalBlueElectric
+                                : KashifColors.royalBlue)
+                          : (isDark
+                                ? KashifColors.goldLight
+                                : KashifColors.goldDark),
                     ),
                   ),
                 ],
@@ -274,7 +332,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 style: KashifTypography.arabic(
                   fontSize: 13,
                   height: 1.45,
-                  color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                  color: isDark
+                      ? KashifColors.darkTextPrimary
+                      : KashifColors.lightTextPrimary,
                 ),
               ),
             ],

@@ -55,16 +55,43 @@ export function shareReportToWhatsApp(report: KashifDiagnosticReport): void {
       .map((f) => `• [${f.code}] ${f.libyanTerm}`)
       .join("\n");
 
-    const text = `*تقرير فحص فني - كاشف*
+    const engineSpecs = v?.engineSpecs;
+    let engineText = '';
+    if (engineSpecs?.displacement) {
+      engineText = engineSpecs.displacement;
+      if (!engineText.includes('بسطوني') && engineSpecs.cylinders) {
+        engineText += ` - ${engineSpecs.cylinders} بسطوني`;
+      }
+      if (engineSpecs.fuelType && engineSpecs.fuelType !== 'غير محدد') {
+        engineText += ` • ${engineSpecs.fuelType}`;
+      }
+    }
+    const transText = engineSpecs?.transmission || '';
+
+    let mileageDisplay = vehicle.mileage;
+    const isMiles = /mil|ميل/i.test(vehicle.mileage);
+    const hasKm = /km|كم/i.test(vehicle.mileage);
+    if (isMiles && !hasKm) {
+      const match = vehicle.mileage.match(/([\d,]+(?:\.\d+)?)/);
+      if (match) {
+        const val = parseFloat(match[1].replace(/,/g, ''));
+        if (!isNaN(val) && val > 0) {
+          const kmVal = Math.round(val * 1.609344);
+          mileageDisplay = `${val.toLocaleString()} ميل (${kmVal.toLocaleString()} كم)`;
+        }
+      }
+    }
+
+    const text = `*تقرير فحص فني - Flow Cars*
 ----------------------------------
-السيارة: ${vehicle.make} ${vehicle.model} (${vehicle.year})
-رقم الهيكل VIN: ${vehicle.vin}
-مؤشر الجاهزية: ${scoreLine}
-الممشى: ${vehicle.mileage}
-جهاز الفحص: ${report.scannerInfo?.toolName || "جهاز OBD"}
+📋 بيانات المركبة المفحوصة:
+• السيارة: ${vehicle.make} ${vehicle.model} (${vehicle.year})
+• رقم الهيكل VIN: ${vehicle.vin}
+${engineText ? `• المحرك: ${engineText}\n` : ''}${transText ? `• ناقل الحركة: ${transText}\n` : ''}• قراءة العداد: ${mileageDisplay}
+• مؤشر الجاهزية والحالة: ${scoreLine}
 
 ملخص الفحص:
-${summary.briefSummaryArabic}
+${summary?.briefSummaryArabic || ''}
 
 ${
   (faultCategories.criticalFaults || []).length > 0

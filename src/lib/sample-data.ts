@@ -15,10 +15,10 @@ export const SAMPLE_TOYOTA_COROLLA: KashifDiagnosticReport = {
     year: "2004",
     mileage: "185,000 كم (تقديري)",
     engineSpecs: {
-      displacement: "1.8L 1ZZ-FE (4 سلندر)",
+      displacement: "1.8L 1ZZ-FE - 4 بسطوني",
       fuelType: "بنزين",
       cylinders: 4,
-      transmission: "كمبيو أوتوماتيك 4 سرعات (كونفيرتا)",
+      transmission: "كمبيو أوتوماتيك 4 سرعات - كونفيرتا",
     },
   },
   summary: {
@@ -200,21 +200,21 @@ export const SAMPLE_BMW_528I: KashifDiagnosticReport = {
   vehicle: {
     vin: "WBADD6100VBSAMPLE",
     make: "BMW",
-    model: "528i (E39)",
-    year: "1997.07",
-    mileage: "280,911 Miles (~452,000 كم)",
+    model: "528i E39",
+    year: "1997",
+    mileage: "280,911 ميل - حوالي 452,000 كم",
     engineSpecs: {
-      displacement: "2.8L M52B28 (6 سلندر مستقيم)",
+      displacement: "2.8L M52B28 - 6 بسطوني مستقيم",
       fuelType: "بنزين",
       cylinders: 6,
-      transmission: "كمبيو أوتوماتيك ZF 5HP18 (كونفيرتا Steptronic)",
+      transmission: "كمبيو أوتوماتيك ZF 5HP18 Steptronic",
     },
   },
   summary: {
     overallHealthScore: 48,
     severityStatus: "حرج / خطر",
     briefSummaryArabic:
-      "السيارة فيها عدة أعطال متراكمة تحتاج صيانة جادة: أولاً خلل إشعال في السلندر الرابع (بوبينة أو شمعة) مسبب رجفة في الموتوري وضعف عزم مع ولعة لامبة تشك، ثانياً عطل في حساسات وسلك سرعة العجلات ونظام الـ ABS والـ ASC مما يفصل مانع الانزلاق ويؤثر على تبديلات الكمبيو والكونفيرتا، بالإضافة لعطل في حساس مستوى الزيت في الستاقوبا وعوامات خزان البنزين وسويتش لمبة الستوب وحساسات المرميطة.",
+      "السيارة فيها عدة أعطال متراكمة تحتاج صيانة جادة: أولاً خلل إشعال في البسطوني الرابع (بوبينة أو شمعة) مسبب رجفة في الموتوري وضعف عزم مع ولعة لامبة تشك، ثانياً عطل في حساسات وسلك سرعة العجلات ونظام الـ ABS والـ ASC مما يفصل مانع الانزلاق ويؤثر على تبديلات الكمبيو والكونفيرتا، بالإضافة لعطل في حساس مستوى الزيت في الستاقوبا وعوامات خزان البنزين وسويتش لمبة الستوب وحساسات المرميطة.",
     systemsCheckedCount: 12,
     faultsFoundCount: 28,
     passedSystemsCount: 6,
@@ -226,7 +226,7 @@ export const SAMPLE_BMW_528I: KashifDiagnosticReport = {
         module: "ECM (DME)",
         moduleNameArabic: "كمبيوتر المحرك (DME)",
         standardDescriptionEn: "Ignition Coil / Misfire Cylinder 4",
-        libyanTerm: "بوبينة وشمعات السلندر الرابع (البسطوني 4)",
+        libyanTerm: "بوبينة وشمعات بسطوني 4",
         standardArabicDescription: "خلل في دائرة إشعال واحتراق الاسطوانة رقم 4",
         driverSymptoms: [
           "رعشة قوية واهتزاز في المحرك عند الوقوف وأثناء التسارع (تفتفة)",
@@ -235,7 +235,7 @@ export const SAMPLE_BMW_528I: KashifDiagnosticReport = {
           "ولعة لامبة تشك (Check Engine) متقطعة أو ثابتة",
         ],
         rootCauses: [
-          "تلف بوبينة الإشعال للسلندر رقم 4 (Ignition Coil)",
+          "تلف بوبينة الإشعال للبسطوني رقم 4 (Ignition Coil)",
           "تآكل أو احتراق وتراكم كربون وزيت على الشمعة (Spark Plug)",
           "تسريب زيت من قرسيوني كوبيركو (حشية غطاء الصمامات) غارق البوبينة بالزيت",
         ],
@@ -246,7 +246,7 @@ export const SAMPLE_BMW_528I: KashifDiagnosticReport = {
           drivability: "خطر على المحرك",
         },
         recommendedAction:
-          "فك بوبينة السلندر 4 والشمعة، تأكد من عدم وجود زيت من قرسيوني الكوبيركو، واستبدل البوبينة أو الشمعة فوراً لحماية المحرك وعلبة كربون المرميطة.",
+          "فك بوبينة بسطوني 4 والشمعة، تأكد من عدم وجود زيت من قرسيوني الكوبيركو، واستبدل البوبينة أو الشمعة فوراً لحماية المحرك وعلبة كربون المرميطة.",
         recommendedPartId: "part-bmw-coil",
       },
       {
@@ -423,7 +423,7 @@ export const SAMPLE_BMW_528I: KashifDiagnosticReport = {
     {
       id: "part-bmw-coil",
       relatedCode: "ECM 02",
-      partNameLibyan: "بوبينة إشعال BMW E39 (سلندر 4)",
+      partNameLibyan: "بوبينة إشعال BMW E39 (بسطوني 4)",
       partNameStandardArabic: "ملف إشعال المحرك (الكويل)",
       partNameEnglish: "Ignition Coil (Bremi / Bosch)",
       oemPartNumber: "12131748017 / 12137599219",
@@ -471,8 +471,8 @@ export const SAMPLE_BMW_528I: KashifDiagnosticReport = {
   workshopChecklist: [
     {
       stepNumber: 1,
-      targetComponent: "فحص بوبينة وشمعة السلندر 4",
-      actionRequiredLibyan: "بدل بوبينة السلندر 4 مع السلندر 2 وشوف هل العطل ينتقل للسلندر 2 بـ جهاز الكشف؛ إذا انتقل فالبوبينة تالفة، وإذا بقي في 4 افحص الشمعة وخيوط البيانتو.",
+      targetComponent: "فحص بوبينة وشمعة بسطوني 4",
+      actionRequiredLibyan: "بدل بوبينة بسطوني 4 مع بسطوني 2 وشوف هل العطل ينتقل للبسطوني 2 بـ جهاز الكشف؛ إذا انتقل فالبوبينة تالفة، وإذا بقي في 4 افحص الشمعة وخيوط البيانتو.",
       toolNeeded: "مفتاح شمعات + جهاز كشف",
       isCompleted: false,
     },

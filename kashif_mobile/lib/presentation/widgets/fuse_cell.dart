@@ -25,15 +25,34 @@ class FuseCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultBg = isDark ? KashifColors.darkCell : KashifColors.lightCell;
-    final defaultBorder = isDark ? KashifColors.darkBorder : KashifColors.lightBorder;
+    final defaultBorder = isDark
+        ? KashifColors.darkBorder
+        : KashifColors.lightBorder;
 
     final container = Container(
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
         color: backgroundColor ?? defaultBg,
-        borderRadius: BorderRadius.circular(2), // Strict 1-2px plate radius
+        borderRadius: BorderRadius.circular(
+          10,
+        ), // Rounded panel matching Flow Cars emblem
         border: customBorder ?? Border.all(color: defaultBorder, width: 1),
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: const Color(0xFF0B1938).withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
       ),
       child: child,
     );
@@ -41,7 +60,7 @@ class FuseCell extends StatelessWidget {
     if (onTap != null) {
       return InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(10),
         child: container,
       );
     }

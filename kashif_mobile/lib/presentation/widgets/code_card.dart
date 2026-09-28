@@ -5,6 +5,7 @@ import '../../data/models/fault_code.dart';
 import 'fuse_cell.dart';
 import 'severity_seat.dart';
 import 'sensor_locator_sheet.dart';
+import '../screens/fuse_box_screen.dart';
 
 class CodeCard extends StatefulWidget {
   final DiagnosticFaultCode fault;
@@ -35,10 +36,14 @@ class _CodeCardState extends State<CodeCard> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-                  borderRadius: BorderRadius.circular(2),
+                  color: isDark
+                      ? const Color(0xFF132347)
+                      : const Color(0xFFE8F0FC),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+                    color: isDark
+                        ? KashifColors.goldPrimary.withValues(alpha: 0.6)
+                        : KashifColors.royalBlue.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Text(
@@ -46,7 +51,9 @@ class _CodeCardState extends State<CodeCard> {
                   style: KashifTypography.mono(
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue,
                   ),
                 ),
               ),
@@ -54,16 +61,21 @@ class _CodeCardState extends State<CodeCard> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: (isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight)
-                      .withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(2),
+                  color:
+                      (isDark
+                              ? KashifColors.royalBlueLight
+                              : KashifColors.royalBlue)
+                          .withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   f.module,
                   style: KashifTypography.mono(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                    color: isDark
+                        ? KashifColors.royalBlueElectric
+                        : KashifColors.royalBlue,
                   ),
                 ),
               ),
@@ -79,7 +91,9 @@ class _CodeCardState extends State<CodeCard> {
             style: KashifTypography.arabic(
               fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+              color: isDark
+                  ? KashifColors.darkTextPrimary
+                  : KashifColors.lightTextPrimary,
             ),
           ),
           const SizedBox(height: 3),
@@ -89,7 +103,9 @@ class _CodeCardState extends State<CodeCard> {
             f.standardDescriptionEn,
             style: KashifTypography.mono(
               fontSize: 12,
-              color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+              color: isDark
+                  ? KashifColors.darkTextMuted
+                  : KashifColors.lightTextMuted,
             ),
           ),
           const SizedBox(height: 8),
@@ -101,7 +117,9 @@ class _CodeCardState extends State<CodeCard> {
               color: isDark ? const Color(0xFF1E2822) : const Color(0xFFEBF5EE),
               borderRadius: BorderRadius.circular(2),
               border: Border.all(
-                color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                color: isDark
+                    ? KashifColors.fuse30AInkDark
+                    : KashifColors.fuse30AInkLight,
                 width: 0.8,
               ),
             ),
@@ -111,7 +129,9 @@ class _CodeCardState extends State<CodeCard> {
                 Icon(
                   Icons.build_circle_outlined,
                   size: 16,
-                  color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                  color: isDark
+                      ? KashifColors.fuse30AInkDark
+                      : KashifColors.fuse30AInkLight,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -120,7 +140,9 @@ class _CodeCardState extends State<CodeCard> {
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                      color: isDark
+                          ? KashifColors.fuse30AInkDark
+                          : KashifColors.fuse30AInkLight,
                     ),
                   ),
                 ),
@@ -128,26 +150,68 @@ class _CodeCardState extends State<CodeCard> {
             ),
           ),
 
-          // Action Buttons: Sensor & Wiring Guide Sheet
+          // Action Buttons: Sensor & Wiring Guide Sheet and Fuse Finder
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                    foregroundColor: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.goldDark,
                     side: BorderSide(
-                      color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
-                      width: 0.8,
+                      color: isDark
+                          ? KashifColors.goldPrimary.withValues(alpha: 0.6)
+                          : KashifColors.goldDark,
+                      width: 1,
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 7,
+                    ),
                   ),
                   onPressed: () => SensorLocatorSheet.show(context, fault: f),
-                  icon: const Icon(Icons.electric_bolt_rounded, size: 15),
+                  icon: const Icon(Icons.location_on_outlined, size: 15),
                   label: Text(
-                    'الفيوز ومكان الحساس (الأفوميتر)',
-                    style: KashifTypography.arabic(fontSize: 11, fontWeight: FontWeight.bold),
+                    'مكان الحساس والفحص',
+                    style: KashifTypography.arabic(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFD4AF37),
+                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FuseBoxScreen(initialDtcFilter: f.code),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.electric_bolt_rounded, size: 15),
+                label: Text(
+                  'الفيوزات',
+                  style: KashifTypography.arabic(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -164,18 +228,26 @@ class _CodeCardState extends State<CodeCard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _expanded ? 'إخفاء تفاصيل الفحص والأسباب' : 'عرض الأعراض وأسباب العطل والفحص الكهربائي',
+                    _expanded
+                        ? 'إخفاء تفاصيل الفحص والأسباب'
+                        : 'عرض الأعراض وأسباب العطل والفحص الكهربائي',
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                      color: isDark
+                          ? KashifColors.goldLight
+                          : KashifColors.royalBlue,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Icon(
-                    _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    _expanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                     size: 16,
-                    color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue,
                   ),
                 ],
               ),
@@ -191,7 +263,9 @@ class _CodeCardState extends State<CodeCard> {
                 style: KashifTypography.arabic(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
                 ),
               ),
               const SizedBox(height: 4),
@@ -221,7 +295,9 @@ class _CodeCardState extends State<CodeCard> {
                 style: KashifTypography.arabic(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
                 ),
               ),
               const SizedBox(height: 4),
@@ -250,10 +326,14 @@ class _CodeCardState extends State<CodeCard> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF262217) : const Color(0xFFFFF9E6),
+                  color: isDark
+                      ? const Color(0xFF262217)
+                      : const Color(0xFFFFF9E6),
                   borderRadius: BorderRadius.circular(2),
                   border: Border.all(
-                    color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                    color: isDark
+                        ? KashifColors.fuse20AInkDark
+                        : KashifColors.fuse20AInkLight,
                     width: 0.8,
                   ),
                 ),
@@ -265,7 +345,9 @@ class _CodeCardState extends State<CodeCard> {
                         Icon(
                           Icons.electric_bolt_rounded,
                           size: 16,
-                          color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                          color: isDark
+                              ? KashifColors.fuse20AInkDark
+                              : KashifColors.fuse20AInkLight,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -273,7 +355,9 @@ class _CodeCardState extends State<CodeCard> {
                           style: KashifTypography.arabic(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                            color: isDark
+                                ? KashifColors.fuse20AInkDark
+                                : KashifColors.fuse20AInkLight,
                           ),
                         ),
                       ],
@@ -294,7 +378,10 @@ class _CodeCardState extends State<CodeCard> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           '⚡ قياس الفولتية: ${f.electricalDiagnostics!.multimeterTip}',
-                          style: KashifTypography.arabic(fontSize: 11, fontWeight: FontWeight.w600),
+                          style: KashifTypography.arabic(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                   ],

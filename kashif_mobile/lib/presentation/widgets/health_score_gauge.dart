@@ -22,16 +22,24 @@ class HealthScoreGauge extends StatelessWidget {
     Color textColor;
     if (score >= 80) {
       progressColor = KashifColors.fuse30ATab;
-      textColor = isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight;
+      textColor = isDark
+          ? KashifColors.fuse30AInkDark
+          : KashifColors.fuse30AInkLight;
     } else if (score >= 50) {
       progressColor = KashifColors.fuse20ATab;
-      textColor = isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight;
+      textColor = isDark
+          ? KashifColors.fuse20AInkDark
+          : KashifColors.fuse20AInkLight;
     } else {
       progressColor = KashifColors.fuse10ATab;
-      textColor = isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight;
+      textColor = isDark
+          ? KashifColors.fuse10AInkDark
+          : KashifColors.fuse10AInkLight;
     }
 
-    final trackColor = isDark ? KashifColors.darkRibLit : KashifColors.lightBorder;
+    final trackColor = isDark
+        ? KashifColors.darkRibLit
+        : KashifColors.lightBorder;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -59,7 +67,8 @@ class HealthScoreGauge extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: (score.clamp(0, 100)) / 100.0,
                   strokeWidth: 9,
-                  strokeCap: StrokeCap.square, // Automotive mechanical square edge
+                  strokeCap:
+                      StrokeCap.square, // Automotive mechanical square edge
                   valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                 ),
               ),
@@ -80,7 +89,9 @@ class HealthScoreGauge extends StatelessWidget {
                     style: KashifTypography.arabic(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                      color: isDark
+                          ? KashifColors.darkTextMuted
+                          : KashifColors.lightTextMuted,
                     ),
                   ),
                 ],

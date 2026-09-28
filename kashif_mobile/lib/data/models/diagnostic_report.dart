@@ -23,10 +23,10 @@ class ScannerInfo {
   }
 
   Map<String, dynamic> toJson() => {
-        'toolName': toolName,
-        'serialNumber': serialNumber,
-        'testTime': testTime,
-      };
+    'toolName': toolName,
+    'serialNumber': serialNumber,
+    'testTime': testTime,
+  };
 }
 
 class ReportSummary {
@@ -66,13 +66,13 @@ class ReportSummary {
   }
 
   Map<String, dynamic> toJson() => {
-        'overallHealthScore': overallHealthScore,
-        'severityStatus': severityStatus,
-        'briefSummaryArabic': briefSummaryArabic,
-        'systemsCheckedCount': systemsCheckedCount,
-        'faultsFoundCount': faultsFoundCount,
-        'passedSystemsCount': passedSystemsCount,
-      };
+    'overallHealthScore': overallHealthScore,
+    'severityStatus': severityStatus,
+    'briefSummaryArabic': briefSummaryArabic,
+    'systemsCheckedCount': systemsCheckedCount,
+    'faultsFoundCount': faultsFoundCount,
+    'passedSystemsCount': passedSystemsCount,
+  };
 }
 
 class DiagnosticReport {
@@ -87,6 +87,7 @@ class DiagnosticReport {
   final List<String> passedSystems;
   final List<SparePartItem> spareParts;
   final List<DiagnosticChecklistStep> checklist;
+  final List<String> activeWarningLightIds;
 
   DiagnosticReport({
     required this.reportId,
@@ -100,6 +101,7 @@ class DiagnosticReport {
     required this.passedSystems,
     required this.spareParts,
     required this.checklist,
+    this.activeWarningLightIds = const [],
   });
 
   factory DiagnosticReport.fromJson(Map<String, dynamic> json) {
@@ -108,57 +110,90 @@ class DiagnosticReport {
     final summaryJson = json['summary'] as Map<String, dynamic>? ?? {};
     final categories = json['faultCategories'] as Map<String, dynamic>? ?? {};
 
-    final critList = (categories['criticalFaults'] as List<dynamic>?)
-            ?.map((e) => DiagnosticFaultCode.fromJson(e as Map<String, dynamic>,
-                defaultSeverity: CodeSeverity.critical))
+    final critList =
+        (categories['criticalFaults'] as List<dynamic>?)
+            ?.map(
+              (e) => DiagnosticFaultCode.fromJson(
+                e as Map<String, dynamic>,
+                defaultSeverity: CodeSeverity.critical,
+              ),
+            )
             .toList() ??
         [];
 
-    final modList = (categories['moderateFaults'] as List<dynamic>?)
-            ?.map((e) => DiagnosticFaultCode.fromJson(e as Map<String, dynamic>,
-                defaultSeverity: CodeSeverity.moderate))
+    final modList =
+        (categories['moderateFaults'] as List<dynamic>?)
+            ?.map(
+              (e) => DiagnosticFaultCode.fromJson(
+                e as Map<String, dynamic>,
+                defaultSeverity: CodeSeverity.moderate,
+              ),
+            )
             .toList() ??
         [];
 
-    final rawHist = categories['historyFaults'] ??
+    final rawHist =
+        categories['historyFaults'] ??
         categories['minorOrHistoricalFaults'] ??
         json['minorOrHistoricalFaults'];
-    final histList = (rawHist as List<dynamic>?)
-            ?.map((e) => DiagnosticFaultCode.fromJson(e as Map<String, dynamic>,
-                defaultSeverity: CodeSeverity.history))
+    final histList =
+        (rawHist as List<dynamic>?)
+            ?.map(
+              (e) => DiagnosticFaultCode.fromJson(
+                e as Map<String, dynamic>,
+                defaultSeverity: CodeSeverity.history,
+              ),
+            )
             .toList() ??
         [];
 
     final rawPassed = json['passedSystems'] ?? categories['passedSystems'];
-    final passedList = (rawPassed as List<dynamic>?)?.map((e) {
+    final passedList =
+        (rawPassed as List<dynamic>?)?.map((e) {
           if (e is Map) {
             final code = e['systemCode']?.toString() ?? '';
             final ar = e['systemNameArabic']?.toString() ?? '';
-            return code.isNotEmpty && ar.isNotEmpty ? '$code ($ar)' : (ar.isNotEmpty ? ar : code);
+            return code.isNotEmpty && ar.isNotEmpty
+                ? '$code ($ar)'
+                : (ar.isNotEmpty ? ar : code);
           }
           return e.toString();
         }).toList() ??
         [];
 
-    final rawParts = json['sparePartsRequired'] ??
+    final rawParts =
+        json['sparePartsRequired'] ??
         json['sparePartsGuide'] ??
         json['spareParts'];
-    final partsList = (rawParts as List<dynamic>?)
+    final partsList =
+        (rawParts as List<dynamic>?)
             ?.map((e) => SparePartItem.fromJson(e as Map<String, dynamic>))
             .toList() ??
         [];
 
-    final rawChecklist = json['workshopChecklist'] ??
+    final rawChecklist =
+        json['workshopChecklist'] ??
         json['diagnosticChecklist'] ??
         json['checklist'];
-    final checkList = (rawChecklist as List<dynamic>?)
-            ?.map((e) => DiagnosticChecklistStep.fromJson(e as Map<String, dynamic>))
+    final checkList =
+        (rawChecklist as List<dynamic>?)
+            ?.map(
+              (e) =>
+                  DiagnosticChecklistStep.fromJson(e as Map<String, dynamic>),
+            )
             .toList() ??
         [];
 
+    final rawLights = json['activeWarningLightIds'] ?? json['warningLights'];
+    final warningLightsList =
+        (rawLights as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+
     return DiagnosticReport(
-      reportId: json['reportId'] as String? ?? 'KASHIF-${DateTime.now().millisecondsSinceEpoch}',
-      generatedAt: json['generatedAt'] as String? ?? DateTime.now().toIso8601String(),
+      reportId:
+          json['reportId'] as String? ??
+          'KASHIF-${DateTime.now().millisecondsSinceEpoch}',
+      generatedAt:
+          json['generatedAt'] as String? ?? DateTime.now().toIso8601String(),
       scannerInfo: ScannerInfo.fromJson(scannerJson),
       vehicle: VehicleInfo.fromJson(vehicleJson),
       summary: ReportSummary.fromJson(summaryJson),
@@ -168,24 +203,58 @@ class DiagnosticReport {
       passedSystems: passedList,
       spareParts: partsList,
       checklist: checkList,
+      activeWarningLightIds: warningLightsList,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'reportId': reportId,
-        'generatedAt': generatedAt,
-        'scannerInfo': scannerInfo.toJson(),
-        'vehicle': vehicle.toJson(),
-        'summary': summary.toJson(),
-        'faultCategories': {
-          'criticalFaults': criticalFaults.map((e) => e.toJson()).toList(),
-          'moderateFaults': moderateFaults.map((e) => e.toJson()).toList(),
-          'historyFaults': historyFaults.map((e) => e.toJson()).toList(),
-          'passedSystems': passedSystems,
-        },
-        'sparePartsGuide': spareParts.map((e) => e.toJson()).toList(),
-        'diagnosticChecklist': checklist.map((e) => e.toJson()).toList(),
-      };
+    'reportId': reportId,
+    'generatedAt': generatedAt,
+    'scannerInfo': scannerInfo.toJson(),
+    'vehicle': vehicle.toJson(),
+    'summary': summary.toJson(),
+    'faultCategories': {
+      'criticalFaults': criticalFaults.map((e) => e.toJson()).toList(),
+      'moderateFaults': moderateFaults.map((e) => e.toJson()).toList(),
+      'historyFaults': historyFaults.map((e) => e.toJson()).toList(),
+      'passedSystems': passedSystems,
+    },
+    'sparePartsGuide': spareParts.map((e) => e.toJson()).toList(),
+    'diagnosticChecklist': checklist.map((e) => e.toJson()).toList(),
+    'activeWarningLightIds': activeWarningLightIds,
+  };
 
-  int get totalFaultsCount => criticalFaults.length + moderateFaults.length + historyFaults.length;
+  DiagnosticReport copyWith({
+    String? reportId,
+    String? generatedAt,
+    ScannerInfo? scannerInfo,
+    VehicleInfo? vehicle,
+    ReportSummary? summary,
+    List<DiagnosticFaultCode>? criticalFaults,
+    List<DiagnosticFaultCode>? moderateFaults,
+    List<DiagnosticFaultCode>? historyFaults,
+    List<String>? passedSystems,
+    List<SparePartItem>? spareParts,
+    List<DiagnosticChecklistStep>? checklist,
+    List<String>? activeWarningLightIds,
+  }) {
+    return DiagnosticReport(
+      reportId: reportId ?? this.reportId,
+      generatedAt: generatedAt ?? this.generatedAt,
+      scannerInfo: scannerInfo ?? this.scannerInfo,
+      vehicle: vehicle ?? this.vehicle,
+      summary: summary ?? this.summary,
+      criticalFaults: criticalFaults ?? this.criticalFaults,
+      moderateFaults: moderateFaults ?? this.moderateFaults,
+      historyFaults: historyFaults ?? this.historyFaults,
+      passedSystems: passedSystems ?? this.passedSystems,
+      spareParts: spareParts ?? this.spareParts,
+      checklist: checklist ?? this.checklist,
+      activeWarningLightIds:
+          activeWarningLightIds ?? this.activeWarningLightIds,
+    );
+  }
+
+  int get totalFaultsCount =>
+      criticalFaults.length + moderateFaults.length + historyFaults.length;
 }

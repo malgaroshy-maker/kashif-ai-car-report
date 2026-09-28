@@ -9,6 +9,8 @@ import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
 import '../widgets/health_score_gauge.dart';
 
+import 'report_compare_screen.dart';
+
 class HistoryScreen extends ConsumerWidget {
   final VoidCallback onReportSelected;
 
@@ -29,7 +31,9 @@ class HistoryScreen extends ConsumerWidget {
               Icon(
                 Icons.history_toggle_off_rounded,
                 size: 54,
-                color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                color: isDark
+                    ? KashifColors.darkTextMuted
+                    : KashifColors.lightTextMuted,
               ),
               const SizedBox(height: 12),
               Text(
@@ -37,7 +41,9 @@ class HistoryScreen extends ConsumerWidget {
                 style: KashifTypography.arabic(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                  color: isDark
+                      ? KashifColors.darkTextPrimary
+                      : KashifColors.lightTextPrimary,
                 ),
               ),
               const SizedBox(height: 6),
@@ -46,7 +52,9 @@ class HistoryScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
                 style: KashifTypography.arabic(
                   fontSize: 12,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
                 ),
               ),
             ],
@@ -61,9 +69,56 @@ class HistoryScreen extends ConsumerWidget {
         itemCount: savedReports.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: MoldedRib(label: 'سجل الفحوصات المحفوظة (${savedReports.length})'),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: MoldedRib(
+                    label: 'سجل الفحوصات المحفوظة (${savedReports.length})',
+                  ),
+                ),
+                if (savedReports.length >= 2) ...[
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ReportCompareScreen(
+                            initialBefore: savedReports.length > 1
+                                ? savedReports[1]
+                                : null,
+                            initialAfter: savedReports.first,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.compare_arrows_rounded, size: 18),
+                    label: Text(
+                      'مقارنة فحصين (قبل وبعد الصيانة)',
+                      style: KashifTypography.arabic(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(
+                        0xFFD4AF37,
+                      ).withValues(alpha: 0.15),
+                      foregroundColor: const Color(0xFFD4AF37),
+                      side: const BorderSide(
+                        color: Color(0xFFD4AF37),
+                        width: 1,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ],
             );
           }
 
@@ -101,16 +156,21 @@ class HistoryScreen extends ConsumerWidget {
                       style: KashifTypography.arabic(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                        color: isDark
+                            ? KashifColors.darkTextPrimary
+                            : KashifColors.lightTextPrimary,
                       ),
                     ),
                     const SizedBox(height: 3),
-                    if (report.vehicle.vin.isNotEmpty && report.vehicle.vin != 'N/A')
+                    if (report.vehicle.vin.isNotEmpty &&
+                        report.vehicle.vin != 'N/A')
                       Text(
                         'VIN: ${report.vehicle.vin}',
                         style: KashifTypography.mono(
                           fontSize: 11,
-                          color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                          color: isDark
+                              ? KashifColors.fuse15AInkDark
+                              : KashifColors.fuse15AInkLight,
                         ),
                       ),
                   ],
@@ -126,13 +186,21 @@ class HistoryScreen extends ConsumerWidget {
           const Divider(height: 16),
           Row(
             children: [
-              Icon(Icons.calendar_today_outlined, size: 12, color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 12,
+                color: isDark
+                    ? KashifColors.darkTextMuted
+                    : KashifColors.lightTextMuted,
+              ),
               const SizedBox(width: 4),
               Text(
                 report.generatedAt.split('T').first,
                 style: KashifTypography.mono(
                   fontSize: 11,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
                 ),
               ),
               const Spacer(),
@@ -142,21 +210,32 @@ class HistoryScreen extends ConsumerWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: report.criticalFaults.isNotEmpty
-                      ? (isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight)
-                      : (isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+                      ? (isDark
+                            ? KashifColors.fuse10AInkDark
+                            : KashifColors.fuse10AInkLight)
+                      : (isDark
+                            ? KashifColors.darkTextMuted
+                            : KashifColors.lightTextMuted),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                color: isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight,
+                color: isDark
+                    ? KashifColors.fuse10AInkDark
+                    : KashifColors.fuse10AInkLight,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 tooltip: 'حذف من السجل',
                 onPressed: () {
-                  ref.read(historyProvider.notifier).deleteReport(report.reportId);
+                  ref
+                      .read(historyProvider.notifier)
+                      .deleteReport(report.reportId);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم حذف التقرير من السجل المحلي'), duration: Duration(seconds: 1)),
+                    const SnackBar(
+                      content: Text('تم حذف التقرير من السجل المحلي'),
+                      duration: Duration(seconds: 1),
+                    ),
                   );
                 },
               ),

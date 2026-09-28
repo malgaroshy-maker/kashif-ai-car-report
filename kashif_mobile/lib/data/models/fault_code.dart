@@ -1,8 +1,8 @@
 enum CodeSeverity {
   critical, // 10A Red
   moderate, // 20A Yellow
-  passed,   // 30A Green
-  history,  // 25A Grey
+  passed, // 30A Green
+  history, // 25A Grey
 }
 
 class ElectricalDiagnosticInfo {
@@ -56,25 +56,23 @@ class ElectricalDiagnosticInfo {
   }
 
   Map<String, dynamic> toJson() => {
-        'provenance': provenance,
-        'fuseInfo': {
-          'boxLocation': boxLocation,
-          'fuseNumber': fuseNumber,
-          'rating': rating,
-          'relayName': relayName,
-          'circuitDescription': circuitDescription,
-        },
-        'sensorLocation': {
-          'areaName': sensorArea,
-        },
-        'multimeterTest': {
-          'testingTipLibyan': multimeterTip,
-          'powerPin': powerPin,
-          'groundPin': groundPin,
-          'signalPin': signalPin,
-        },
-        'warning': warning,
-      };
+    'provenance': provenance,
+    'fuseInfo': {
+      'boxLocation': boxLocation,
+      'fuseNumber': fuseNumber,
+      'rating': rating,
+      'relayName': relayName,
+      'circuitDescription': circuitDescription,
+    },
+    'sensorLocation': {'areaName': sensorArea},
+    'multimeterTest': {
+      'testingTipLibyan': multimeterTip,
+      'powerPin': powerPin,
+      'groundPin': groundPin,
+      'signalPin': signalPin,
+    },
+    'warning': warning,
+  };
 }
 
 class DiagnosticFaultCode {
@@ -108,12 +106,27 @@ class DiagnosticFaultCode {
     this.electricalDiagnostics,
   });
 
-  factory DiagnosticFaultCode.fromJson(Map<String, dynamic> json, {CodeSeverity defaultSeverity = CodeSeverity.moderate}) {
+  String get systemArabic =>
+      moduleNameArabic.isNotEmpty ? moduleNameArabic : module;
+  String get componentDescription => libyanTerm.isNotEmpty
+      ? libyanTerm
+      : (standardArabicDescription.isNotEmpty
+            ? standardArabicDescription
+            : standardDescriptionEn);
+
+  factory DiagnosticFaultCode.fromJson(
+    Map<String, dynamic> json, {
+    CodeSeverity defaultSeverity = CodeSeverity.moderate,
+  }) {
     CodeSeverity sev = defaultSeverity;
     final urgency = json['urgencyLevel']?.toString() ?? '';
-    if (urgency.contains('عالي') || urgency.contains('حرج') || urgency.contains('خطر')) {
+    if (urgency.contains('عالي') ||
+        urgency.contains('حرج') ||
+        urgency.contains('خطر')) {
       sev = CodeSeverity.critical;
-    } else if (urgency.contains('تاريخ') || urgency.contains('ذاكرة') || urgency.contains('قديم')) {
+    } else if (urgency.contains('تاريخ') ||
+        urgency.contains('ذاكرة') ||
+        urgency.contains('قديم')) {
       sev = CodeSeverity.history;
     }
 
@@ -123,32 +136,45 @@ class DiagnosticFaultCode {
       moduleNameArabic: json['moduleNameArabic'] as String? ?? '',
       standardDescriptionEn: json['standardDescriptionEn'] as String? ?? '',
       libyanTerm: json['libyanTerm'] as String? ?? '',
-      standardArabicDescription: json['standardArabicDescription'] as String? ?? '',
-      driverSymptoms: (json['driverSymptoms'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      rootCauses: (json['rootCauses'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      standardArabicDescription:
+          json['standardArabicDescription'] as String? ?? '',
+      driverSymptoms:
+          (json['driverSymptoms'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      rootCauses:
+          (json['rootCauses'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
       urgencyLevel: urgency,
       recommendedAction: json['recommendedAction'] as String? ?? '',
       recommendedPartId: json['recommendedPartId'] as String?,
       severity: sev,
-      electricalDiagnostics: json['electricalDiagnostics'] != null && json['electricalDiagnostics'] is Map<String, dynamic>
-          ? ElectricalDiagnosticInfo.fromJson(json['electricalDiagnostics'] as Map<String, dynamic>)
+      electricalDiagnostics:
+          json['electricalDiagnostics'] != null &&
+              json['electricalDiagnostics'] is Map<String, dynamic>
+          ? ElectricalDiagnosticInfo.fromJson(
+              json['electricalDiagnostics'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'code': code,
-        'module': module,
-        'moduleNameArabic': moduleNameArabic,
-        'standardDescriptionEn': standardDescriptionEn,
-        'libyanTerm': libyanTerm,
-        'standardArabicDescription': standardArabicDescription,
-        'driverSymptoms': driverSymptoms,
-        'rootCauses': rootCauses,
-        'urgencyLevel': urgencyLevel,
-        'recommendedAction': recommendedAction,
-        'recommendedPartId': recommendedPartId,
-        'severity': severity.name,
-        'electricalDiagnostics': electricalDiagnostics?.toJson(),
-      };
+    'code': code,
+    'module': module,
+    'moduleNameArabic': moduleNameArabic,
+    'standardDescriptionEn': standardDescriptionEn,
+    'libyanTerm': libyanTerm,
+    'standardArabicDescription': standardArabicDescription,
+    'driverSymptoms': driverSymptoms,
+    'rootCauses': rootCauses,
+    'urgencyLevel': urgencyLevel,
+    'recommendedAction': recommendedAction,
+    'recommendedPartId': recommendedPartId,
+    'severity': severity.name,
+    'electricalDiagnostics': electricalDiagnostics?.toJson(),
+  };
 }

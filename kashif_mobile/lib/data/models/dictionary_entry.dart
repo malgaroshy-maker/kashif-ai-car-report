@@ -24,10 +24,10 @@ class DictionaryEntry {
   }
 
   Map<String, dynamic> toJson() => {
-        'libyanTerm': libyanTerm,
-        'standardArabic': standardArabic,
-        'english': english,
-        'category': category,
-        'partSearchTerm': partSearchTerm,
-      };
+    'libyanTerm': libyanTerm,
+    'standardArabic': standardArabic,
+    'english': english,
+    'category': category,
+    'partSearchTerm': partSearchTerm,
+  };
 }

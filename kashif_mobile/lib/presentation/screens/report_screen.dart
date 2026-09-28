@@ -15,6 +15,12 @@ import '../widgets/code_card.dart';
 import '../widgets/spare_part_card.dart';
 import '../widgets/checklist_item.dart';
 import '../widgets/export_options_sheet.dart';
+import '../widgets/report_qr_sheet.dart';
+import '../widgets/active_lights_card.dart';
+import '../../core/utils/share_service.dart';
+import 'report_compare_screen.dart';
+import 'fuse_box_screen.dart';
+import 'dashboard_lights_screen.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
   final VoidCallback onOpenChat;
@@ -25,7 +31,8 @@ class ReportScreen extends ConsumerStatefulWidget {
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
 }
 
-class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerProviderStateMixin {
+class _ReportScreenState extends ConsumerState<ReportScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -54,7 +61,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
             Icon(
               Icons.assignment_outlined,
               size: 54,
-              color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+              color: isDark
+                  ? KashifColors.darkTextMuted
+                  : KashifColors.lightTextMuted,
             ),
             const SizedBox(height: 12),
             Text(
@@ -62,7 +71,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
               style: KashifTypography.arabic(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                color: isDark
+                    ? KashifColors.darkTextPrimary
+                    : KashifColors.lightTextPrimary,
               ),
             ),
             const SizedBox(height: 6),
@@ -70,7 +81,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
               'ابدأ تصوير أو رفع تقرير من تبويب "الفحص"',
               style: KashifTypography.arabic(
                 fontSize: 12,
-                color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                color: isDark
+                    ? KashifColors.darkTextMuted
+                    : KashifColors.lightTextMuted,
               ),
             ),
           ],
@@ -84,7 +97,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
           return [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -100,6 +116,17 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
                     _buildMechanicSummary(report, isDark),
                     const SizedBox(height: 12),
 
+                    // Active Dashboard Warning Lights
+                    ActiveLightsCard(
+                      report: report,
+                      onUpdateLights: (newLights) {
+                        final updated = report.copyWith(
+                          activeWarningLightIds: newLights,
+                        );
+                        ref.read(reportProvider.notifier).setReport(updated);
+                      },
+                    ),
+
                     const MoldedRib(label: 'أقسام التقرير التفصيلي'),
                   ],
                 ),
@@ -111,16 +138,27 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
                 TabBar(
                   controller: _tabController,
                   isScrollable: true,
-                  indicatorColor: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                  labelColor: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                  unselectedLabelColor: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
-                  labelStyle: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.w800),
+                  indicatorColor: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
+                  labelColor: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
+                  unselectedLabelColor: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
+                  labelStyle: KashifTypography.arabic(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
                   unselectedLabelStyle: KashifTypography.arabic(fontSize: 12),
                   tabs: [
                     Tab(text: 'أعطال حرجة (${report.criticalFaults.length})'),
                     Tab(text: 'أعطال متوسطة (${report.moderateFaults.length})'),
                     Tab(text: 'في الذاكرة (${report.historyFaults.length})'),
-                    Tab(text: 'الأنظمة السليمة (${report.passedSystems.length})'),
+                    Tab(
+                      text: 'الأنظمة السليمة (${report.passedSystems.length})',
+                    ),
                     Tab(text: 'قطع الغيار (${report.spareParts.length})'),
                     Tab(text: 'خطوات الفحص (${report.checklist.length})'),
                   ],
@@ -134,11 +172,23 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
           controller: _tabController,
           children: [
             // Tab 1: Critical Faults (10A)
-            _buildFaultsList(report.criticalFaults, 'لا توجد أعطال حرجة تهدد أمان السيارة بحمد الله.', CodeSeverity.critical),
+            _buildFaultsList(
+              report.criticalFaults,
+              'لا توجد أعطال حرجة تهدد أمان السيارة بحمد الله.',
+              CodeSeverity.critical,
+            ),
             // Tab 2: Moderate Faults (20A)
-            _buildFaultsList(report.moderateFaults, 'لا توجد أعطال متوسطة مسجلة.', CodeSeverity.moderate),
+            _buildFaultsList(
+              report.moderateFaults,
+              'لا توجد أعطال متوسطة مسجلة.',
+              CodeSeverity.moderate,
+            ),
             // Tab 3: History Faults (25A)
-            _buildFaultsList(report.historyFaults, 'لا توجد أكواد أعطال قديمة في الذاكرة.', CodeSeverity.history),
+            _buildFaultsList(
+              report.historyFaults,
+              'لا توجد أكواد أعطال قديمة في الذاكرة.',
+              CodeSeverity.history,
+            ),
             // Tab 4: Passed Systems (30A)
             _buildPassedSystemsList(report.passedSystems, isDark),
             // Tab 5: Spare Parts Guide
@@ -168,16 +218,26 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: KashifColors.fuse30ATab,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                      backgroundColor: isDark
+                          ? KashifColors.goldPrimary
+                          : KashifColors.goldDark,
+                      foregroundColor: isDark
+                          ? const Color(0xFF070E1E)
+                          : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 11),
+                      elevation: isDark ? 2 : 1,
                     ),
                     onPressed: () => ExportOptionsSheet.show(context, report),
                     icon: const Icon(Icons.ios_share_rounded, size: 18),
                     label: Text(
                       'تصدير ومشاركة التقرير 📤',
-                      style: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.w800),
+                      style: KashifTypography.arabic(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -190,16 +250,30 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                  backgroundColor: isDark
+                      ? const Color(0xFF132347)
+                      : const Color(0xFFE8F0FC),
+                  foregroundColor: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: isDark
+                          ? KashifColors.goldPrimary.withValues(alpha: 0.5)
+                          : KashifColors.royalBlue.withValues(alpha: 0.4),
+                    ),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 onPressed: widget.onOpenChat,
                 icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                 label: Text(
                   'استشارة الأسطى (مساعد الذكاء الاصطناعي)',
-                  style: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.w700),
+                  style: KashifTypography.arabic(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
@@ -211,80 +285,219 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
 
   Widget _buildVehicleHeader(DiagnosticReport report, bool isDark) {
     final v = report.vehicle;
+    final primaryColor = isDark
+        ? KashifColors.goldLight
+        : KashifColors.royalBlue;
+    final labelColor = isDark
+        ? KashifColors.goldLight
+        : KashifColors.royalBlueDark;
+    final valueColor = isDark
+        ? KashifColors.darkTextPrimary
+        : KashifColors.lightTextPrimary;
+    final testDate = report.generatedAt.isNotEmpty
+        ? report.generatedAt.split('T').first
+        : '';
+
+    Widget buildSpecRow({
+      required String label,
+      required String value,
+      bool isMono = false,
+      bool isBold = false,
+      Color? customValueColor,
+    }) {
+      if (value.trim().isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              margin: const EdgeInsets.only(top: 6, left: 8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? KashifColors.goldPrimary
+                    : const Color(0xFF2E7FC4),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+            SizedBox(
+              width: 86,
+              child: Text(
+                label,
+                style: KashifTypography.arabic(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: labelColor,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: isMono
+                    ? KashifTypography.mono(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color:
+                            customValueColor ??
+                            (isDark
+                                ? KashifColors.goldLight
+                                : const Color(0xFF0F5288)),
+                      )
+                    : KashifTypography.arabic(
+                        fontSize: 12.5,
+                        fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+                        color: customValueColor ?? valueColor,
+                      ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return FuseCell(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
+      customBorder: Border.all(
+        color: isDark
+            ? KashifColors.goldPrimary.withValues(alpha: 0.3)
+            : KashifColors.royalBlue.withValues(alpha: 0.2),
+        width: 1,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.directions_car_rounded, size: 20, color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight),
+              Icon(Icons.directions_car_rounded, size: 20, color: primaryColor),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${v.make} ${v.model} (${v.year})',
+                  'بيانات المركبة المفحوصة:',
                   style: KashifTypography.arabic(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w900,
-                    color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlueDark,
                   ),
                 ),
               ),
               IconButton(
                 icon: Icon(
+                  Icons.electric_bolt_rounded,
+                  size: 20,
+                  color: primaryColor,
+                ),
+                tooltip: 'دليل ومكتشف الفيوزات',
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FuseBoxScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: Icon(
+                  Icons.compare_arrows_rounded,
+                  size: 20,
+                  color: primaryColor,
+                ),
+                tooltip: 'مقارنة مع فحص سابق',
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReportCompareScreen(initialAfter: report),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: Icon(
+                  Icons.warning_amber_rounded,
+                  size: 20,
+                  color: primaryColor,
+                ),
+                tooltip: 'تحديد لمبات الطبلون',
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DashboardLightsScreen(
+                        initialSelectedIds: report.activeWarningLightIds,
+                        onLightsSelected: (newLights) {
+                          final updated = report.copyWith(
+                            activeWarningLightIds: newLights,
+                          );
+                          ref.read(reportProvider.notifier).setReport(updated);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: Icon(
+                  Icons.qr_code_2_rounded,
+                  size: 20,
+                  color: primaryColor,
+                ),
+                tooltip: 'مشاركة برمز QR',
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+                onPressed: () => ReportQrSheet.show(context, report),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: Icon(Icons.share_rounded, size: 20, color: primaryColor),
+                tooltip: 'مشاركة التقرير عبر واتساب',
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+                onPressed: () =>
+                    KashifShareService.shareReportViaWhatsApp(report),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: Icon(
                   Icons.ios_share_rounded,
                   size: 20,
-                  color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                  color: primaryColor,
                 ),
                 tooltip: 'تصدير ومشاركة التقرير',
                 padding: const EdgeInsets.all(4),
                 constraints: const BoxConstraints(),
                 onPressed: () => ExportOptionsSheet.show(context, report),
               ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                child: Text(
-                  report.scannerInfo.toolName,
-                  style: KashifTypography.mono(fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Text(
-                'رقم الهيكل (VIN): ',
-                style: KashifTypography.arabic(
-                  fontSize: 11,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
-                ),
-              ),
-              Text(
-                v.vin,
-                style: KashifTypography.mono(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                ),
-              ),
-            ],
+          const SizedBox(height: 10),
+          buildSpecRow(
+            label: 'السيارة:',
+            value: v.formattedTitle,
+            isBold: true,
           ),
-          if (v.engineSpecs != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'المحرك: ${v.engineSpecs!.displacement} | ${v.engineSpecs!.fuelType} | ${v.engineSpecs!.transmission}',
-              style: KashifTypography.arabic(
-                fontSize: 11,
-                color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
-              ),
-            ),
-          ],
+          if (v.cleanVin.isNotEmpty)
+            buildSpecRow(label: 'رقم الهيكل:', value: v.cleanVin, isMono: true),
+          if (v.formattedEngine.isNotEmpty)
+            buildSpecRow(label: 'المحرك:', value: v.formattedEngine),
+          if (v.formattedTransmission.isNotEmpty)
+            buildSpecRow(label: 'ناقل الحركة:', value: v.formattedTransmission),
+          if (v.formattedMileage.isNotEmpty)
+            buildSpecRow(label: 'قراءة العداد:', value: v.formattedMileage),
+          if (testDate.isNotEmpty)
+            buildSpecRow(label: 'تاريخ الفحص:', value: testDate),
         ],
       ),
     );
@@ -313,13 +526,29 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildPriorityRow('حرج (10A)', report.criticalFaults.length, CodeSeverity.critical),
+                _buildPriorityRow(
+                  'حرج (10A)',
+                  report.criticalFaults.length,
+                  CodeSeverity.critical,
+                ),
                 const SizedBox(height: 4),
-                _buildPriorityRow('متوسط (20A)', report.moderateFaults.length, CodeSeverity.moderate),
+                _buildPriorityRow(
+                  'متوسط (20A)',
+                  report.moderateFaults.length,
+                  CodeSeverity.moderate,
+                ),
                 const SizedBox(height: 4),
-                _buildPriorityRow('في الذاكرة (25A)', report.historyFaults.length, CodeSeverity.history),
+                _buildPriorityRow(
+                  'في الذاكرة (25A)',
+                  report.historyFaults.length,
+                  CodeSeverity.history,
+                ),
                 const SizedBox(height: 4),
-                _buildPriorityRow('أنظمة سليمة (30A)', report.passedSystems.length, CodeSeverity.passed),
+                _buildPriorityRow(
+                  'أنظمة سليمة (30A)',
+                  report.passedSystems.length,
+                  CodeSeverity.passed,
+                ),
               ],
             ),
           ),
@@ -333,14 +562,14 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
       children: [
         SeveritySeat(severity: severity, compact: true),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: KashifTypography.arabic(fontSize: 12),
-        ),
+        Text(label, style: KashifTypography.arabic(fontSize: 12)),
         const Spacer(),
         Text(
           '$count',
-          style: KashifTypography.mono(fontSize: 13, fontWeight: FontWeight.bold),
+          style: KashifTypography.mono(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -348,21 +577,35 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
 
   Widget _buildMechanicSummary(DiagnosticReport report, bool isDark) {
     return FuseCell(
-      backgroundColor: isDark ? const Color(0xFF16232F) : const Color(0xFFE9F2FA),
+      backgroundColor: isDark
+          ? const Color(0xFF101E3A)
+          : const Color(0xFFEBF2FD),
+      customBorder: Border.all(
+        color: isDark
+            ? KashifColors.goldPrimary.withValues(alpha: 0.3)
+            : KashifColors.royalBlue.withValues(alpha: 0.2),
+        width: 1,
+      ),
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline_rounded, size: 18, color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight),
+              Icon(
+                Icons.lightbulb_rounded,
+                size: 18,
+                color: isDark ? KashifColors.goldLight : KashifColors.goldDark,
+              ),
               const SizedBox(width: 6),
               Text(
-                'خلاصة تشخيص الأسطى:',
+                'خلاصة تقييم السيارة:',
                 style: KashifTypography.arabic(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                  color: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
                 ),
               ),
             ],
@@ -373,7 +616,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
             style: KashifTypography.arabic(
               fontSize: 12,
               height: 1.5,
-              color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+              color: isDark
+                  ? KashifColors.darkTextPrimary
+                  : KashifColors.lightTextPrimary,
             ),
           ),
         ],
@@ -381,7 +626,11 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildFaultsList(List<DiagnosticFaultCode> faults, String emptyMsg, CodeSeverity sev) {
+  Widget _buildFaultsList(
+    List<DiagnosticFaultCode> faults,
+    String emptyMsg,
+    CodeSeverity sev,
+  ) {
     if (faults.isEmpty) {
       return Center(
         child: Padding(
@@ -394,7 +643,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
               Text(
                 emptyMsg,
                 textAlign: TextAlign.center,
-                style: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.w600),
+                style: KashifTypography.arabic(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -424,7 +676,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
               Text(
                 'لم تسجل المنظومات السليمة بشكل منفصل بجهاز الفحص.',
                 textAlign: TextAlign.center,
-                style: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.w600),
+                style: KashifTypography.arabic(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -450,14 +705,20 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
                   style: KashifTypography.arabic(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                    color: isDark
+                        ? KashifColors.darkTextPrimary
+                        : KashifColors.lightTextPrimary,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight).withValues(alpha: 0.15),
+                  color:
+                      (isDark
+                              ? KashifColors.fuse30AInkDark
+                              : KashifColors.fuse30AInkLight)
+                          .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(2),
                 ),
                 child: Text(
@@ -465,7 +726,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> with SingleTickerPr
                   style: KashifTypography.arabic(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                    color: isDark
+                        ? KashifColors.fuse30AInkDark
+                        : KashifColors.fuse30AInkLight,
                   ),
                 ),
               ),
@@ -527,7 +790,11 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
       child: tabBar,

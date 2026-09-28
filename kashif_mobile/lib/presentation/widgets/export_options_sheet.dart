@@ -6,6 +6,7 @@ import '../../core/utils/html_generator.dart';
 import '../../core/utils/share_service.dart';
 import '../../data/models/diagnostic_report.dart';
 import 'fuse_cell.dart';
+import 'report_qr_sheet.dart';
 
 /// Bottom sheet offering unified export options: PDF, Offline HTML, and WhatsApp
 class ExportOptionsSheet extends StatelessWidget {
@@ -16,6 +17,7 @@ class ExportOptionsSheet extends StatelessWidget {
   static void show(BuildContext context, DiagnosticReport report) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => ExportOptionsSheet(report: report),
     );
@@ -25,99 +27,130 @@ class ExportOptionsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        border: Border.all(
-          color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Drag handle
-          Container(
-            width: 44,
-            height: 4,
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.white24 : Colors.black26,
-              borderRadius: BorderRadius.circular(2),
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            border: Border.all(
+              color: isDark
+                  ? KashifColors.darkBorder
+                  : KashifColors.lightBorder,
             ),
           ),
-
-          Row(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.ios_share_rounded,
-                size: 22,
-                color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'خيارات تصدير ومشاركة التقرير',
-                style: KashifTypography.arabic(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+              // Drag handle
+              Container(
+                width: 44,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.close_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
+
+              Row(
+                children: [
+                  Icon(
+                    Icons.ios_share_rounded,
+                    size: 22,
+                    color: isDark
+                        ? KashifColors.fuse15AInkDark
+                        : KashifColors.fuse15AInkLight,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'خيارات تصدير ومشاركة التقرير',
+                    style: KashifTypography.arabic(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: isDark
+                          ? KashifColors.darkTextPrimary
+                          : KashifColors.lightTextPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
+              const Divider(height: 16),
+
+              // Option 1: PDF Export & Print
+              _buildOptionTile(
+                context: context,
+                icon: Icons.picture_as_pdf_rounded,
+                iconColor: const Color(0xFFC62828),
+                title: 'طباعة وتصدير PDF (A4)',
+                subtitle:
+                    'وثيقة رسمية معتمدة تدعم الطباعة المباشرة، الختم والتوقيع',
+                isDark: isDark,
+                onTap: () async {
+                  Navigator.pop(context);
+                  await KashifPdfGenerator.printOrShareReport(report);
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // Option 2: Offline HTML Download
+              _buildOptionTile(
+                context: context,
+                icon: Icons.code_rounded,
+                iconColor: isDark
+                    ? KashifColors.fuse15AInkDark
+                    : KashifColors.fuse15AInkLight,
+                title: 'تنزيل تقرير HTML مستقل (أوفلاين)',
+                subtitle:
+                    'ملف يفتح على أي كمبيوتر أو شاشة بالورشة بدون اتصال إنترنت',
+                isDark: isDark,
+                onTap: () async {
+                  Navigator.pop(context);
+                  await KashifHtmlGenerator.generateAndSave(context, report);
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // Option 3: WhatsApp Share
+              _buildOptionTile(
+                context: context,
+                icon: Icons.share_rounded,
+                iconColor: KashifColors.fuse30ATab,
+                title: 'مشاركة ملخص الفحص عبر واتساب',
+                subtitle:
+                    'إرسال رسالة جاهزة للزبون تضم الأعطال والقطع المطلوبة والأسعار',
+                isDark: isDark,
+                onTap: () {
+                  Navigator.pop(context);
+                  KashifShareService.shareReportViaWhatsApp(report);
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // Option 4: QR Code Transfer
+              _buildOptionTile(
+                context: context,
+                icon: Icons.qr_code_2_rounded,
+                iconColor: const Color(0xFFD4AF37),
+                title: 'توليد رمز QR للمشاركة الفورية',
+                subtitle:
+                    'مسح فوري بكاميرا هاتف الزبون لقراءة ملخص الفحص وحفظه',
+                isDark: isDark,
+                onTap: () {
+                  Navigator.pop(context);
+                  ReportQrSheet.show(context, report);
+                },
+              ),
+              const SizedBox(height: 12),
             ],
           ),
-          const Divider(height: 16),
-
-          // Option 1: PDF Export & Print
-          _buildOptionTile(
-            context: context,
-            icon: Icons.picture_as_pdf_rounded,
-            iconColor: const Color(0xFFC62828),
-            title: 'طباعة وتصدير PDF (A4)',
-            subtitle: 'وثيقة رسمية معتمدة تدعم الطباعة المباشرة، الختم والتوقيع',
-            isDark: isDark,
-            onTap: () async {
-              Navigator.pop(context);
-              await KashifPdfGenerator.printOrShareReport(report);
-            },
-          ),
-          const SizedBox(height: 8),
-
-          // Option 2: Offline HTML Download
-          _buildOptionTile(
-            context: context,
-            icon: Icons.code_rounded,
-            iconColor: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-            title: 'تنزيل تقرير HTML مستقل (أوفلاين)',
-            subtitle: 'ملف يفتح على أي كمبيوتر أو شاشة بالورشة بدون اتصال إنترنت',
-            isDark: isDark,
-            onTap: () async {
-              Navigator.pop(context);
-              await KashifHtmlGenerator.generateAndSave(context, report);
-            },
-          ),
-          const SizedBox(height: 8),
-
-          // Option 3: WhatsApp Share
-          _buildOptionTile(
-            context: context,
-            icon: Icons.share_rounded,
-            iconColor: KashifColors.fuse30ATab,
-            title: 'مشاركة ملخص الفحص عبر واتساب',
-            subtitle: 'إرسال رسالة جاهزة للزبون تضم الأعطال والقطع المطلوبة والأسعار',
-            isDark: isDark,
-            onTap: () {
-              Navigator.pop(context);
-              KashifShareService.shareReportViaWhatsApp(report);
-            },
-          ),
-          const SizedBox(height: 12),
-        ],
+        ),
       ),
     );
   }
@@ -156,7 +189,9 @@ class ExportOptionsSheet extends StatelessWidget {
                     style: KashifTypography.arabic(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
+                      color: isDark
+                          ? KashifColors.darkTextPrimary
+                          : KashifColors.lightTextPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -164,7 +199,9 @@ class ExportOptionsSheet extends StatelessWidget {
                     subtitle,
                     style: KashifTypography.arabic(
                       fontSize: 11,
-                      color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                      color: isDark
+                          ? KashifColors.darkTextMuted
+                          : KashifColors.lightTextMuted,
                     ),
                   ),
                 ],
@@ -173,7 +210,9 @@ class ExportOptionsSheet extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+              color: isDark
+                  ? KashifColors.darkTextMuted
+                  : KashifColors.lightTextMuted,
             ),
           ],
         ),

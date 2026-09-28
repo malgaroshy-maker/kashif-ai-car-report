@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "كاشف AI - معاينة الهاتف في Chrome (مباشر)",
+      "cwd": "kashif_mobile",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "args": [
+        "--web-browser-flag",
+        "--window-size=420,880",
+        "--web-browser-flag",
+        "--disable-web-security",
+        "--web-browser-flag",
+        "--user-data-dir=C:\\Users\\Administrator\\.flutter_chrome_dev",
+        "--web-browser-flag",
+        "--auto-open-devtools-for-tabs=false"
+      ]
+    },
+    {
+      "name": "Next.js Web Server (الموقع الرئيسي)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"]
+    }
+  ]
+}

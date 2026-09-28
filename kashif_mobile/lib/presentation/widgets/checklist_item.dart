@@ -32,8 +32,12 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
         children: [
           Checkbox(
             value: step.isCompleted,
-            activeColor: KashifColors.fuse30ATab,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+            activeColor: isDark
+                ? KashifColors.goldPrimary
+                : KashifColors.royalBlue,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
             onChanged: (val) {
               setState(() {
                 step.isCompleted = val ?? false;
@@ -49,17 +53,30 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-                        borderRadius: BorderRadius.circular(2),
+                        color: isDark
+                            ? const Color(0xFF132347)
+                            : const Color(0xFFE8F0FC),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isDark
+                              ? KashifColors.goldPrimary.withValues(alpha: 0.5)
+                              : KashifColors.royalBlue.withValues(alpha: 0.4),
+                          width: 0.8,
+                        ),
                       ),
                       child: Text(
                         'خطوة ${step.stepNumber}',
                         style: KashifTypography.arabic(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                          color: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
                         ),
                       ),
                     ),
@@ -71,8 +88,12 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: step.isCompleted
-                              ? (isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted)
-                              : (isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary),
+                              ? (isDark
+                                    ? KashifColors.darkTextMuted
+                                    : KashifColors.lightTextMuted)
+                              : (isDark
+                                    ? KashifColors.darkTextPrimary
+                                    : KashifColors.lightTextPrimary),
                         ),
                       ),
                     ),
@@ -83,7 +104,9 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
                   step.actionDescriptionLibyan,
                   style: KashifTypography.arabic(
                     fontSize: 12,
-                    color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                    color: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
                   ),
                 ),
                 if (step.toolingNeeded.isNotEmpty) ...[
@@ -93,14 +116,18 @@ class _ChecklistItemWidgetState extends State<ChecklistItemWidget> {
                       Icon(
                         Icons.handyman_outlined,
                         size: 13,
-                        color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                        color: isDark
+                            ? KashifColors.fuse20AInkDark
+                            : KashifColors.fuse20AInkLight,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'العدة: ${step.toolingNeeded}',
                         style: KashifTypography.arabic(
                           fontSize: 11,
-                          color: isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight,
+                          color: isDark
+                              ? KashifColors.fuse20AInkDark
+                              : KashifColors.fuse20AInkLight,
                         ),
                       ),
                     ],

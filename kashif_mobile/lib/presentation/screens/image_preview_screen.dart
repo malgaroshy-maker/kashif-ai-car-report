@@ -1,16 +1,18 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../core/utils/image_enhancer.dart';
 
 class ImagePreviewScreen extends StatefulWidget {
-  final File imageFile;
-  final ValueChanged<File> onConfirm;
+  final Uint8List imageBytes;
+  final String fileName;
+  final ValueChanged<Uint8List> onConfirm;
 
   const ImagePreviewScreen({
     super.key,
-    required this.imageFile,
+    required this.imageBytes,
+    required this.fileName,
     required this.onConfirm,
   });
 
@@ -34,8 +36,8 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      final processedFile = await ImageEnhancer.processScannerImage(
-        originalFile: widget.imageFile,
+      final processedBytes = await ImageEnhancer.processScannerImageBytes(
+        bytes: widget.imageBytes,
         colorContrastBoost: _colorContrastBoost,
         rotateDegrees: _rotation,
         cropLeftPct: _isCroppingEnabled ? _cropLeft : null,
@@ -46,7 +48,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        widget.onConfirm(processedFile);
+        widget.onConfirm(processedBytes);
       }
     } catch (e) {
       if (mounted) {
@@ -72,7 +74,10 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
         foregroundColor: Colors.white,
         title: Text(
           'معاينة وتحسين صورة شاشة الفحص',
-          style: KashifTypography.arabic(fontSize: 15, fontWeight: FontWeight.w800),
+          style: KashifTypography.arabic(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
         ),
         actions: [
           IconButton(
@@ -96,10 +101,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
                 Center(
                   child: RotatedBox(
                     quarterTurns: _rotation ~/ 90,
-                    child: Image.file(
-                      widget.imageFile,
-                      fit: BoxFit.contain,
-                    ),
+                    child: Image.memory(widget.imageBytes, fit: BoxFit.contain),
                   ),
                 ),
 
@@ -109,7 +111,10 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
                     child: Container(
                       margin: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        border: Border.all(color: KashifColors.fuse15ATab, width: 2),
+                        border: Border.all(
+                          color: KashifColors.fuse15ATab,
+                          width: 2,
+                        ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Stack(
@@ -118,14 +123,20 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
                             top: 8,
                             right: 8,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.7),
                                 borderRadius: BorderRadius.circular(2),
                               ),
                               child: Text(
                                 'إطار شاشة جهاز الفحص',
-                                style: KashifTypography.arabic(fontSize: 10, color: Colors.white),
+                                style: KashifTypography.arabic(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -145,7 +156,10 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
                           const SizedBox(height: 14),
                           Text(
                             'جاري تحسين التباين وضغط الصورة للذكاء الاصطناعي...',
-                            style: KashifTypography.arabic(fontSize: 13, color: Colors.white),
+                            style: KashifTypography.arabic(
+                              fontSize: 13,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -176,73 +190,63 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
                         style: KashifTypography.arabic(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: _colorContrastBoost ? Colors.white : Colors.white70,
+                          color: _colorContrastBoost
+                              ? Colors.white
+                              : Colors.white70,
                         ),
                       ),
+                      onSelected: (val) =>
+                          setState(() => _colorContrastBoost = val),
                       selectedColor: KashifColors.fuse15AInkDark,
                       backgroundColor: Colors.white10,
                       checkmarkColor: Colors.white,
-                      onSelected: (val) => setState(() => _colorContrastBoost = val),
                     ),
 
-                    // Crop toggle chip
+                    // Toggle crop frame
                     FilterChip(
                       selected: _isCroppingEnabled,
                       label: Text(
-                        'قص حواف الشاشة 📐',
+                        'تحديد الشاشة',
                         style: KashifTypography.arabic(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: _isCroppingEnabled ? Colors.white : Colors.white70,
+                          color: _isCroppingEnabled
+                              ? Colors.white
+                              : Colors.white70,
                         ),
                       ),
+                      onSelected: (val) =>
+                          setState(() => _isCroppingEnabled = val),
                       selectedColor: KashifColors.fuse20AInkDark,
                       backgroundColor: Colors.white10,
                       checkmarkColor: Colors.white,
-                      onSelected: (val) => setState(() => _isCroppingEnabled = val),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
 
-                // Action Buttons
-                Row(
-                  children: [
-                    // Retake Button
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Colors.white24),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                      label: Text(
-                        'رجوع',
-                        style: KashifTypography.arabic(fontSize: 12),
+                // Confirm and Analyze Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KashifColors.fuse30AInkLight,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                    const SizedBox(width: 10),
-
-                    // Process & Analyze Button
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: KashifColors.fuse30ATab,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                        onPressed: _isProcessing ? null : _processAndAnalyze,
-                        icon: const Icon(Icons.auto_awesome_rounded, size: 20),
-                        label: Text(
-                          'تحليل الشاشة بالذكاء الاصطناعي 🚀',
-                          style: KashifTypography.arabic(fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
+                    onPressed: _isProcessing ? null : _processAndAnalyze,
+                    icon: const Icon(Icons.auto_awesome_rounded),
+                    label: Text(
+                      'تحليل التقرير بالذكاء الاصطناعي',
+                      style: KashifTypography.arabic(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),

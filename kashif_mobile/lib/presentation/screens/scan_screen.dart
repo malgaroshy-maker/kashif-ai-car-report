@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,6 +9,10 @@ import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
 
 import 'image_preview_screen.dart';
+import 'settings_screen.dart';
+import 'dashboard_lights_screen.dart';
+import 'fuse_box_screen.dart';
+import 'history_screen.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
   final VoidCallback onReportReady;
@@ -33,19 +36,89 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     super.dispose();
   }
 
+  DateTime? _lastActionTime;
+
+  bool _isDebounced() {
+    final now = DateTime.now();
+    if (_lastActionTime != null &&
+        now.difference(_lastActionTime!).inMilliseconds < 1200) {
+      return true;
+    }
+    _lastActionTime = now;
+    return false;
+  }
+
+  void _checkAndShowCacheNotice() {
+    final state = ref.read(reportProvider);
+    if (state.cacheNotice != null && mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          backgroundColor: const Color(0xFF152A1E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: Color(0xFF2E9E5B), width: 1),
+          ),
+          content: Row(
+            children: [
+              const Icon(
+                Icons.offline_bolt_rounded,
+                color: Colors.greenAccent,
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  state.cacheNotice!,
+                  style: KashifTypography.arabic(
+                    fontSize: 11.5,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'إعادة الفحص بالـ AI',
+            textColor: Colors.amberAccent,
+            onPressed: () {
+              ref.read(reportProvider.notifier).reAnalyzeCurrentWithAi();
+            },
+          ),
+        ),
+      );
+      ref.read(reportProvider.notifier).clearCacheNotice();
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
+    if (_isDebounced()) return;
     try {
-      final picked = await _picker.pickImage(source: source, imageQuality: 95);
+      final picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 85,
+      );
       if (picked != null && mounted) {
-        final rawFile = File(picked.path);
+        final bytes = await picked.readAsBytes();
+        final fileName = picked.name;
+        if (!mounted) return;
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (ctx) => ImagePreviewScreen(
-              imageFile: rawFile,
-              onConfirm: (enhancedFile) async {
-                await ref.read(reportProvider.notifier).scanImage(enhancedFile);
+              imageBytes: bytes,
+              fileName: fileName,
+              onConfirm: (enhancedBytes) async {
+                await ref
+                    .read(reportProvider.notifier)
+                    .scanImageBytes(enhancedBytes, fileName);
                 if (ref.read(reportProvider).report != null && mounted) {
+                  _checkAndShowCacheNotice();
                   widget.onReportReady();
                 }
               },
@@ -55,52 +128,65 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في اختيار الصورة: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('خطأ في اختيار الصورة: $e')));
       }
     }
   }
 
   Future<void> _pickPdf() async {
+    if (_isDebounced()) return;
     try {
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
-      if (result.isNotEmpty && result.first.path != null) {
-        final file = File(result.first.path!);
-        await ref.read(reportProvider.notifier).scanPdf(file);
-        if (ref.read(reportProvider).report != null && mounted) {
-          widget.onReportReady();
+      if (result.isNotEmpty) {
+        final picked = result.first;
+        final bytes = await picked.readAsBytes();
+        final fileName = picked.name;
+        if (bytes.isNotEmpty) {
+          await ref.read(reportProvider.notifier).scanPdfBytes(bytes, fileName);
+          if (ref.read(reportProvider).report != null && mounted) {
+            _checkAndShowCacheNotice();
+            widget.onReportReady();
+          }
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في قراءة ملف الـ PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('خطأ في قراءة ملف الـ PDF: $e')));
       }
     }
   }
 
   Future<void> _submitManual() async {
+    if (_isDebounced()) return;
     final codes = _codesController.text.trim();
     if (codes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال كود عطل واحد على الأقل مثل: P0102')),
+        const SnackBar(
+          content: Text('يرجى إدخال كود عطل واحد على الأقل مثل: P0102'),
+        ),
       );
       return;
     }
 
-    final vin = _vinController.text.trim().isNotEmpty ? _vinController.text.trim() : null;
+    final vin = _vinController.text.trim().isNotEmpty
+        ? _vinController.text.trim()
+        : null;
     await ref.read(reportProvider.notifier).scanManual(codes, vin);
-    if (ref.read(reportProvider).report != null) {
+    if (ref.read(reportProvider).report != null && mounted) {
+      _checkAndShowCacheNotice();
       widget.onReportReady();
     }
   }
 
   Future<void> _loadDemo(String sampleId) async {
+    if (_isDebounced()) return;
     await ref.read(reportProvider.notifier).loadDemo(sampleId);
     if (ref.read(reportProvider).report != null) {
       widget.onReportReady();
@@ -120,48 +206,63 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           // Banner / Legend Header
           FuseCell(
             padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            customBorder: Border.all(
+              color: isDark
+                  ? KashifColors.goldPrimary.withValues(alpha: 0.35)
+                  : KashifColors.royalBlue.withValues(alpha: 0.25),
+              width: 1.2,
+            ),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: (isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight)
-                            .withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: Icon(
-                        Icons.scanner_rounded,
-                        color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                        size: 24,
-                      ),
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: KashifColors.goldPrimary,
+                      width: 1.5,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'كاشف AI | فحص أعطال السيارات',
-                            style: KashifTypography.arabic(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? KashifColors.darkTextPrimary : KashifColors.lightTextPrimary,
-                            ),
-                          ),
-                          Text(
-                            'تحويل تقارير الفحص إلى مصطلحات الورش الليبية بدقة هندسية',
-                            style: KashifTypography.arabic(
-                              fontSize: 11,
-                              color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
-                            ),
-                          ),
-                        ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: KashifColors.goldPrimary.withValues(alpha: 0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
+                    ],
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/app_icon.png'),
+                      fit: BoxFit.cover,
                     ),
-                  ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Flow Cars | فحص أعطال السيارات',
+                        style: KashifTypography.arabic(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'تحويل تقارير الفحص إلى مصطلحات الورش الليبية بدقة هندسية',
+                        style: KashifTypography.arabic(
+                          fontSize: 11,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -174,24 +275,34 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           // Loading state overlay if active
           if (state.isLoading) ...[
             FuseCell(
-              backgroundColor: isDark ? const Color(0xFF162432) : const Color(0xFFE8F1FA),
+              backgroundColor: isDark
+                  ? const Color(0xFF162432)
+                  : const Color(0xFFE8F1FA),
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   LinearProgressIndicator(
-                    backgroundColor: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
+                    backgroundColor: isDark
+                        ? KashifColors.darkBoard
+                        : KashifColors.lightBoard,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                      isDark
+                          ? KashifColors.fuse15AInkDark
+                          : KashifColors.fuse15AInkLight,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    state.progressText.isNotEmpty ? state.progressText : 'جاري التحليل والمعالجة بالذكاء الاصطناعي...',
+                    state.progressText.isNotEmpty
+                        ? state.progressText
+                        : 'جاري التحليل والمعالجة بالذكاء الاصطناعي...',
                     textAlign: TextAlign.center,
                     style: KashifTypography.arabic(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                      color: isDark
+                          ? KashifColors.fuse15AInkDark
+                          : KashifColors.fuse15AInkLight,
                     ),
                   ),
                 ],
@@ -203,24 +314,169 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           // Error box
           if (state.errorMessage != null && !state.isLoading) ...[
             FuseCell(
-              backgroundColor: isDark ? const Color(0xFF2C1917) : const Color(0xFFFDEEEC),
+              backgroundColor: isDark
+                  ? const Color(0xFF2C1917)
+                  : const Color(0xFFFDEEEC),
               padding: const EdgeInsets.all(12),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    color: isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      state.errorMessage!,
-                      style: KashifTypography.arabic(
-                        fontSize: 12,
-                        color: isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight,
-                        fontWeight: FontWeight.w600,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline_rounded,
+                        color: isDark
+                            ? KashifColors.fuse10AInkDark
+                            : KashifColors.fuse10AInkLight,
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          state.errorMessage!,
+                          style: KashifTypography.arabic(
+                            fontSize: 12,
+                            color: isDark
+                                ? KashifColors.fuse10AInkDark
+                                : KashifColors.fuse10AInkLight,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Emergency Actions when Quota/Models are unavailable
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.start,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E9E5B),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 2,
+                        ),
+                        onPressed: () async {
+                          final lastCodes =
+                              _codesController.text.trim().isNotEmpty
+                              ? _codesController.text.trim()
+                              : ref.read(reportProvider).lastManualCodes;
+                          final lastVin = _vinController.text.trim().isNotEmpty
+                              ? _vinController.text.trim()
+                              : ref.read(reportProvider).lastManualVin;
+
+                          if (lastCodes != null && lastCodes.isNotEmpty) {
+                            await ref
+                                .read(reportProvider.notifier)
+                                .generateOfflineReport(lastCodes, lastVin);
+                            if (ref.read(reportProvider).report != null &&
+                                mounted) {
+                              _checkAndShowCacheNotice();
+                              widget.onReportReady();
+                            }
+                          } else {
+                            ref.read(reportProvider.notifier).clearError();
+                            setState(() {
+                              _showManualInput = true;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  '⚡ أدخل كود العطل هنا وسيتم التشخيص فورياً بدون إنترنت!',
+                                ),
+                                duration: Duration(seconds: 4),
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.offline_bolt_rounded, size: 17),
+                        label: Text(
+                          'توليد تقرير محلي بالقاموس (0 إنترنت) ⚡',
+                          style: KashifTypography.arabic(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
+                          side: BorderSide(
+                            color: isDark
+                                ? KashifColors.goldPrimary.withValues(
+                                    alpha: 0.5,
+                                  )
+                                : KashifColors.royalBlue.withValues(alpha: 0.4),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => HistoryScreen(
+                                onReportSelected: widget.onReportReady,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.history_rounded, size: 16),
+                        label: Text(
+                          'سجل التقارير المحفوظة 📑',
+                          style: KashifTypography.arabic(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: isDark
+                              ? Colors.white70
+                              : Colors.black87,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                        ),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SettingsScreen(),
+                            ),
+                          );
+                          if (mounted) {
+                            ref.read(reportProvider.notifier).clearError();
+                          }
+                        },
+                        icon: const Icon(Icons.key_rounded, size: 15),
+                        label: Text(
+                          'إدارة المفاتيح ⚙️',
+                          style: KashifTypography.arabic(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -230,20 +486,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
           // Primary Capture Action 1: Camera
           FuseCell(
-            onTap: state.isLoading ? null : () => _pickImage(ImageSource.camera),
+            onTap: state.isLoading
+                ? null
+                : () => _pickImage(ImageSource.camera),
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: KashifColors.fuse10ATab.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(2),
+                    color: isDark
+                        ? const Color(0xFF132347)
+                        : const Color(0xFFE8F0FC),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: KashifColors.goldPrimary,
+                      width: 1.2,
+                    ),
                   ),
                   child: Icon(
-                    Icons.camera_alt_outlined,
-                    size: 26,
-                    color: isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight,
+                    Icons.camera_alt_rounded,
+                    size: 24,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.goldDark,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -262,13 +528,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         'صوّر شاشة Launch أو Autel أو ThinkDiag مباشرة',
                         style: KashifTypography.arabic(
                           fontSize: 11,
-                          color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_left_rounded, color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+                Icon(
+                  Icons.chevron_left_rounded,
+                  color: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
+                ),
               ],
             ),
           ),
@@ -283,13 +556,21 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: KashifColors.fuse15ATab.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(2),
+                    color: isDark
+                        ? const Color(0xFF132347)
+                        : const Color(0xFFE8F0FC),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: KashifColors.goldPrimary,
+                      width: 1.2,
+                    ),
                   ),
                   child: Icon(
-                    Icons.picture_as_pdf_outlined,
-                    size: 26,
-                    color: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
+                    Icons.picture_as_pdf_rounded,
+                    size: 24,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.goldDark,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -308,13 +589,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         'استيراد التقرير الكامل المستخرج من الماسح الضوئي',
                         style: KashifTypography.arabic(
                           fontSize: 11,
-                          color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_left_rounded, color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+                Icon(
+                  Icons.chevron_left_rounded,
+                  color: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
+                ),
               ],
             ),
           ),
@@ -322,20 +610,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
           // Primary Capture Action 3: Gallery Screenshot
           FuseCell(
-            onTap: state.isLoading ? null : () => _pickImage(ImageSource.gallery),
+            onTap: state.isLoading
+                ? null
+                : () => _pickImage(ImageSource.gallery),
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: KashifColors.fuse30ATab.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(2),
+                    color: isDark
+                        ? const Color(0xFF132347)
+                        : const Color(0xFFE8F0FC),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: KashifColors.goldPrimary,
+                      width: 1.2,
+                    ),
                   ),
                   child: Icon(
-                    Icons.photo_library_outlined,
-                    size: 26,
-                    color: isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight,
+                    Icons.photo_library_rounded,
+                    size: 24,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.goldDark,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -354,13 +652,20 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         'اختر صورة لشاشة الفحص محفوظة في الهاتف',
                         style: KashifTypography.arabic(
                           fontSize: 11,
-                          color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_left_rounded, color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+                Icon(
+                  Icons.chevron_left_rounded,
+                  color: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
+                ),
               ],
             ),
           ),
@@ -372,10 +677,25 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Icon(
-                  Icons.keyboard_outlined,
-                  size: 20,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF132347)
+                        : const Color(0xFFE8F0FC),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: KashifColors.goldPrimary.withValues(alpha: 0.6),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.keyboard_rounded,
+                    size: 18,
+                    color: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.goldDark,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -387,8 +707,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 ),
                 const Spacer(),
                 Icon(
-                  _showManualInput ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  _showManualInput
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
                 ),
               ],
             ),
@@ -403,7 +727,10 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                 children: [
                   Text(
                     'أكواد الأعطال (مفصولة بمسافة أو فاصلة):',
-                    style: KashifTypography.arabic(fontSize: 12, fontWeight: FontWeight.w700),
+                    style: KashifTypography.arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   TextField(
@@ -411,17 +738,30 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     style: KashifTypography.mono(fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'مثال: P0102, P0113, P0420',
-                      hintStyle: KashifTypography.mono(fontSize: 12, color: Colors.grey),
+                      hintStyle: KashifTypography.mono(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
                       filled: true,
-                      fillColor: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(2)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      fillColor: isDark
+                          ? KashifColors.darkBoard
+                          : KashifColors.lightBoard,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     'رقم الهيكل VIN (اختياري لمطابقة المحرك والقطع):',
-                    style: KashifTypography.arabic(fontSize: 12, fontWeight: FontWeight.w700),
+                    style: KashifTypography.arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   TextField(
@@ -429,11 +769,26 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     style: KashifTypography.mono(fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'مثال: JTDBR42E309...',
-                      hintStyle: KashifTypography.mono(fontSize: 12, color: Colors.grey),
+                      hintStyle: KashifTypography.mono(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
                       filled: true,
-                      fillColor: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(2)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      fillColor: isDark
+                          ? KashifColors.darkBoard
+                          : KashifColors.lightBoard,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? KashifColors.goldPrimary.withValues(alpha: 0.4)
+                              : KashifColors.royalBlue.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -441,16 +796,26 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? KashifColors.fuse15AInkDark : KashifColors.fuse15AInkLight,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+                        backgroundColor: isDark
+                            ? KashifColors.goldPrimary
+                            : KashifColors.royalBlue,
+                        foregroundColor: isDark
+                            ? const Color(0xFF070E1E)
+                            : Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 11),
+                        elevation: isDark ? 3 : 1,
                       ),
                       onPressed: state.isLoading ? null : _submitManual,
                       icon: const Icon(Icons.search_rounded, size: 18),
                       label: Text(
                         'تحليل الأكواد الآن',
-                        style: KashifTypography.arabic(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: KashifTypography.arabic(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -459,6 +824,122 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             ),
           ],
 
+          const SizedBox(height: 14),
+          const MoldedRib(label: 'أدوات التشخيص السريع والميداني'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: FuseCell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DashboardLightsScreen(),
+                      ),
+                    );
+                  },
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFFFDD835,
+                          ).withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.warning_amber_rounded,
+                          color: Color(0xFFFDD835),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'لمبات الطبلون',
+                              style: KashifTypography.arabic(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              'دليل إشارات الطبلون',
+                              style: KashifTypography.arabic(
+                                fontSize: 10,
+                                color: isDark
+                                    ? KashifColors.darkTextMuted
+                                    : KashifColors.lightTextMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FuseCell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const FuseBoxScreen()),
+                    );
+                  },
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFF1E88E5,
+                          ).withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.electric_bolt_rounded,
+                          color: Color(0xFF1E88E5),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'دليل الفيوزات',
+                              style: KashifTypography.arabic(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              'فحص الدوائر والأمبير',
+                              style: KashifTypography.arabic(
+                                fontSize: 10,
+                                color: isDark
+                                    ? KashifColors.darkTextMuted
+                                    : KashifColors.lightTextMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 18),
           const MoldedRib(label: 'نماذج فحص جاهزة للتجربة'),
           const SizedBox(height: 10),
@@ -476,11 +957,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                       const SizedBox(height: 6),
                       Text(
                         'BMW 528i',
-                        style: KashifTypography.mono(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: KashifTypography.mono(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'عطل شحن وحساسات',
-                        style: KashifTypography.arabic(fontSize: 11, color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+                        style: KashifTypography.arabic(
+                          fontSize: 11,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -489,7 +978,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: FuseCell(
-                  onTap: state.isLoading ? null : () => _loadDemo('toyota-corolla'),
+                  onTap: state.isLoading
+                      ? null
+                      : () => _loadDemo('toyota-corolla'),
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     children: [
@@ -497,11 +988,19 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                       const SizedBox(height: 6),
                       Text(
                         'Toyota Corolla',
-                        style: KashifTypography.mono(fontSize: 13, fontWeight: FontWeight.bold),
+                        style: KashifTypography.mono(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'عطل حساس ماف تفتفة',
-                        style: KashifTypography.arabic(fontSize: 11, color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+                        style: KashifTypography.arabic(
+                          fontSize: 11,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
+                        ),
                       ),
                     ],
                   ),

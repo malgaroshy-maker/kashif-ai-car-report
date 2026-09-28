@@ -31,6 +31,8 @@ class KashifApiException implements Exception {
         statusCode: error.response?.statusCode,
       );
     }
-    return KashifApiException('تعذر الاتصال بالشبكة، تأكد من اتصال هاتفك بالإنترنت.');
+    return KashifApiException(
+      'تعذر الاتصال بالشبكة، تأكد من اتصال هاتفك بالإنترنت.',
+    );
   }
 }

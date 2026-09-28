@@ -49,7 +49,9 @@ class MoldedRib extends StatelessWidget {
                 style: KashifTypography.arabic(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
                 ),
               ),
             ),
@@ -78,14 +80,8 @@ class MoldedRib extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            height: thickness,
-            color: ribDark,
-          ),
-          Container(
-            height: 1,
-            color: ribLit,
-          ),
+          Container(height: thickness, color: ribDark),
+          Container(height: 1, color: ribLit),
         ],
       ),
     );

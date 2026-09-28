@@ -28,28 +28,36 @@ class SeveritySeat extends StatelessWidget {
     switch (severity) {
       case CodeSeverity.critical:
         tabColor = KashifColors.fuse10ATab;
-        inkColor = isDark ? KashifColors.fuse10AInkDark : KashifColors.fuse10AInkLight;
+        inkColor = isDark
+            ? KashifColors.fuse10AInkDark
+            : KashifColors.fuse10AInkLight;
         ampText = '10A';
         labelArabic = 'حرج';
         shapeIcon = Icons.warning_amber_rounded;
         break;
       case CodeSeverity.moderate:
         tabColor = KashifColors.fuse20ATab;
-        inkColor = isDark ? KashifColors.fuse20AInkDark : KashifColors.fuse20AInkLight;
+        inkColor = isDark
+            ? KashifColors.fuse20AInkDark
+            : KashifColors.fuse20AInkLight;
         ampText = '20A';
         labelArabic = 'متوسط';
         shapeIcon = Icons.remove_circle_outline_rounded;
         break;
       case CodeSeverity.passed:
         tabColor = KashifColors.fuse30ATab;
-        inkColor = isDark ? KashifColors.fuse30AInkDark : KashifColors.fuse30AInkLight;
+        inkColor = isDark
+            ? KashifColors.fuse30AInkDark
+            : KashifColors.fuse30AInkLight;
         ampText = '30A';
         labelArabic = 'سليم';
         shapeIcon = Icons.check_circle_outline_rounded;
         break;
       case CodeSeverity.history:
         tabColor = KashifColors.fuse25ATab;
-        inkColor = isDark ? KashifColors.fuse25AInkDark : KashifColors.fuse25AInkLight;
+        inkColor = isDark
+            ? KashifColors.fuse25AInkDark
+            : KashifColors.fuse25AInkLight;
         ampText = '25A';
         labelArabic = 'ذاكرة';
         shapeIcon = Icons.radio_button_unchecked_rounded;
