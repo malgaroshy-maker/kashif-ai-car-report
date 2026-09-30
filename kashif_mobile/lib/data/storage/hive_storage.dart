@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/diagnostic_report.dart';
 
@@ -52,6 +54,32 @@ class KashifStorage {
     } catch (_) {}
   }
 
+  static Map<String, dynamic> _deepConvertMap(Map map) {
+    final result = <String, dynamic>{};
+    map.forEach((k, v) {
+      final key = k.toString();
+      if (v is Map) {
+        result[key] = _deepConvertMap(v);
+      } else if (v is List) {
+        result[key] = _deepConvertList(v);
+      } else {
+        result[key] = v;
+      }
+    });
+    return result;
+  }
+
+  static List<dynamic> _deepConvertList(List list) {
+    return list.map((item) {
+      if (item is Map) {
+        return _deepConvertMap(item);
+      } else if (item is List) {
+        return _deepConvertList(item);
+      }
+      return item;
+    }).toList();
+  }
+
   /// Retrieves a cached report by its fingerprint, or null if none
   static DiagnosticReport? getReportByFingerprint(String fp) {
     try {
@@ -59,7 +87,7 @@ class KashifStorage {
       if (reportId == null) return null;
       final raw = reportsBox.get(reportId);
       if (raw == null) return null;
-      final json = Map<String, dynamic>.from(raw);
+      final json = _deepConvertMap(raw);
       return DiagnosticReport.fromJson(json);
     } catch (_) {
       return null;
@@ -79,10 +107,10 @@ class KashifStorage {
       final data = reportsBox.get(key);
       if (data != null) {
         try {
-          final json = Map<String, dynamic>.from(data);
+          final json = _deepConvertMap(data);
           list.add(DiagnosticReport.fromJson(json));
-        } catch (e) {
-          // ignore corrupted entry
+        } catch (e, stack) {
+          debugPrint('Error loading saved report $key: $e\n$stack');
         }
       }
     }
@@ -94,6 +122,11 @@ class KashifStorage {
   // Delete a report
   static Future<void> deleteReport(String reportId) async {
     await reportsBox.delete(reportId);
+  }
+
+  // Clear all saved reports
+  static Future<void> clearAllReports() async {
+    await reportsBox.clear();
   }
 
   // Settings getters & setters
@@ -200,4 +233,68 @@ class KashifStorage {
       settingsBox.get('themeMode', defaultValue: 'system') as String;
   static Future<void> setThemeMode(String mode) async =>
       await settingsBox.put('themeMode', mode);
+
+  static List<Map<String, dynamic>> get customDictionaryEntries {
+    try {
+      final raw = settingsBox.get('customDictionaryEntries');
+      if (raw is List) {
+        return raw.map((e) => _deepConvertMap(e as Map)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<void> saveCustomDictionaryEntry(Map<String, dynamic> entry) async {
+    final list = List<Map<String, dynamic>>.from(customDictionaryEntries);
+    final term = entry['libyanTerm']?.toString().trim().toLowerCase();
+    final idx = list.indexWhere(
+      (e) => e['libyanTerm']?.toString().trim().toLowerCase() == term,
+    );
+    if (idx >= 0) {
+      list[idx] = entry;
+    } else {
+      list.insert(0, entry);
+    }
+    await settingsBox.put('customDictionaryEntries', list);
+  }
+
+  static Future<void> deleteCustomDictionaryEntry(String libyanTerm) async {
+    final list = List<Map<String, dynamic>>.from(customDictionaryEntries);
+    final term = libyanTerm.trim().toLowerCase();
+    list.removeWhere(
+      (e) => e['libyanTerm']?.toString().trim().toLowerCase() == term,
+    );
+    await settingsBox.put('customDictionaryEntries', list);
+  }
+
+  // APInex Alternative Engine Settings (GPT-6 Luna)
+  static String get apinexApiKey {
+    try {
+      final key = settingsBox.get('apinexApiKey', defaultValue: 'sk-apx6963c3f6039e5c06788e4a6e7920707a1f17d36c90319db') as String;
+      return key.trim();
+    } catch (_) {
+      return 'sk-apx6963c3f6039e5c06788e4a6e7920707a1f17d36c90319db';
+    }
+  }
+
+  static Future<void> setApinexApiKey(String key) async =>
+      await settingsBox.put('apinexApiKey', key.trim());
+
+  static String get apinexModel =>
+      settingsBox.get('apinexModel', defaultValue: 'free/gpt-6-luna') as String;
+
+  static Future<void> setApinexModel(String model) async =>
+      await settingsBox.put('apinexModel', model.trim());
+
+  static bool get isApinexAutoFailoverEnabled =>
+      settingsBox.get('isApinexAutoFailoverEnabled', defaultValue: true) as bool;
+
+  static Future<void> setApinexAutoFailoverEnabled(bool enabled) async =>
+      await settingsBox.put('isApinexAutoFailoverEnabled', enabled);
+
+  static bool get useApinexAsPrimary =>
+      settingsBox.get('useApinexAsPrimary', defaultValue: false) as bool;
+
+  static Future<void> setUseApinexAsPrimary(bool val) async =>
+      await settingsBox.put('useApinexAsPrimary', val);
 }

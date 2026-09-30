@@ -11,8 +11,18 @@ class HistoryNotifier extends StateNotifier<List<DiagnosticReport>> {
     state = KashifStorage.getSavedReports();
   }
 
+  Future<void> saveReport(DiagnosticReport report) async {
+    await KashifStorage.saveReport(report);
+    loadHistory();
+  }
+
   Future<void> deleteReport(String reportId) async {
     await KashifStorage.deleteReport(reportId);
+    loadHistory();
+  }
+
+  Future<void> clearAll() async {
+    await KashifStorage.clearAllReports();
     loadHistory();
   }
 }

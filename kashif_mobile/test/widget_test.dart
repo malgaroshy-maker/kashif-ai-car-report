@@ -50,7 +50,7 @@ void main() {
             'standardDescriptionEn': 'Mass Air Flow (MAF) Circuit Low',
             'libyanTerm': 'حساس الماف / حساس الهواء',
             'standardArabicDescription': 'انخفاض إشارة مستشعر كتلة تدفق الهواء',
-            'driverSymptoms': ['تفتفة', 'خنقة في العزم'],
+            'driverSymptoms': ['فطفطة', 'خنقة في العزم'],
             'rootCauses': ['اتساخ سلك الحساس'],
             'urgencyLevel': 'متوسط',
             'recommendedAction': 'تنظيف الحساس بسبراي الكترونيات',
@@ -311,7 +311,7 @@ void main() {
       () {
         final p0300 = OfflineReportService.findCode('P0300');
         expect(p0300, isNotNull);
-        expect(p0300!.libyanTerm, contains('تفتفة'));
+        expect(p0300!.libyanTerm, contains('فطفطة'));
         expect(p0300.severity, CodeSeverity.critical);
         expect(p0300.driverSymptoms, isNotEmpty);
 

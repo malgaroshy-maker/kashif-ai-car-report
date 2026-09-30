@@ -104,17 +104,25 @@ class DiagnosticReport {
     this.activeWarningLightIds = const [],
   });
 
+  static Map<String, dynamic> _asMap(dynamic val) {
+    if (val is Map<String, dynamic>) return val;
+    if (val is Map) {
+      return val.map((k, v) => MapEntry(k.toString(), v));
+    }
+    return <String, dynamic>{};
+  }
+
   factory DiagnosticReport.fromJson(Map<String, dynamic> json) {
-    final vehicleJson = json['vehicle'] as Map<String, dynamic>? ?? {};
-    final scannerJson = json['scannerInfo'] as Map<String, dynamic>? ?? {};
-    final summaryJson = json['summary'] as Map<String, dynamic>? ?? {};
-    final categories = json['faultCategories'] as Map<String, dynamic>? ?? {};
+    final vehicleJson = _asMap(json['vehicle']);
+    final scannerJson = _asMap(json['scannerInfo']);
+    final summaryJson = _asMap(json['summary']);
+    final categories = _asMap(json['faultCategories']);
 
     final critList =
         (categories['criticalFaults'] as List<dynamic>?)
             ?.map(
               (e) => DiagnosticFaultCode.fromJson(
-                e as Map<String, dynamic>,
+                _asMap(e),
                 defaultSeverity: CodeSeverity.critical,
               ),
             )
@@ -125,7 +133,7 @@ class DiagnosticReport {
         (categories['moderateFaults'] as List<dynamic>?)
             ?.map(
               (e) => DiagnosticFaultCode.fromJson(
-                e as Map<String, dynamic>,
+                _asMap(e),
                 defaultSeverity: CodeSeverity.moderate,
               ),
             )
@@ -140,7 +148,7 @@ class DiagnosticReport {
         (rawHist as List<dynamic>?)
             ?.map(
               (e) => DiagnosticFaultCode.fromJson(
-                e as Map<String, dynamic>,
+                _asMap(e),
                 defaultSeverity: CodeSeverity.history,
               ),
             )
@@ -167,7 +175,7 @@ class DiagnosticReport {
         json['spareParts'];
     final partsList =
         (rawParts as List<dynamic>?)
-            ?.map((e) => SparePartItem.fromJson(e as Map<String, dynamic>))
+            ?.map((e) => SparePartItem.fromJson(_asMap(e)))
             .toList() ??
         [];
 
@@ -179,7 +187,7 @@ class DiagnosticReport {
         (rawChecklist as List<dynamic>?)
             ?.map(
               (e) =>
-                  DiagnosticChecklistStep.fromJson(e as Map<String, dynamic>),
+                  DiagnosticChecklistStep.fromJson(_asMap(e)),
             )
             .toList() ??
         [];
@@ -257,4 +265,47 @@ class DiagnosticReport {
 
   int get totalFaultsCount =>
       criticalFaults.length + moderateFaults.length + historyFaults.length;
+
+  /// Returns confirmed sound/passed systems, or dynamically derives non-faulted standard systems
+  List<String> get soundSystems {
+    if (passedSystems.isNotEmpty) {
+      return passedSystems;
+    }
+    final faultedModules = <String>{};
+    for (var f in [...criticalFaults, ...moderateFaults, ...historyFaults]) {
+      final m = f.module.toUpperCase();
+      final code = f.code.toUpperCase();
+      if (m.contains('ENG') ||
+          m.contains('ECM') ||
+          code.startsWith('P0') ||
+          code.startsWith('P1')) {
+        faultedModules.add('ECM');
+      }
+      if (m.contains('TRANS') ||
+          m.contains('TCM') ||
+          code.startsWith('P07') ||
+          code.startsWith('P08')) {
+        faultedModules.add('TCM');
+      }
+      if (m.contains('ABS') || code.startsWith('C')) {
+        faultedModules.add('ABS');
+      }
+      if (m.contains('AIR') || m.contains('SRS') || code.startsWith('B00')) {
+        faultedModules.add('SRS');
+      }
+    }
+
+    return [
+      if (!faultedModules.contains('TCM'))
+        'TCM (منظومة ناقل الحركة الأوتوماتيكي)',
+      if (!faultedModules.contains('ABS'))
+        'ABS / ESP (منظومة مانع انغلاق المكابح والثبات)',
+      if (!faultedModules.contains('SRS'))
+        'SRS (منظومة الوسائد الهوائية والسلامة)',
+      if (!faultedModules.contains('ECM'))
+        'ECM (منظومة حقن الوقود وإدارة المحرك)',
+      'BCM (منظومة التحكم بهيكل وكهرباء السيارة)',
+      'EPS (منظومة التوجيه الكهربائي / الباور)',
+    ];
+  }
 }

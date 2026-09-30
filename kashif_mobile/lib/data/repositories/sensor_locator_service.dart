@@ -442,6 +442,99 @@ class SensorLocatorService {
             'افحص سنون طاسة الكوشينة أو الحلقة المغناطيسية من الصدى والرايش، ونظف فيشة الحساس بسبراي تلامس جاف.',
       ),
     ),
+    // EPS Steering Codes (Hyundai / Kia / General)
+    'C1259': const ElectricalDiagnosticsResult(
+      provenance: 'factory',
+      fuseInfo: FuseInfoData(
+        boxLocation: 'علبة فيوزات حوض المحرك الرئيسية (بجانب البطارية)',
+        fuseNumber: 'EPS 80A / 60A (فيوز الباور الرئيسي)',
+        rating: '80A / 60A',
+        relayName: 'EPS Power Relay',
+        circuitDescription: 'دائرة تغذية موتور التوجيه وحساس زاوية المقود',
+      ),
+      sensorLocation: SensorLocationData(
+        areaName: 'كولونة الستيرنج أسفل عمود المقود داخل مقصورة الركاب',
+        engineZone: 'cabin',
+        accessTip: 'يتم الوصول إليه بفك الكفر البلاستيكي السفلي تحت مقود السائق.',
+        coordinateX: 45,
+        coordinateY: 70,
+      ),
+      multimeterTest: MultimeterTestData(
+        powerPin: '12V تغذية رئيسية، و 5.0V جهد مرجعي ثابت للحساس',
+        groundPin: 'أقل من 0.05V خط الأرضي الصريح',
+        signalPin: 'إشارة رقمية (CAN/PWM) تتغير زاويتها من -720° إلى +720°',
+        referenceVoltage: '5.0V',
+        testingTipLibyan: 'تأكد من ثبات الفيشة أسفل عمود الستيرنج. في معظم الحالات يختفي العطل بمجرد عمل تصفير ومعايرة SAS Calibration بجهاز الكشف دون فك الكولونة.',
+      ),
+    ),
+    'C1290': const ElectricalDiagnosticsResult(
+      provenance: 'factory',
+      fuseInfo: FuseInfoData(
+        boxLocation: 'علبة فيوزات الصالون تحت المقود وحوض المحرك',
+        fuseNumber: 'EPS-80A / MODULE-10A',
+        rating: '80A / 10A',
+        relayName: 'EPS Main Module Relay',
+        circuitDescription: 'دائرة حساس عزم التوجيه (Torque Sensor)',
+      ),
+      sensorLocation: SensorLocationData(
+        areaName: 'داخل جسم عمود التوجيه EPS (كولونة الستيرنج الكهربائية)',
+        engineZone: 'cabin',
+        accessTip: 'الحساس مدمج مع عمود الدركسيون، افحص الفيشة السوداء الصغيرة المتصلة به.',
+        coordinateX: 45,
+        coordinateY: 72,
+      ),
+      multimeterTest: MultimeterTestData(
+        powerPin: '5.0V مرجعي دقيق من وحدة التحكم',
+        groundPin: 'أرضي كمبيوتر التوجيه (أقل من 0.03V)',
+        signalPin: '2.5V عند استقامة المقود (0.5V إلى 4.5V مع لف المقود يميناً ويساراً)',
+        referenceVoltage: '5.0V',
+        testingTipLibyan: 'قيس فولتية حساس العزم في وضع السكون لازم تكون 2.5V بالضبط. لو كانت 0V أو 5V ثابتة فالحساس تالف أو فيشته مفصولة.',
+      ),
+    ),
+    'C1261': const ElectricalDiagnosticsResult(
+      provenance: 'factory',
+      fuseInfo: FuseInfoData(
+        boxLocation: 'لا يتطلب فحص فيوز (عطل برمجي ومعايرة)',
+        fuseNumber: 'SAS-CAL',
+        rating: 'برمجي',
+        circuitDescription: 'معايرة نقطة الصفر لحساس زاوية التوجيه',
+      ),
+      sensorLocation: SensorLocationData(
+        areaName: 'عمود التوجيه خلف الدركسيون مباشرة',
+        engineZone: 'cabin',
+        accessTip: 'هذا العطل لا يحتاج أي تفكيك يدوي، المعالجة تتم حصراً عبر جهاز الكشف.',
+        coordinateX: 45,
+        coordinateY: 68,
+      ),
+      multimeterTest: MultimeterTestData(
+        powerPin: '5.0V مرجعي',
+        groundPin: 'أقل من 0.05V',
+        signalPin: '0.0° في وضع الاستقامة التامة',
+        testingTipLibyan: 'وقف السيارة على أرضية مستوية، خلي الستيرسو مسنتر 0 درجات، وادخل على جهاز الكشف واضغط SAS Calibration / Zero Point وطف السويتش 10 ثواني.',
+      ),
+    ),
+    'C1611': const ElectricalDiagnosticsResult(
+      provenance: 'factory',
+      fuseInfo: FuseInfoData(
+        boxLocation: 'علبة فيوزات حوض المحرك الرئيسية',
+        fuseNumber: 'ECU-10A / BATT-15A',
+        rating: '10A - 15A',
+        circuitDescription: 'خطوط اتصال شبكة الكان CAN Bus بين كمبيوتر المحرك ووحدة EPS',
+      ),
+      sensorLocation: SensorLocationData(
+        areaName: 'ضفيرة الأسلاك الواصلة بين كمبيوتر المحرك ووحدة الـ EPS',
+        engineZone: 'cabin',
+        accessTip: 'افحص الفيش المزدوجة المتشابكة (الأسلاك المجدولة Twisted Pair) للكان باص.',
+        coordinateX: 40,
+        coordinateY: 60,
+      ),
+      multimeterTest: MultimeterTestData(
+        powerPin: 'CAN High حوالي 2.6V - 2.8V',
+        groundPin: 'CAN Low حوالي 2.2V - 2.4V',
+        signalPin: 'مقاومة الخطين بين CAN-H و CAN-L مع فصل البطارية = 60 أوم',
+        testingTipLibyan: 'افصل قطب البطارية السالب وقيس المقاومة بين خطي الكان في فيشة OBD (رقم 6 و 14) لازم تعطيك 60 أوم. لو عطت 120 أوم ففي خط مفصول.',
+      ),
+    ),
   };
 
   /// Returns electrical diagnostic info for a given fault code with smart fallbacks

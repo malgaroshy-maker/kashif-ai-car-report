@@ -69,6 +69,22 @@ class DictionaryNotifier extends StateNotifier<DictionaryState> {
     );
     state = state.copyWith(entries: results);
   }
+
+  Future<void> addEntry(DictionaryEntry entry) async {
+    await _repository.addCustomEntry(entry);
+    await load();
+    if (state.searchQuery.isNotEmpty) {
+      await search(state.searchQuery);
+    }
+  }
+
+  Future<void> deleteEntry(String libyanTerm) async {
+    await _repository.deleteCustomEntry(libyanTerm);
+    await load();
+    if (state.searchQuery.isNotEmpty) {
+      await search(state.searchQuery);
+    }
+  }
 }
 
 final dictionaryRepositoryProvider = Provider((ref) => DictionaryRepository());

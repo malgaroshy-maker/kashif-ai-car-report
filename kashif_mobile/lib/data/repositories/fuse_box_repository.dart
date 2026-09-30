@@ -1,4 +1,4 @@
-import '../models/fuse_item.dart';
+﻿import '../models/fuse_item.dart';
 
 class FuseBoxRepository {
   static const List<FuseItem> allFuses = [
@@ -62,7 +62,7 @@ class FuseBoxRepository {
       standardColorName: 'أزرق (15A)',
       colorValue: 0xFF1E88E5,
       symptoms: [
-        'تفتفة ورجفة شديدة في المحرك وانخفاض حاد في العزم',
+        'فطفطة ورجفة شديدة في المحرك وانخفاض حاد في العزم',
         'توقف فوري لمحرك السيارة أثناء السير',
         'انقطاع التيار المغذي لفيش الكويلات أو البخاخات',
       ],

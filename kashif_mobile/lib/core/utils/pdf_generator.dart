@@ -25,6 +25,40 @@ class KashifPdfGenerator {
     }
   }
 
+  static List<String> _deriveSoundSystems(DiagnosticReport report) =>
+      report.soundSystems;
+
+  static pw.Widget _buildVectorCheckmark({
+    PdfColor color = const PdfColor(0.18, 0.62, 0.36),
+    double size = 13,
+    bool isCircle = true,
+  }) {
+    return pw.Container(
+      width: size,
+      height: size,
+      decoration: pw.BoxDecoration(
+        color: color,
+        shape: isCircle ? pw.BoxShape.circle : pw.BoxShape.rectangle,
+        borderRadius: isCircle
+            ? null
+            : const pw.BorderRadius.all(pw.Radius.circular(2)),
+      ),
+      child: pw.Center(
+        child: pw.CustomPaint(
+          size: const PdfPoint(8, 8),
+          painter: (PdfGraphics canvas, PdfPoint s) {
+            canvas.setColor(PdfColors.white);
+            canvas.setLineWidth(1.3);
+            canvas.moveTo(1.2, 4.0);
+            canvas.lineTo(3.2, 1.8);
+            canvas.lineTo(6.8, 6.2);
+            canvas.strokePath();
+          },
+        ),
+      ),
+    );
+  }
+
   static Future<Uint8List> generateReportPdf(DiagnosticReport report) async {
     final pdf = pw.Document();
 
@@ -341,7 +375,7 @@ class KashifPdfGenerator {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          'بيانات المركبة المفحوصة:',
+                          'بيانات المركبة:',
                           style: pw.TextStyle(
                             font: arabicBoldFont,
                             fontSize: 11,
@@ -547,6 +581,106 @@ class KashifPdfGenerator {
               ),
             pw.SizedBox(height: 12),
 
+            // Passed & Healthy Inspected Systems Section (المنظومات السليمة)
+            ...[
+              pw.Container(
+                margin: const pw.EdgeInsets.only(top: 4, bottom: 6),
+                child: pw.Row(
+                  children: [
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColor.fromHex('2E9E5B'), // 30A Green
+                        borderRadius: const pw.BorderRadius.all(
+                          pw.Radius.circular(3),
+                        ),
+                      ),
+                      child: pw.Text(
+                        'الأنظمة السليمة (${_deriveSoundSystems(report).length})',
+                        style: pw.TextStyle(
+                          font: arabicBoldFont,
+                          fontSize: 9.5,
+                          color: PdfColors.white,
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(width: 8),
+                    pw.Text(
+                      'المنظومات التي تم فحصها وتأكيد سلامتها وخلوها التام من الأعطال:',
+                      style: pw.TextStyle(
+                        font: arabicFont,
+                        fontSize: 8.5,
+                        color: PdfColors.grey700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              pw.Wrap(
+                spacing: 6,
+                runSpacing: 5,
+                children: _deriveSoundSystems(report).map((sys) {
+                  return pw.Container(
+                    width: 268,
+                    padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 5,
+                    ),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColor.fromHex('F2FAF5'),
+                      border: pw.Border.all(
+                        color: PdfColor.fromHex('C3E6D1'),
+                        width: 0.8,
+                      ),
+                      borderRadius: const pw.BorderRadius.all(
+                        pw.Radius.circular(3),
+                      ),
+                    ),
+                    child: pw.Row(
+                      children: [
+                        _buildVectorCheckmark(size: 13, isCircle: true),
+                        pw.SizedBox(width: 6),
+                        pw.Expanded(
+                          child: pw.Text(
+                            sys,
+                            style: pw.TextStyle(
+                              font: arabicBoldFont,
+                              fontSize: 8,
+                              color: PdfColors.blueGrey900,
+                            ),
+                          ),
+                        ),
+                        pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1.5,
+                          ),
+                          decoration: pw.BoxDecoration(
+                            color: PdfColor.fromHex('E8F5E9'),
+                            borderRadius: const pw.BorderRadius.all(
+                              pw.Radius.circular(2),
+                            ),
+                          ),
+                          child: pw.Text(
+                            'سليم 30A',
+                            style: pw.TextStyle(
+                              font: arabicBoldFont,
+                              fontSize: 7,
+                              color: PdfColor.fromHex('2E9E5B'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              pw.SizedBox(height: 12),
+            ],
+
             // Spare Parts Guide Table (RTL: rightmost is القطعة بالليبي, leftmost is السعر التقديري)
             if (report.spareParts.isNotEmpty) ...[
               pw.Text(
@@ -646,27 +780,18 @@ class KashifPdfGenerator {
                   ),
                   child: pw.Row(
                     children: [
-                      pw.Container(
-                        width: 14,
-                        height: 14,
-                        decoration: pw.BoxDecoration(
-                          border: pw.Border.all(
-                            color: PdfColors.grey600,
-                            width: 1,
-                          ),
-                        ),
-                        child: step.isCompleted
-                            ? pw.Center(
-                                child: pw.Text(
-                                  '✓',
-                                  style: pw.TextStyle(
-                                    font: arabicBoldFont,
-                                    fontSize: 9,
-                                  ),
+                      step.isCompleted
+                          ? _buildVectorCheckmark(size: 14, isCircle: false)
+                          : pw.Container(
+                              width: 14,
+                              height: 14,
+                              decoration: pw.BoxDecoration(
+                                border: pw.Border.all(
+                                  color: PdfColors.grey600,
+                                  width: 1,
                                 ),
-                              )
-                            : null,
-                      ),
+                              ),
+                            ),
                       pw.SizedBox(width: 8),
                       pw.Expanded(
                         child: pw.Column(

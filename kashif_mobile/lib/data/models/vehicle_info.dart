@@ -51,10 +51,10 @@ class VehicleInfo {
     final vYear = year.trim().split('.').first;
     final parts = [
       if (vMake.isNotEmpty && vMake != 'غير محدد') vMake,
-      if (vModel.isNotEmpty && vModel != 'مركبة مفحوصة') vModel,
+      if (vModel.isNotEmpty && vModel != 'مركبة' && vModel != 'غير محدد') vModel,
       if (vYear.isNotEmpty && vYear != '—') '• موديل $vYear',
     ];
-    return parts.isNotEmpty ? parts.join(' ') : 'مركبة مفحوصة';
+    return parts.isNotEmpty ? parts.join(' ') : 'مركبة';
   }
 
   /// Clean VIN or empty if missing / placeholder

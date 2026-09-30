@@ -13,7 +13,7 @@ class KashifShareService {
     buffer.writeln('🏢 *$workshop*');
     if (phone.isNotEmpty) buffer.writeln('📞 هاتف: $phone');
     final v = report.vehicle;
-    buffer.writeln('📋 *بيانات المركبة المفحوصة:*');
+    buffer.writeln('📋 *بيانات المركبة:*');
     buffer.writeln('• *السيارة:* ${v.formattedTitle}');
     if (v.cleanVin.isNotEmpty) {
       buffer.writeln('• *رقم الهيكل:* ${v.cleanVin}');
@@ -67,6 +67,15 @@ class KashifShareService {
       buffer.writeln('──────────────────');
     }
 
+    final soundSystems = report.soundSystems;
+    if (soundSystems.isNotEmpty) {
+      buffer.writeln('✅ *الأنظمة والمنظومات السليمة (30A - خالية من الأعطال):*');
+      for (var s in soundSystems) {
+        buffer.writeln('• $s');
+      }
+      buffer.writeln('──────────────────');
+    }
+
     if (report.spareParts.isNotEmpty) {
       buffer.writeln('🔧 *قطع الغيار المطلوبة والأسعار التقديرية:*');
       for (var p in report.spareParts) {
@@ -82,9 +91,6 @@ class KashifShareService {
 
     buffer.writeln('💡 *خلاصة تقييم السيارة:*');
     buffer.writeln(report.summary.briefSummaryArabic);
-    buffer.writeln(
-      '\n_تم الفحص بواسطة Flow Cars — منظومة تشخيص الأعطال بالمصطلحات الليبية_',
-    );
 
     await SharePlus.instance.share(
       ShareParams(

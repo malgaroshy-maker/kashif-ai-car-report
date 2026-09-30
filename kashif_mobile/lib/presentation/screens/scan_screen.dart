@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -994,7 +994,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                         ),
                       ),
                       Text(
-                        'عطل حساس ماف تفتفة',
+                        'عطل حساس ماف فطفطة',
                         style: KashifTypography.arabic(
                           fontSize: 11,
                           color: isDark

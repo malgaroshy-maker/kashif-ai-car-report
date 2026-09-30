@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/dashboard_light.dart';
 
 class DashboardLightsRepository {
@@ -16,7 +16,7 @@ class DashboardLightsRepository {
           'كمبيوتر السيارة رصد خللاً في أحد أنظمة الاحتراق، الوقود، الحساسات، أو الانبعاثات.',
       commonCauses: [
         'عطل في حساس الشكمان (O2 Sensor) أو حساس الهواء (MAF)',
-        'تلف كويلات الإشعال أو البواجي ووجود تفتفة (Misfire)',
+        'تلف كويلات الإشعال أو البواجي ووجود فطفطة (Misfire)',
         'انسداد في فلتر البيئة ودبة التلوث (Catalytic Converter)',
         'خلل في نظام بخ الوقود وتوزيع الشفط (Vacuum / EVAP)',
       ],

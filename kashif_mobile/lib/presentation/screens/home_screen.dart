@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../providers/settings_provider.dart';
+import '../providers/history_provider.dart';
 import 'scan_screen.dart';
 import 'report_screen.dart';
-import 'chat_screen.dart';
+import 'dtc_lookup_screen.dart';
 import 'history_screen.dart';
 import 'dictionary_screen.dart';
 import 'settings_screen.dart';
@@ -23,6 +24,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
 
   void _navigateToTab(int index) {
+    if (index == 3) {
+      ref.read(historyProvider.notifier).loadHistory();
+    }
     setState(() {
       _currentIndex = index;
     });
@@ -36,7 +40,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final screens = [
       ScanScreen(onReportReady: () => _navigateToTab(1)),
       ReportScreen(onOpenChat: () => _navigateToTab(2)),
-      const ChatScreen(),
+      DtcLookupScreen(onReportGenerated: () => _navigateToTab(1)),
       HistoryScreen(onReportSelected: () => _navigateToTab(1)),
       const DictionaryScreen(),
     ];
@@ -44,7 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final titles = [
       'فحص جديد',
       'تقرير الفحص',
-      'الأسطى الذكي',
+      'الأعطال',
       'سجل الفحوصات',
       'قاموس الورش',
     ];
@@ -128,23 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ).push(MaterialPageRoute(builder: (_) => const FuseBoxScreen()));
             },
           ),
-          // Quick theme toggle
-          IconButton(
-            icon: Icon(
-              settings.themeMode == ThemeMode.dark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
-              size: 20,
-              color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
-            ),
-            tooltip: 'تغيير المظهر',
-            onPressed: () {
-              final newMode = settings.themeMode == ThemeMode.dark
-                  ? ThemeMode.light
-                  : ThemeMode.dark;
-              ref.read(settingsProvider.notifier).updateThemeMode(newMode);
-            },
-          ),
+
           // Settings button
           IconButton(
             icon: Icon(
@@ -189,12 +177,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: 'التقرير',
           ),
           NavigationDestination(
-            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            icon: const Icon(Icons.troubleshoot_outlined),
             selectedIcon: Icon(
-              Icons.chat_bubble_rounded,
+              Icons.troubleshoot_rounded,
               color: isDark ? KashifColors.goldLight : KashifColors.goldDark,
             ),
-            label: 'الأسطى',
+            label: 'الأعطال',
           ),
           NavigationDestination(
             icon: const Icon(Icons.history_rounded),

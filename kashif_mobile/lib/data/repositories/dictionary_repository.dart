@@ -1,24 +1,46 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../models/dictionary_entry.dart';
+import '../storage/hive_storage.dart';
 
 class DictionaryRepository {
-  List<DictionaryEntry> _cachedEntries = [];
+  List<DictionaryEntry> _cachedBaseEntries = [];
 
   Future<List<DictionaryEntry>> getEntries() async {
-    if (_cachedEntries.isNotEmpty) return _cachedEntries;
-    try {
-      final jsonString = await rootBundle.loadString(
-        'assets/data/dictionary.json',
-      );
-      final List<dynamic> list = jsonDecode(jsonString);
-      _cachedEntries = list
-          .map((e) => DictionaryEntry.fromJson(e as Map<String, dynamic>))
-          .toList();
-      return _cachedEntries;
-    } catch (e) {
-      return [];
+    final customList = KashifStorage.customDictionaryEntries
+        .map((e) => DictionaryEntry.fromJson(e))
+        .toList();
+
+    if (_cachedBaseEntries.isEmpty) {
+      try {
+        final jsonString = await rootBundle.loadString(
+          'assets/data/dictionary.json',
+        );
+        final List<dynamic> list = jsonDecode(jsonString);
+        _cachedBaseEntries = list
+            .map((e) => DictionaryEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } catch (e) {
+        _cachedBaseEntries = [];
+      }
     }
+
+    final customTerms = customList
+        .map((c) => c.libyanTerm.trim().toLowerCase())
+        .toSet();
+    final nonDuplicateBase = _cachedBaseEntries.where(
+      (b) => !customTerms.contains(b.libyanTerm.trim().toLowerCase()),
+    );
+
+    return [...customList, ...nonDuplicateBase];
+  }
+
+  Future<void> addCustomEntry(DictionaryEntry entry) async {
+    await KashifStorage.saveCustomDictionaryEntry(entry.toJson());
+  }
+
+  Future<void> deleteCustomEntry(String libyanTerm) async {
+    await KashifStorage.deleteCustomDictionaryEntry(libyanTerm);
   }
 
   Future<List<String>> getCategories() async {

@@ -7,6 +7,7 @@ import '../../data/models/fault_code.dart';
 import '../../data/models/spare_part.dart';
 import '../../data/models/checklist_step.dart';
 import '../providers/report_provider.dart';
+import '../providers/history_provider.dart';
 import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
 import '../widgets/health_score_gauge.dart';
@@ -52,6 +53,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final reportState = ref.watch(reportProvider);
     final report = reportState.report;
+    final savedReports = ref.watch(historyProvider);
+    final isSaved =
+        report != null &&
+        savedReports.any((r) => r.reportId == report.reportId);
 
     if (report == null) {
       return Center(
@@ -105,7 +110,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Vehicle Header Card
-                    _buildVehicleHeader(report, isDark),
+                    _buildVehicleHeader(report, isDark, isSaved),
                     const SizedBox(height: 12),
 
                     // Health Score & Priority Summary
@@ -214,28 +219,104 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
           children: [
             Row(
               children: [
-                // Unified Export & Share Button
+                // Save to History Button
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isDark
-                          ? KashifColors.goldPrimary
-                          : KashifColors.goldDark,
-                      foregroundColor: isDark
-                          ? const Color(0xFF070E1E)
-                          : Colors.white,
+                      backgroundColor: isSaved
+                          ? (isDark
+                              ? const Color(0xFF1B5E20)
+                              : const Color(0xFF2E7D32))
+                          : (isDark
+                              ? KashifColors.goldPrimary
+                              : KashifColors.goldDark),
+                      foregroundColor: isSaved
+                          ? Colors.white
+                          : (isDark
+                              ? const Color(0xFF070E1E)
+                              : Colors.white),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       elevation: isDark ? 2 : 1,
                     ),
+                    onPressed: () async {
+                      await ref
+                          .read(historyProvider.notifier)
+                          .saveReport(report);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    isSaved
+                                        ? 'تم تحديث التقرير في السجل بنجاح!'
+                                        : 'تم حفظ التقرير في السجل المحلي بنجاح!',
+                                    style: KashifTypography.arabic(
+                                      fontSize: 13,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFF1E7E34),
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    icon: Icon(
+                      isSaved
+                          ? Icons.bookmark_added_rounded
+                          : Icons.bookmark_add_rounded,
+                      size: 18,
+                    ),
+                    label: Text(
+                      isSaved ? 'محفوظ في السجل ✓' : 'حفظ في السجل 💾',
+                      style: KashifTypography.arabic(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Unified Export & Share Button
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isDark
+                          ? KashifColors.goldLight
+                          : KashifColors.royalBlue,
+                      side: BorderSide(
+                        color: isDark
+                            ? KashifColors.goldPrimary
+                            : KashifColors.royalBlue,
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                    ),
                     onPressed: () => ExportOptionsSheet.show(context, report),
                     icon: const Icon(Icons.ios_share_rounded, size: 18),
                     label: Text(
-                      'تصدير ومشاركة التقرير 📤',
+                      'تصدير ومشاركة 📤',
                       style: KashifTypography.arabic(
-                        fontSize: 13,
+                        fontSize: 12.5,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -267,9 +348,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 onPressed: widget.onOpenChat,
-                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                icon: const Icon(Icons.troubleshoot_rounded, size: 18),
                 label: Text(
-                  'استشارة الأسطى (مساعد الذكاء الاصطناعي)',
+                  'موسوعة وبحث الأعطال (DTC Lookup)',
                   style: KashifTypography.arabic(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -283,7 +364,11 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
     );
   }
 
-  Widget _buildVehicleHeader(DiagnosticReport report, bool isDark) {
+  Widget _buildVehicleHeader(
+    DiagnosticReport report,
+    bool isDark,
+    bool isSaved,
+  ) {
     final v = report.vehicle;
     final primaryColor = isDark
         ? KashifColors.goldLight
@@ -375,7 +460,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'بيانات المركبة المفحوصة:',
+                  'بيانات المركبة:',
                   style: KashifTypography.arabic(
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
@@ -385,6 +470,56 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                   ),
                 ),
               ),
+              IconButton(
+                icon: Icon(
+                  isSaved
+                      ? Icons.bookmark_added_rounded
+                      : Icons.bookmark_add_outlined,
+                  size: 20,
+                  color: isSaved
+                      ? (isDark
+                          ? const Color(0xFF81C784)
+                          : const Color(0xFF2E7D32))
+                      : primaryColor,
+                ),
+                tooltip: isSaved ? 'محفوظ في السجل' : 'حفظ التقرير في السجل',
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+                onPressed: () async {
+                  await ref.read(historyProvider.notifier).saveReport(report);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                isSaved
+                                    ? 'تم تحديث التقرير في السجل بنجاح!'
+                                    : 'تم حفظ التقرير في السجل المحلي بنجاح!',
+                                style: KashifTypography.arabic(
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: const Color(0xFF1E7E34),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(width: 4),
               IconButton(
                 icon: Icon(
                   Icons.electric_bolt_rounded,

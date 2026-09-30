@@ -54,7 +54,7 @@ class KashifHtmlGenerator {
     final critFaults = report.criticalFaults;
     final modFaults = report.moderateFaults;
     final histFaults = report.historyFaults;
-    final passedSystems = report.passedSystems;
+    final passedSystems = report.soundSystems;
     final spareParts = report.spareParts;
     final checklist = report.checklist;
 
@@ -296,7 +296,7 @@ class KashifHtmlGenerator {
       </div>
 
       <div class="vehicle-specs-card">
-        <div class="vehicle-specs-title">بيانات المركبة المفحوصة:</div>
+        <div class="vehicle-specs-title">بيانات المركبة:</div>
         <div class="vehicle-specs-grid">
           <div class="spec-row">
             <span class="spec-bullet">■</span>

@@ -22,22 +22,26 @@ class HistoryScreen extends ConsumerWidget {
     final savedReports = ref.watch(historyProvider);
 
     if (savedReports.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      return Scaffold(
+        body: RefreshIndicator(
+          onRefresh: () async =>
+              ref.read(historyProvider.notifier).loadHistory(),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             children: [
+              const SizedBox(height: 40),
               Icon(
                 Icons.history_toggle_off_rounded,
-                size: 54,
+                size: 64,
                 color: isDark
                     ? KashifColors.darkTextMuted
                     : KashifColors.lightTextMuted,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Text(
-                'لا توجد فحوصات محفوظة محلياً',
+                'لا توجد فحوصات محفوظة في السجل',
+                textAlign: TextAlign.center,
                 style: KashifTypography.arabic(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -46,15 +50,46 @@ class HistoryScreen extends ConsumerWidget {
                       : KashifColors.lightTextPrimary,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
-                'كل فحص تجريه بالكاميرا أو الـ PDF يُحفظ تلقائياً في ذاكرة هاتفك للرجوع إليه بدون إنترنت.',
+                'يمكنك فحص أي سيارة والضغط على زر "حفظ في السجل 💾" داخل تبويب التقرير لحفظ التقرير هنا للرجوع إليه دون إنترنت.',
                 textAlign: TextAlign.center,
                 style: KashifTypography.arabic(
-                  fontSize: 12,
+                  fontSize: 12.5,
+                  height: 1.5,
                   color: isDark
                       ? KashifColors.darkTextMuted
                       : KashifColors.lightTextMuted,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () =>
+                      ref.read(historyProvider.notifier).loadHistory(),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: Text(
+                    'تحديث السجل',
+                    style: KashifTypography.arabic(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark
+                        ? KashifColors.goldPrimary
+                        : KashifColors.goldDark,
+                    foregroundColor: isDark
+                        ? const Color(0xFF070E1E)
+                        : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 11,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -64,67 +99,92 @@ class HistoryScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        itemCount: savedReports.length + 1,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: MoldedRib(
-                    label: 'سجل الفحوصات المحفوظة (${savedReports.length})',
-                  ),
-                ),
-                if (savedReports.length >= 2) ...[
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ReportCompareScreen(
-                            initialBefore: savedReports.length > 1
-                                ? savedReports[1]
-                                : null,
-                            initialAfter: savedReports.first,
+      body: RefreshIndicator(
+        onRefresh: () async => ref.read(historyProvider.notifier).loadHistory(),
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          itemCount: savedReports.length + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MoldedRib(
+                          label: 'سجل الفحوصات المحفوظة (${savedReports.length})',
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _confirmClearAll(context, ref),
+                        icon: const Icon(Icons.delete_sweep_outlined, size: 16),
+                        label: Text(
+                          'مسح الكل',
+                          style: KashifTypography.arabic(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.compare_arrows_rounded, size: 18),
-                    label: Text(
-                      'مقارنة فحصين (قبل وبعد الصيانة)',
-                      style: KashifTypography.arabic(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
+                        style: TextButton.styleFrom(
+                          foregroundColor: isDark
+                              ? KashifColors.fuse10AInkDark
+                              : KashifColors.fuse10AInkLight,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(
-                        0xFFD4AF37,
-                      ).withValues(alpha: 0.15),
-                      foregroundColor: const Color(0xFFD4AF37),
-                      side: const BorderSide(
-                        color: Color(0xFFD4AF37),
-                        width: 1,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
+                  if (savedReports.length >= 2) ...[
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReportCompareScreen(
+                              initialBefore: savedReports.length > 1
+                                  ? savedReports[1]
+                                  : null,
+                              initialAfter: savedReports.first,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.compare_arrows_rounded, size: 18),
+                      label: Text(
+                        'مقارنة فحصين (قبل وبعد الصيانة)',
+                        style: KashifTypography.arabic(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(
+                          0xFFD4AF37,
+                        ).withValues(alpha: 0.15),
+                        foregroundColor: const Color(0xFFD4AF37),
+                        side: const BorderSide(
+                          color: Color(0xFFD4AF37),
+                          width: 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                 ],
-              ],
-            );
-          }
+              );
+            }
 
-          final report = savedReports[index - 1];
-          return _buildReportItem(context, ref, report, isDark);
-        },
+            final report = savedReports[index - 1];
+            return _buildReportItem(context, ref, report, isDark);
+          },
+        ),
       ),
     );
   }
@@ -135,6 +195,13 @@ class HistoryScreen extends ConsumerWidget {
     DiagnosticReport report,
     bool isDark,
   ) {
+    final title = report.vehicle.formattedTitle.isNotEmpty
+        ? report.vehicle.formattedTitle
+        : '${report.vehicle.make} ${report.vehicle.model} (${report.vehicle.year})';
+    final dateStr = report.generatedAt.contains('T')
+        ? report.generatedAt.split('T').first
+        : report.generatedAt;
+
     return FuseCell(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -152,7 +219,7 @@ class HistoryScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${report.vehicle.make} ${report.vehicle.model} (${report.vehicle.year})',
+                      title,
                       style: KashifTypography.arabic(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -162,10 +229,9 @@ class HistoryScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    if (report.vehicle.vin.isNotEmpty &&
-                        report.vehicle.vin != 'N/A')
+                    if (report.vehicle.cleanVin.isNotEmpty)
                       Text(
-                        'VIN: ${report.vehicle.vin}',
+                        'VIN: ${report.vehicle.cleanVin}',
                         style: KashifTypography.mono(
                           fontSize: 11,
                           color: isDark
@@ -195,7 +261,7 @@ class HistoryScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                report.generatedAt.split('T').first,
+                dateStr,
                 style: KashifTypography.mono(
                   fontSize: 11,
                   color: isDark
@@ -240,6 +306,35 @@ class HistoryScreen extends ConsumerWidget {
                 },
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmClearAll(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('مسح سجل الفحوصات'),
+        content: const Text(
+          'هل أنت متأكد من حذف جميع الفحوصات المحفوظة من الذاكرة المحلية؟',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(historyProvider.notifier).clearAll();
+            },
+            child: const Text(
+              'حذف الكل',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

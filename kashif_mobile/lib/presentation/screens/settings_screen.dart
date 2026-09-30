@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
+import '../../core/network/apinex_client.dart';
 import '../../core/network/key_pool_manager.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
@@ -12,6 +13,54 @@ import '../widgets/molded_rib.dart';
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
+  static const List<Map<String, String>> apinexFreeModels = [
+    {
+      'id': 'free/gpt-6-luna',
+      'name': 'GPT-6 Luna (مجاني • الأفضل للأعطال والورش الليبية)',
+      'desc': 'الموديل الموصى به لتقارير الفحص والأسعار بالدينار الليبي',
+    },
+    {
+      'id': 'free/gemini-3.8-flash',
+      'name': 'Gemini 3.8 Flash (مجاني • فائق السرعة وقراءة الصور)',
+      'desc': 'سرعة استجابة فورية ودعم صور أجهزة الكشف',
+    },
+    {
+      'id': 'free/gemini-3.1-pro',
+      'name': 'Gemini 3.1 Pro (مجاني • دقة تشخيصية عالية)',
+      'desc': 'تحليل عميق للأعطال المعقدة والمتشابكة',
+    },
+    {
+      'id': 'free/deepseek-v4.1-flash',
+      'name': 'DeepSeek v4.1 Flash (مجاني • هندسة تشخيصية ممتازة)',
+      'desc': 'قوي جداً في استنتاج الأكواد والدوائر الكهربائية',
+    },
+    {
+      'id': 'free/claude-sonnet-4.6',
+      'name': 'Claude Sonnet 4.6 (مجاني • صياغة فنية راقية)',
+      'desc': 'تقارير فنية مفصلة وصياغة احترافية شاملة',
+    },
+    {
+      'id': 'free/qwen-3.8-max',
+      'name': 'Qwen 3.8 Max (مجاني • قدرات تحليلية متقدمة)',
+      'desc': 'فهم سياق قوي ومتعدد اللغات',
+    },
+    {
+      'id': 'free/kimi-k3',
+      'name': 'Kimi K3 (مجاني • استنتاج سريع)',
+      'desc': 'معالجة سريعة للبيانات والأعطال',
+    },
+    {
+      'id': 'free/minimax-m3.1',
+      'name': 'MiniMax M3.1 (مجاني • خفيف وسريع)',
+      'desc': 'استجابة سريعة للاستعلامات الفنية',
+    },
+    {
+      'id': 'custom',
+      'name': 'نموذج آخر (كتابة يدوية)',
+      'desc': 'أدخل اسم أي موديل متاح في حسابك أو السيرفر',
+    },
+  ];
+
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
@@ -20,7 +69,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _newKeyController;
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
+  late TextEditingController _apinexKeyController;
+  late TextEditingController _apinexModelController;
+  late String _selectedModelPreset;
   bool _obscureKey = true;
+  bool _obscureApinexKey = false;
+  bool _isTestingApinex = false;
 
   final Map<String, bool> _testingMap = {};
   final Map<String, String?> _testResults = {};
@@ -33,6 +87,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _newKeyController = TextEditingController();
     _nameController = TextEditingController(text: s.workshopName);
     _phoneController = TextEditingController(text: s.workshopPhone);
+    final initialKey = s.apinexApiKey.isNotEmpty ? s.apinexApiKey : ApinexClient.defaultApiKey;
+    _apinexKeyController = TextEditingController(text: initialKey);
+    final initialModel = s.apinexModel.isNotEmpty ? s.apinexModel : ApinexClient.defaultModel;
+    _apinexModelController = TextEditingController(text: initialModel);
+    _selectedModelPreset = SettingsScreen.apinexFreeModels.any((m) => m['id'] == initialModel)
+        ? initialModel
+        : 'custom';
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -55,13 +116,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
+    final apKey = _apinexKeyController.text.trim();
+    final apModel = _apinexModelController.text.trim();
     final current = ref.read(settingsProvider);
     if (name != current.workshopName || phone != current.workshopPhone) {
       ref.read(settingsProvider.notifier).updateWorkshop(name, phone);
     }
+    if (apKey != current.apinexApiKey || apModel != current.apinexModel) {
+      ref.read(settingsProvider.notifier).updateApinexSettings(
+        key: apKey,
+        model: apModel,
+      );
+    }
     _newKeyController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
+    _apinexKeyController.dispose();
+    _apinexModelController.dispose();
     super.dispose();
   }
 
@@ -156,6 +227,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  void _restoreDefaultApinexKey() {
+    setState(() {
+      _apinexKeyController.text = ApinexClient.defaultApiKey;
+    });
+    ref.read(settingsProvider.notifier).updateApinexSettings(
+      key: ApinexClient.defaultApiKey,
+    );
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('تمت استعادة مفتاح GPT-6 الافتراضي المعتمد بنجاح ✅'),
+        backgroundColor: Color(0xFF1B5E20),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _testApinexConnection() async {
+    setState(() => _isTestingApinex = true);
+    final keyToTest = _apinexKeyController.text.trim();
+    final modelToTest = _apinexModelController.text.trim();
+
+    if (keyToTest.isNotEmpty) {
+      await ref.read(settingsProvider.notifier).updateApinexSettings(
+        key: keyToTest,
+        model: modelToTest,
+      );
+    }
+
+    final res = await ApinexClient().testConnectionDetailed();
+    final success = res['success'] == true;
+    final message = res['message']?.toString() ?? '';
+
+    if (mounted) {
+      setState(() => _isTestingApinex = false);
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            message,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: success ? const Color(0xFF1B5E20) : Colors.redAccent,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
   void _removeKey(int index) {
     ref.read(settingsProvider.notifier).removeApiKey(index);
     final messenger = ScaffoldMessenger.of(context);
@@ -189,6 +311,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _nameController.text.trim(),
           _phoneController.text.trim(),
         );
+
+    ref.read(settingsProvider.notifier).updateApinexSettings(
+      key: _apinexKeyController.text.trim(),
+      model: _apinexModelController.text.trim(),
+    );
 
     if (mounted) {
       final messenger = ScaffoldMessenger.of(context);
@@ -252,6 +379,74 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Theme Mode Section
+            const MoldedRib(label: 'مظهر التطبيق والإضاءة'),
+            const SizedBox(height: 10),
+            FuseCell(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Icon(
+                    s.themeMode == ThemeMode.dark
+                        ? Icons.dark_mode_rounded
+                        : Icons.light_mode_rounded,
+                    color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'نمط المظهر:',
+                          style: KashifTypography.arabic(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          s.themeMode == ThemeMode.dark
+                              ? 'الوضع الليلي (الداكن)'
+                              : 'الوضع النهاري (الفاتح)',
+                          style: KashifTypography.arabic(
+                            fontSize: 10.5,
+                            color: isDark
+                                ? KashifColors.darkTextMuted
+                                : KashifColors.lightTextMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        icon: Icon(Icons.dark_mode_rounded, size: 16),
+                        label: Text('داكن'),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        icon: Icon(Icons.light_mode_rounded, size: 16),
+                        label: Text('فاتح'),
+                      ),
+                    ],
+                    selected: {s.themeMode == ThemeMode.light ? ThemeMode.light : ThemeMode.dark},
+                    onSelectionChanged: (newSelection) {
+                      ref.read(settingsProvider.notifier).updateThemeMode(newSelection.first);
+                    },
+                    style: SegmentedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Technician section
             const MoldedRib(label: 'بيانات الفني للتقارير'),
             const SizedBox(height: 10),
@@ -720,6 +915,627 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ? KashifColors.darkTextMuted
                           : KashifColors.lightTextMuted,
                     ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            const MoldedRib(label: 'اختيار وتثبيت محرك الذكاء الاصطناعي للفحص'),
+            const SizedBox(height: 10),
+
+            // Engine Selection Cards (Pinning APInex vs Gemini)
+            Row(
+              children: [
+                // Option 1: APInex
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateApinexSettings(asPrimary: true);
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: s.useApinexAsPrimary
+                            ? (isDark
+                                  ? KashifColors.goldPrimary.withValues(
+                                      alpha: 0.18,
+                                    )
+                                  : KashifColors.royalBlue.withValues(
+                                      alpha: 0.12,
+                                    ))
+                            : (isDark
+                                  ? KashifColors.darkBoard
+                                  : KashifColors.lightBoard),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: s.useApinexAsPrimary
+                              ? (isDark
+                                    ? KashifColors.goldPrimary
+                                    : KashifColors.royalBlue)
+                              : (isDark
+                                    ? KashifColors.darkBorder
+                                    : KashifColors.lightBorder),
+                          width: s.useApinexAsPrimary ? 2 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                s.useApinexAsPrimary
+                                    ? Icons.check_circle_rounded
+                                    : Icons.radio_button_unchecked,
+                                size: 18,
+                                color: s.useApinexAsPrimary
+                                    ? (isDark
+                                          ? KashifColors.goldPrimary
+                                          : KashifColors.royalBlue)
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'تثبيت APInex',
+                                  style: KashifTypography.arabic(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: s.useApinexAsPrimary
+                                        ? (isDark
+                                              ? KashifColors.goldLight
+                                              : KashifColors.royalBlue)
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'المحرك الرئيسي دائماً (GPT-6 Luna والأنظمة المجانية دون توقف)',
+                            style: KashifTypography.arabic(
+                              fontSize: 10,
+                              height: 1.3,
+                              color: isDark
+                                  ? KashifColors.darkTextMuted
+                                  : KashifColors.lightTextMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (s.useApinexAsPrimary)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: (isDark
+                                        ? KashifColors.goldPrimary
+                                        : KashifColors.royalBlue)
+                                    .withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '⭐ مُثبّت ومُعتمد',
+                                style: KashifTypography.arabic(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? KashifColors.goldLight
+                                      : KashifColors.royalBlue,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Option 2: Gemini
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateApinexSettings(asPrimary: false);
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: !s.useApinexAsPrimary
+                            ? (isDark
+                                  ? KashifColors.goldPrimary.withValues(
+                                      alpha: 0.18,
+                                    )
+                                  : KashifColors.royalBlue.withValues(
+                                      alpha: 0.12,
+                                    ))
+                            : (isDark
+                                  ? KashifColors.darkBoard
+                                  : KashifColors.lightBoard),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: !s.useApinexAsPrimary
+                              ? (isDark
+                                    ? KashifColors.goldPrimary
+                                    : KashifColors.royalBlue)
+                              : (isDark
+                                    ? KashifColors.darkBorder
+                                    : KashifColors.lightBorder),
+                          width: !s.useApinexAsPrimary ? 2 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                !s.useApinexAsPrimary
+                                    ? Icons.check_circle_rounded
+                                    : Icons.radio_button_unchecked,
+                                size: 18,
+                                color: !s.useApinexAsPrimary
+                                    ? (isDark
+                                          ? KashifColors.goldPrimary
+                                          : KashifColors.royalBlue)
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Google Gemini',
+                                  style: KashifTypography.arabic(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: !s.useApinexAsPrimary
+                                        ? (isDark
+                                              ? KashifColors.goldLight
+                                              : KashifColors.royalBlue)
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'المحرك الافتراضي مع تحويل تلقائي فوري لـ APInex عند نفاذ الكوتة',
+                            style: KashifTypography.arabic(
+                              fontSize: 10,
+                              height: 1.3,
+                              color: isDark
+                                  ? KashifColors.darkTextMuted
+                                  : KashifColors.lightTextMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (!s.useApinexAsPrimary)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: (isDark
+                                        ? KashifColors.goldPrimary
+                                        : KashifColors.royalBlue)
+                                    .withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '⭐ مُثبّت ومُعتمد',
+                                style: KashifTypography.arabic(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? KashifColors.goldLight
+                                      : KashifColors.royalBlue,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+            const MoldedRib(label: 'إعدادات محرك APInex والنماذج المجانية (Free Models)'),
+            const SizedBox(height: 10),
+
+            FuseCell(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: (isDark
+                                  ? KashifColors.goldPrimary
+                                  : KashifColors.royalBlue)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.swap_calls_rounded,
+                          color: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'محرك APInex الذكي (سيرفر مباشر)',
+                              style: KashifTypography.arabic(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'يعمل بكفاءة عالية وبدون توقف؛ سواء كمحرك أساسي أو بديل تلقائي عند كوتة 429',
+                              style: KashifTypography.arabic(
+                                fontSize: 11,
+                                color: isDark
+                                    ? KashifColors.darkTextMuted
+                                    : KashifColors.lightTextMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 24),
+
+                  // Failover Switch
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'التبديل التلقائي عند توقف جيميناي',
+                      style: KashifTypography.arabic(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'في حال ظهور خطأ نفاذ الكوتة (Quota/429)، يتحول الفحص فوراً لـ APInex',
+                      style: KashifTypography.arabic(
+                        fontSize: 10,
+                        color: isDark
+                            ? KashifColors.darkTextMuted
+                            : KashifColors.lightTextMuted,
+                      ),
+                    ),
+                    value: s.isApinexAutoFailoverEnabled,
+                    activeColor: isDark
+                        ? KashifColors.goldPrimary
+                        : KashifColors.royalBlue,
+                    onChanged: (val) {
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateApinexSettings(autoFailover: val);
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
+                  // Fixed, Visible & Editable Key Header
+                  Row(
+                    children: [
+                      Text(
+                        'مفتاح API الخاص بـ APInex / GPT-6:',
+                        style: KashifTypography.arabic(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      InkWell(
+                        onTap: _restoreDefaultApinexKey,
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.refresh_rounded,
+                                size: 14,
+                                color: isDark
+                                    ? KashifColors.goldLight
+                                    : KashifColors.royalBlue,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'استعادة المفتاح الأصلي',
+                                style: KashifTypography.arabic(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? KashifColors.goldLight
+                                      : KashifColors.royalBlue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _apinexKeyController,
+                    obscureText: _obscureApinexKey,
+                    style: KashifTypography.mono(fontSize: 12),
+                    decoration: InputDecoration(
+                      hintText: 'sk-apx...',
+                      filled: true,
+                      fillColor: isDark
+                          ? KashifColors.darkBoard
+                          : KashifColors.lightBoard,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              _obscureApinexKey
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              size: 18,
+                              color: isDark
+                                  ? KashifColors.darkTextMuted
+                                  : KashifColors.lightTextMuted,
+                            ),
+                            tooltip: _obscureApinexKey
+                                ? 'إظهار المفتاح'
+                                : 'إخفاء المفتاح',
+                            onPressed: () => setState(
+                              () => _obscureApinexKey = !_obscureApinexKey,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.copy_rounded, size: 18),
+                            tooltip: 'نسخ المفتاح',
+                            onPressed: () async {
+                              final text = _apinexKeyController.text.trim();
+                              if (text.isNotEmpty) {
+                                await Clipboard.setData(
+                                  ClipboardData(text: text),
+                                );
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم نسخ المفتاح إلى الحافظة ✅'),
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.content_paste_rounded,
+                              size: 18,
+                            ),
+                            tooltip: 'لصق',
+                            onPressed: () async {
+                              final data = await Clipboard.getData(
+                                Clipboard.kTextPlain,
+                              );
+                              if (data?.text != null &&
+                                  data!.text!.trim().isNotEmpty) {
+                                setState(() {
+                                  _apinexKeyController.text =
+                                      data.text!.trim();
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Text(
+                    'اختر النموذج المجاني (Free Model):',
+                    style: KashifTypography.arabic(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Dropdown of Free Models
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? KashifColors.darkBoard
+                          : KashifColors.lightBoard,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? KashifColors.darkBorder
+                            : KashifColors.lightBorder,
+                      ),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: _selectedModelPreset,
+                        dropdownColor: isDark
+                            ? const Color(0xFF0F1E38)
+                            : Colors.white,
+                        items: SettingsScreen.apinexFreeModels.map((m) {
+                          return DropdownMenuItem<String>(
+                            value: m['id'],
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    m['name']!,
+                                    style: KashifTypography.arabic(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? KashifColors.goldLight
+                                          : KashifColors.royalBlue,
+                                    ),
+                                  ),
+                                  Text(
+                                    m['desc']!,
+                                    style: KashifTypography.arabic(
+                                      fontSize: 10,
+                                      color: isDark
+                                          ? KashifColors.darkTextMuted
+                                          : KashifColors.lightTextMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedModelPreset = val;
+                              if (val != 'custom') {
+                                _apinexModelController.text = val;
+                              }
+                            });
+                            if (val != 'custom') {
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .updateApinexSettings(model: val);
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'معرف الموديل المعتمد (قابلة للكتابة والتعديل):',
+                              style: KashifTypography.arabic(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            TextField(
+                              controller: _apinexModelController,
+                              style: KashifTypography.mono(fontSize: 12),
+                              onChanged: (val) {
+                                final match = SettingsScreen.apinexFreeModels
+                                    .any((m) => m['id'] == val.trim());
+                                setState(() {
+                                  _selectedModelPreset = match
+                                      ? val.trim()
+                                      : 'custom';
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'free/gpt-6-luna',
+                                filled: true,
+                                fillColor: isDark
+                                    ? KashifColors.darkBoard
+                                    : KashifColors.lightBoard,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 18),
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: isDark
+                                  ? KashifColors.goldPrimary
+                                  : KashifColors.royalBlue,
+                            ),
+                            foregroundColor: isDark
+                                ? KashifColors.goldLight
+                                : KashifColors.royalBlue,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          onPressed:
+                              _isTestingApinex ? null : _testApinexConnection,
+                          icon: _isTestingApinex
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.network_check_rounded,
+                                  size: 16,
+                                ),
+                          label: Text(
+                            'فحص الاتصال',
+                            style: KashifTypography.arabic(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

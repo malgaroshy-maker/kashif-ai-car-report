@@ -4,6 +4,7 @@ class DictionaryEntry {
   final String english;
   final String category;
   final String? partSearchTerm;
+  final bool isCustom;
 
   DictionaryEntry({
     required this.libyanTerm,
@@ -11,6 +12,7 @@ class DictionaryEntry {
     required this.english,
     required this.category,
     this.partSearchTerm,
+    this.isCustom = false,
   });
 
   factory DictionaryEntry.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class DictionaryEntry {
       english: json['english'] as String? ?? '',
       category: json['category'] as String? ?? 'عام',
       partSearchTerm: json['partSearchTerm'] as String?,
+      isCustom: json['isCustom'] == true,
     );
   }
 
@@ -28,6 +31,7 @@ class DictionaryEntry {
     'standardArabic': standardArabic,
     'english': english,
     'category': category,
-    'partSearchTerm': partSearchTerm,
+    if (partSearchTerm != null) 'partSearchTerm': partSearchTerm,
+    if (isCustom) 'isCustom': true,
   };
 }

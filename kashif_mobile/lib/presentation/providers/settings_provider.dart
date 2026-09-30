@@ -8,6 +8,10 @@ class SettingsState {
   final String workshopName;
   final String workshopPhone;
   final ThemeMode themeMode;
+  final String apinexApiKey;
+  final String apinexModel;
+  final bool isApinexAutoFailoverEnabled;
+  final bool useApinexAsPrimary;
 
   SettingsState({
     List<String>? customApiKeys,
@@ -15,8 +19,18 @@ class SettingsState {
     this.workshopName = '',
     this.workshopPhone = '',
     this.themeMode = ThemeMode.system,
-  }) : customApiKeys =
-           customApiKeys ?? (customApiKey != null ? [customApiKey] : []);
+    String? apinexApiKey,
+    String? apinexModel,
+    bool? isApinexAutoFailoverEnabled,
+    bool? useApinexAsPrimary,
+  })  : customApiKeys =
+            customApiKeys ?? (customApiKey != null ? [customApiKey] : []),
+        apinexApiKey = apinexApiKey ?? KashifStorage.apinexApiKey,
+        apinexModel = apinexModel ?? KashifStorage.apinexModel,
+        isApinexAutoFailoverEnabled =
+            isApinexAutoFailoverEnabled ?? KashifStorage.isApinexAutoFailoverEnabled,
+        useApinexAsPrimary =
+            useApinexAsPrimary ?? KashifStorage.useApinexAsPrimary;
 
   SettingsState copyWith({
     List<String>? customApiKeys,
@@ -24,6 +38,10 @@ class SettingsState {
     String? workshopName,
     String? workshopPhone,
     ThemeMode? themeMode,
+    String? apinexApiKey,
+    String? apinexModel,
+    bool? isApinexAutoFailoverEnabled,
+    bool? useApinexAsPrimary,
     bool clearKey = false,
   }) {
     final newKeys = customApiKeys ?? this.customApiKeys;
@@ -37,6 +55,11 @@ class SettingsState {
       workshopName: workshopName ?? this.workshopName,
       workshopPhone: workshopPhone ?? this.workshopPhone,
       themeMode: themeMode ?? this.themeMode,
+      apinexApiKey: apinexApiKey ?? this.apinexApiKey,
+      apinexModel: apinexModel ?? this.apinexModel,
+      isApinexAutoFailoverEnabled:
+          isApinexAutoFailoverEnabled ?? this.isApinexAutoFailoverEnabled,
+      useApinexAsPrimary: useApinexAsPrimary ?? this.useApinexAsPrimary,
     );
   }
 }
@@ -50,6 +73,10 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           workshopName: KashifStorage.workshopName,
           workshopPhone: KashifStorage.workshopPhone,
           themeMode: _parseThemeMode(KashifStorage.themeMode),
+          apinexApiKey: KashifStorage.apinexApiKey,
+          apinexModel: KashifStorage.apinexModel,
+          isApinexAutoFailoverEnabled: KashifStorage.isApinexAutoFailoverEnabled,
+          useApinexAsPrimary: KashifStorage.useApinexAsPrimary,
         ),
       );
 
@@ -113,6 +140,25 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     if (mode == ThemeMode.dark) str = 'dark';
     await KashifStorage.setThemeMode(str);
     state = state.copyWith(themeMode: mode);
+  }
+
+  Future<void> updateApinexSettings({
+    String? key,
+    String? model,
+    bool? autoFailover,
+    bool? asPrimary,
+  }) async {
+    if (key != null) await KashifStorage.setApinexApiKey(key);
+    if (model != null) await KashifStorage.setApinexModel(model);
+    if (autoFailover != null) await KashifStorage.setApinexAutoFailoverEnabled(autoFailover);
+    if (asPrimary != null) await KashifStorage.setUseApinexAsPrimary(asPrimary);
+
+    state = state.copyWith(
+      apinexApiKey: key,
+      apinexModel: model,
+      isApinexAutoFailoverEnabled: autoFailover,
+      useApinexAsPrimary: asPrimary,
+    );
   }
 }
 
