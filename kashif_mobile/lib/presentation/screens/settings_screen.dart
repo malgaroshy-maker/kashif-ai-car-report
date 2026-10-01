@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/apinex_client.dart';
 import '../../core/network/key_pool_manager.dart';
@@ -457,6 +458,76 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
               ),
+              if (message.contains('apinex.bond') || message.contains('حضور يومي')) ...[
+                const SizedBox(height: 10),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1565C0),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 2,
+                  ),
+                  icon: const Icon(Icons.open_in_browser_rounded, size: 20),
+                  label: Text(
+                    'تسجيل حضور يومي مجاني بنقرة واحدة (apinex.bond) 🔗',
+                    style: KashifTypography.arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  onPressed: () async {
+                    final uri = Uri.parse('https://apinex.bond/airdrop?tab=quests');
+                    try {
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      } else {
+                        await Clipboard.setData(
+                          const ClipboardData(text: 'https://apinex.bond/airdrop?tab=quests'),
+                        );
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم نسخ الرابط للحافظة: https://apinex.bond/airdrop?tab=quests'),
+                            ),
+                          );
+                        }
+                      }
+                    } catch (_) {
+                      await Clipboard.setData(
+                        const ClipboardData(text: 'https://apinex.bond/airdrop?tab=quests'),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.stars_rounded, color: Colors.amber, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '💡 النماذج مجانية 100% ولا تتطلب أي دفع أو شحن رصيد؛ فقط سجل حضورك اليومي المجاني بنقرة واحدة.',
+                          style: KashifTypography.arabic(
+                            fontSize: 10.5,
+                            color: isDark ? const Color(0xFFFFD54F) : const Color(0xFF795548),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
 
               ElevatedButton(
@@ -1904,22 +1975,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 children: [
                   Container(
+                    width: 72,
+                    height: 72,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: KashifColors.goldPrimary,
+                        width: 2.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          blurRadius: 10,
+                          color: KashifColors.goldPrimary.withValues(alpha: 0.35),
+                          blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
+                    child: ClipOval(
                       child: Image.asset(
                         'assets/images/app_icon.png',
-                        width: 68,
-                        height: 68,
+                        width: 72,
+                        height: 72,
                         fit: BoxFit.cover,
                       ),
                     ),

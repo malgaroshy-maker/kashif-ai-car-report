@@ -459,18 +459,17 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
             children: [
               Icon(Icons.directions_car_rounded, size: 20, color: primaryColor),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'بيانات المركبة:',
-                  style: KashifTypography.arabic(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: isDark
-                        ? KashifColors.goldLight
-                        : KashifColors.royalBlueDark,
-                  ),
+              Text(
+                'بيانات المركبة',
+                style: KashifTypography.arabic(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlueDark,
                 ),
               ),
+              const Spacer(),
               IconButton(
                 icon: Icon(
                   isSaved
@@ -520,105 +519,115 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                   }
                 },
               ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: Icon(
-                  Icons.electric_bolt_rounded,
-                  size: 20,
-                  color: primaryColor,
-                ),
-                tooltip: 'دليل ومكتشف الفيوزات',
-                padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const FuseBoxScreen()),
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: Icon(
-                  Icons.compare_arrows_rounded,
-                  size: 20,
-                  color: primaryColor,
-                ),
-                tooltip: 'مقارنة مع فحص سابق',
-                padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ReportCompareScreen(initialAfter: report),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: Icon(
-                  Icons.warning_amber_rounded,
-                  size: 20,
-                  color: primaryColor,
-                ),
-                tooltip: 'تحديد لمبات الطبلون',
-                padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => DashboardLightsScreen(
-                        initialSelectedIds: report.activeWarningLightIds,
-                        onLightsSelected: (newLights) {
-                          final updated = report.copyWith(
-                            activeWarningLightIds: newLights,
-                          );
-                          ref.read(reportProvider.notifier).setReport(updated);
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: Icon(
-                  Icons.qr_code_2_rounded,
-                  size: 20,
-                  color: primaryColor,
-                ),
-                tooltip: 'مشاركة برمز QR',
-                padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(),
-                onPressed: () => ReportQrSheet.show(context, report),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: Icon(Icons.share_rounded, size: 20, color: primaryColor),
-                tooltip: 'مشاركة التقرير عبر واتساب',
-                padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(),
-                onPressed: () =>
-                    KashifShareService.shareReportViaWhatsApp(report),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: Icon(
-                  Icons.ios_share_rounded,
-                  size: 20,
-                  color: primaryColor,
-                ),
-                tooltip: 'تصدير ومشاركة التقرير',
-                padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(),
-                onPressed: () => ExportOptionsSheet.show(context, report),
-              ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 4),
+          // Clean horizontal action toolbar for vehicle actions
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            reverse: true,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.ios_share_rounded,
+                    size: 19,
+                    color: primaryColor,
+                  ),
+                  tooltip: 'تصدير ومشاركة التقرير',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () => ExportOptionsSheet.show(context, report),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(Icons.share_rounded, size: 19, color: primaryColor),
+                  tooltip: 'مشاركة التقرير عبر واتساب',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () =>
+                      KashifShareService.shareReportViaWhatsApp(report),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(
+                    Icons.qr_code_2_rounded,
+                    size: 19,
+                    color: primaryColor,
+                  ),
+                  tooltip: 'مشاركة برمز QR',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () => ReportQrSheet.show(context, report),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(
+                    Icons.warning_amber_rounded,
+                    size: 19,
+                    color: primaryColor,
+                  ),
+                  tooltip: 'تحديد لمبات الطبلون',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => DashboardLightsScreen(
+                          initialSelectedIds: report.activeWarningLightIds,
+                          onLightsSelected: (newLights) {
+                            final updated = report.copyWith(
+                              activeWarningLightIds: newLights,
+                            );
+                            ref.read(reportProvider.notifier).setReport(updated);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(
+                    Icons.compare_arrows_rounded,
+                    size: 19,
+                    color: primaryColor,
+                  ),
+                  tooltip: 'مقارنة مع فحص سابق',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ReportCompareScreen(initialAfter: report),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(
+                    Icons.electric_bolt_rounded,
+                    size: 19,
+                    color: primaryColor,
+                  ),
+                  tooltip: 'دليل ومكتشف الفيوزات',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const FuseBoxScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 18),
           buildSpecRow(
             label: 'السيارة:',
             value: v.formattedTitle,
@@ -629,7 +638,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
           if (v.formattedEngine.isNotEmpty)
             buildSpecRow(label: 'المحرك:', value: v.formattedEngine),
           if (v.formattedTransmission.isNotEmpty)
-            buildSpecRow(label: 'ناقل الحركة:', value: v.formattedTransmission),
+            buildSpecRow(label: 'الكمبيو:', value: v.formattedTransmission),
           if (v.formattedMileage.isNotEmpty)
             buildSpecRow(label: 'قراءة العداد:', value: v.formattedMileage),
           if (testDate.isNotEmpty)

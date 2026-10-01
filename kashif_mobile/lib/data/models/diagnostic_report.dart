@@ -2,6 +2,7 @@ import 'vehicle_info.dart';
 import 'fault_code.dart';
 import 'spare_part.dart';
 import 'checklist_step.dart';
+import '../../core/utils/report_sanitizer.dart';
 
 class ScannerInfo {
   final String toolName;
@@ -52,7 +53,8 @@ class ReportSummary {
           ? (json['overallHealthScore'] as num).toInt()
           : int.tryParse(json['overallHealthScore']?.toString() ?? '') ?? 100,
       severityStatus: json['severityStatus'] as String? ?? 'سليم / خفيف',
-      briefSummaryArabic: json['briefSummaryArabic'] as String? ?? '',
+      briefSummaryArabic:
+          ReportSanitizer.clean(json['briefSummaryArabic'] as String? ?? ''),
       systemsCheckedCount: (json['systemsCheckedCount'] is num)
           ? (json['systemsCheckedCount'] as num).toInt()
           : 0,
@@ -161,11 +163,12 @@ class DiagnosticReport {
           if (e is Map) {
             final code = e['systemCode']?.toString() ?? '';
             final ar = e['systemNameArabic']?.toString() ?? '';
-            return code.isNotEmpty && ar.isNotEmpty
+            final combined = code.isNotEmpty && ar.isNotEmpty
                 ? '$code ($ar)'
                 : (ar.isNotEmpty ? ar : code);
+            return ReportSanitizer.clean(combined);
           }
-          return e.toString();
+          return ReportSanitizer.clean(e.toString());
         }).toList() ??
         [];
 
@@ -297,7 +300,7 @@ class DiagnosticReport {
 
     return [
       if (!faultedModules.contains('TCM'))
-        'TCM (منظومة ناقل الحركة الأوتوماتيكي)',
+        'TCM (منظومة الكمبيو الأوتوماتيك)',
       if (!faultedModules.contains('ABS'))
         'ABS / ESP (منظومة مانع انغلاق المكابح والثبات)',
       if (!faultedModules.contains('SRS'))

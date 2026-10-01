@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../core/utils/share_service.dart';
+import '../../core/utils/report_qr_helper.dart';
 import '../../data/models/diagnostic_report.dart';
 
 class ReportQrSheet extends StatelessWidget {
@@ -20,28 +20,9 @@ class ReportQrSheet extends StatelessWidget {
     );
   }
 
-  /// Generates a compact, portable JSON string for QR encoding
+  /// Generates an elegant, human-readable Arabic inspection summary for QR scanning
   String _buildQrPayload() {
-    final codes = [
-      ...report.criticalFaults.map((f) => f.code),
-      ...report.moderateFaults.map((f) => f.code),
-    ];
-
-    final map = {
-      'app': 'kashif_ai',
-      'id': report.reportId,
-      'date': report.generatedAt,
-      'make': report.vehicle.make,
-      'model': report.vehicle.model,
-      'year': report.vehicle.year,
-      'vin': report.vehicle.vin,
-      'score': report.summary.overallHealthScore,
-      'status': report.summary.severityStatus,
-      'codes': codes.take(8).toList(),
-      'totalFaults': codes.length,
-    };
-
-    return jsonEncode(map);
+    return ReportQrHelper.buildQrInspectionSummary(report);
   }
 
   @override
@@ -194,9 +175,10 @@ class ReportQrSheet extends StatelessWidget {
             child: QrImageView(
               data: qrData,
               version: QrVersions.auto,
-              size: 200.0,
+              errorCorrectionLevel: QrErrorCorrectLevel.M,
+              size: 210.0,
               backgroundColor: Colors.white,
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(10),
             ),
           ),
           const SizedBox(height: 12),
@@ -221,12 +203,12 @@ class ReportQrSheet extends StatelessWidget {
                   onPressed: () {
                     ShareService.shareText(
                       qrData,
-                      subject: 'بيانات فحص كاشف QR (${v.make} ${v.model})',
+                      subject: 'تقرير فحص كاشف (${v.make} ${v.model})',
                     );
                   },
-                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  icon: const Icon(Icons.share_rounded, size: 16),
                   label: Text(
-                    'مشاركة بيانات الكود',
+                    'مشاركة ملخص الفحص',
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,

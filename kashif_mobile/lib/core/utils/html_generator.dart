@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
@@ -11,6 +12,7 @@ import '../theme/colors.dart';
 import '../theme/typography.dart';
 import 'web_downloader.dart';
 import 'report_sanitizer.dart';
+import 'report_qr_helper.dart';
 
 class KashifHtmlGenerator {
   // HTML escape helper
@@ -25,11 +27,21 @@ class KashifHtmlGenerator {
   }
 
   /// Generates a standalone, fully self-contained HTML report with offline styling
-  static String buildHtml(DiagnosticReport report) {
+  /// Generates a standalone, fully self-contained HTML report with offline styling
+  static String buildHtml(
+    DiagnosticReport report, {
+    String? iconBase64,
+    bool forPrint = false,
+  }) {
     final v = report.vehicle;
     final summary = report.summary;
     final workshopName = KashifStorage.workshopName;
     final workshopPhone = KashifStorage.workshopPhone;
+
+    final qrSvg = ReportQrHelper.generateQrSvg(
+      ReportQrHelper.buildQrInspectionSummary(report),
+      size: 125,
+    );
 
     final technicianName =
         (workshopName.trim().isNotEmpty &&
@@ -42,7 +54,7 @@ class KashifHtmlGenerator {
       if (technicianName.isNotEmpty)
         '<div class="workshop-name">${esc(technicianName)}</div>',
       if (technicianPhone.isNotEmpty)
-        '<div class="workshop-phone">هاتف: ${esc(technicianPhone)}</div>',
+        '<div class="workshop-phone">هاتف: <span dir="ltr">${esc(technicianPhone)}</span></div>',
     ].join('\n');
 
     final score = summary.overallHealthScore;
@@ -65,6 +77,9 @@ class KashifHtmlGenerator {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>تقرير فحص فني - ${esc(v.make)} ${esc(v.model)} (${esc(v.year)})</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --amp-10: #DE3B2F;
@@ -74,32 +89,36 @@ class KashifHtmlGenerator {
       --amp-15: #2E7FC4;
       --bg: #F4F6F9;
       --card-bg: #FFFFFF;
-      --text: #1E252B;
-      --text-muted: #586574;
-      --border: #D2D9E2;
+      --card-inner: #F8FAFC;
+      --text: #0F172A;
+      --text-muted: #475569;
+      --border: #CBD5E1;
+      --gold: #D4AF37;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #0D1217;
-        --card-bg: #151C24;
-        --text: #EEF2F6;
-        --text-muted: #8E9BAE;
-        --border: #232E3B;
+        --bg: #070E1E;
+        --card-bg: #0F172A;
+        --card-inner: #131E33;
+        --text: #F8FAFC;
+        --text-muted: #94A3B8;
+        --border: #1E293B;
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cairo", "Tahoma", sans-serif;
+      font-family: 'Readex Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cairo", "Tahoma", sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
       padding: 16px;
+      -webkit-font-smoothing: antialiased;
     }
     .container { max-width: 900px; margin: 0 auto; }
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 6px;
       padding: 16px;
       margin-bottom: 16px;
     }
@@ -111,27 +130,49 @@ class KashifHtmlGenerator {
       padding-bottom: 12px;
       margin-bottom: 14px;
     }
-    .workshop-name { font-size: 18px; font-weight: 800; color: var(--text); }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-text {
+      text-align: left;
+    }
+    .brand-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .header-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid #D4AF37;
+      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25);
+      object-fit: cover;
+    }
+    .workshop-name { font-size: 17px; font-weight: 800; color: var(--text); }
     .workshop-phone { font-size: 13px; color: var(--text-muted); font-family: monospace; }
     .brand-badge {
-      background: var(--amp-15);
+      background: #0F172A;
       color: #fff;
       padding: 4px 10px;
-      border-radius: 2px;
+      border-radius: 4px;
+      border: 1px solid #D4AF37;
       font-weight: 700;
       font-size: 13px;
     }
     .vehicle-specs-card {
-      background: rgba(0, 0, 0, 0.02);
+      background: var(--card-inner);
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 6px;
       padding: 12px 16px;
       margin: 12px 0 16px 0;
     }
     .vehicle-specs-title {
       font-size: 13.5px;
       font-weight: 800;
-      color: #1e293b;
+      color: var(--text);
       margin-bottom: 8px;
     }
     .vehicle-specs-grid {
@@ -146,17 +187,17 @@ class KashifHtmlGenerator {
       gap: 6px;
     }
     .spec-bullet {
-      color: #2E7FC4;
+      color: var(--amp-15);
       font-size: 9px;
       line-height: 1;
     }
     .spec-label {
       font-weight: 700;
-      color: #334155;
+      color: var(--text-muted);
       min-width: 75px;
     }
     .spec-value {
-      color: #0f172a;
+      color: var(--text);
     }
     .font-bold {
       font-weight: 800;
@@ -165,17 +206,18 @@ class KashifHtmlGenerator {
       font-family: monospace;
       font-weight: bold;
       color: var(--amp-15);
-      background: rgba(46,127,196,0.1);
+      background: rgba(46,127,196,0.12);
       padding: 2px 6px;
-      border-radius: 2px;
+      border-radius: 3px;
     }
     .score-box {
       display: flex;
       align-items: center;
       gap: 16px;
-      background: rgba(0,0,0,0.03);
+      background: var(--card-inner);
+      border: 1px solid var(--border);
       padding: 14px;
-      border-radius: 4px;
+      border-radius: 6px;
       margin-top: 12px;
     }
     .score-circle {
@@ -189,9 +231,16 @@ class KashifHtmlGenerator {
       justify-content: center;
       font-weight: 900;
       font-size: 20px;
+      flex-shrink: 0;
     }
     .score-label { font-size: 10px; font-weight: normal; }
-    .summary-text { font-size: 13px; line-height: 1.6; }
+    .summary-heading {
+      font-weight: 800;
+      font-size: 12.5px;
+      color: var(--amp-15);
+      margin-bottom: 3px;
+    }
+    .summary-text { font-size: 13px; line-height: 1.6; color: var(--text); }
     .section-title {
       font-size: 15px;
       font-weight: 800;
@@ -205,7 +254,7 @@ class KashifHtmlGenerator {
     .badge {
       display: inline-block;
       padding: 2px 8px;
-      border-radius: 2px;
+      border-radius: 3px;
       font-size: 11px;
       font-weight: bold;
       color: #fff;
@@ -220,7 +269,7 @@ class KashifHtmlGenerator {
       background: var(--card-bg);
       padding: 12px;
       margin-bottom: 8px;
-      border-radius: 2px;
+      border-radius: 4px;
     }
     .code-row.crit { border-right-color: var(--amp-10); }
     .code-row.mod { border-right-color: var(--amp-20); }
@@ -231,10 +280,11 @@ class KashifHtmlGenerator {
       font-size: 14px;
       padding: 2px 6px;
       background: rgba(0,0,0,0.06);
-      border-radius: 2px;
+      border-radius: 3px;
       display: inline-block;
+      color: var(--text);
     }
-    .code-term { font-size: 14px; font-weight: 800; margin: 4px 0; }
+    .code-term { font-size: 14px; font-weight: 800; margin: 4px 0; color: var(--text); }
     .code-desc { font-size: 12px; color: var(--text-muted); font-family: monospace; }
     .action-box {
       margin-top: 6px;
@@ -243,9 +293,10 @@ class KashifHtmlGenerator {
       border-right: 2px solid var(--amp-30);
       font-size: 12px;
       font-weight: 600;
+      color: var(--text);
     }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
-    th, td { padding: 8px 10px; text-align: right; border: 1px solid var(--border); }
+    th, td { padding: 8px 10px; text-align: right; border: 1px solid var(--border); color: var(--text); }
     th { background: rgba(0,0,0,0.04); font-weight: 800; }
     .passed-grid {
       display: grid;
@@ -257,21 +308,54 @@ class KashifHtmlGenerator {
       padding: 8px;
       border: 1px solid var(--border);
       border-right: 3px solid var(--amp-30);
-      background: rgba(46,158,91,0.05);
-      border-radius: 2px;
+      background: rgba(46,158,91,0.06);
+      border-radius: 3px;
       font-size: 12px;
       font-weight: 600;
+      color: var(--text);
     }
-    .stamp-box {
+    .qr-verification-card {
       display: flex;
-      justify-content: space-between;
-      margin-top: 24px;
-      padding: 16px;
-      border: 1px dashed var(--border);
-      border-radius: 4px;
+      align-items: center;
+      gap: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-right: 4px solid #D4AF37;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-top: 18px;
     }
-    .stamp-col { width: 45%; text-align: center; font-size: 12px; }
-    .stamp-space { height: 48px; }
+    .qr-svg-container {
+      flex-shrink: 0;
+      background: #FFFFFF !important;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-info {
+      flex: 1;
+    }
+    .qr-heading {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .qr-subtext {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+    .qr-specs {
+      font-size: 10px;
+      color: #D4AF37;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
     .footer {
       text-align: center;
       font-size: 11px;
@@ -280,10 +364,225 @@ class KashifHtmlGenerator {
       padding-top: 12px;
       border-top: 1px solid var(--border);
     }
-    @media print {
-      body { background: #fff; color: #000; padding: 0; }
-      .card { border: none; padding: 0; }
+    @media (max-width: 500px) {
+      .header-bar {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .qr-verification-card {
+        flex-direction: column;
+        text-align: center;
+      }
     }
+    /* Specific overrides for Dark Mode */
+    @media (prefers-color-scheme: dark) {
+      .vehicle-specs-card {
+        background: #111A2E !important;
+        border-color: #1E293B !important;
+      }
+      .vehicle-specs-title {
+        color: #F8FAFC !important;
+      }
+      .spec-label {
+        color: #94A3B8 !important;
+      }
+      .spec-value {
+        color: #FFFFFF !important;
+      }
+      .score-box {
+        background: #111A2E !important;
+        border-color: #1E293B !important;
+      }
+      .summary-heading {
+        color: #60A5FA !important;
+      }
+      .summary-text {
+        color: #F1F5F9 !important;
+      }
+      .code-row {
+        background: #0F172A !important;
+        border-color: #1E293B !important;
+      }
+      .code-dtc {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #F8FAFC !important;
+      }
+      .code-term {
+        color: #FFFFFF !important;
+      }
+      .code-desc {
+        color: #94A3B8 !important;
+      }
+      th {
+        background: #162032 !important;
+        color: #F8FAFC !important;
+      }
+      td {
+        color: #F1F5F9 !important;
+        border-color: #1E293B !important;
+      }
+      .action-box {
+        background: rgba(46, 158, 91, 0.14) !important;
+        color: #4ADE80 !important;
+      }
+      .passed-item {
+        background: rgba(46, 158, 91, 0.12) !important;
+        color: #4ADE80 !important;
+      }
+    }
+    /* Comprehensive Print & PDF Formatting Rules */
+    @media print {
+      @page {
+        size: A4;
+        margin: 8mm 10mm;
+      }
+      :root {
+        --bg: #FFFFFF !important;
+        --card-bg: #FFFFFF !important;
+        --card-inner: #F8FAFC !important;
+        --text: #0F172A !important;
+        --text-muted: #475569 !important;
+        --border: #CBD5E1 !important;
+      }
+      body {
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+        padding: 0 !important;
+        font-size: 10.5px !important;
+        line-height: 1.4 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+      }
+      .card {
+        border-color: #CBD5E1 !important;
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .header-bar {
+        padding-bottom: 8px !important;
+        margin-bottom: 8px !important;
+      }
+      .workshop-name { font-size: 15px !important; color: #0F172A !important; }
+      .vehicle-specs-card {
+        background: #F8FAFC !important;
+        border: 1px solid #CBD5E1 !important;
+        padding: 6px 10px !important;
+        margin: 6px 0 8px 0 !important;
+      }
+      .vehicle-specs-title {
+        color: #0F172A !important;
+        font-size: 11.5px !important;
+        margin-bottom: 4px !important;
+      }
+      .spec-label { color: #475569 !important; }
+      .spec-value { color: #0F172A !important; }
+      .score-box {
+        padding: 6px 10px !important;
+        margin-top: 6px !important;
+        background: #F8FAFC !important;
+      }
+      .score-circle {
+        width: 52px !important;
+        height: 52px !important;
+        font-size: 16px !important;
+        border-width: 4px !important;
+      }
+      .summary-text { font-size: 11.5px !important; color: #0F172A !important; }
+      .section-title {
+        margin: 8px 0 4px 0 !important;
+        font-size: 12px !important;
+      }
+      .code-row {
+        padding: 6px 8px !important;
+        margin-bottom: 5px !important;
+        background: #FFFFFF !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .code-dtc { color: #0F172A !important; font-size: 12px !important; }
+      .code-term { font-size: 12px !important; color: #0F172A !important; }
+      .code-desc { font-size: 10.5px !important; color: #475569 !important; }
+      .action-box {
+        padding: 3px 6px !important;
+        font-size: 10px !important;
+        color: #0F172A !important;
+      }
+      table {
+        margin-top: 4px !important;
+        font-size: 10px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      th, td {
+        padding: 4px 6px !important;
+        color: #0F172A !important;
+      }
+      th {
+        background: #F1F5F9 !important;
+      }
+      .passed-grid {
+        gap: 5px !important;
+        margin-top: 4px !important;
+      }
+      .passed-item {
+        padding: 4px 6px !important;
+        font-size: 10px !important;
+        color: #0F172A !important;
+      }
+      .qr-verification-card {
+        padding: 6px 10px !important;
+        margin-top: 8px !important;
+        background: #FFFFFF !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .footer {
+        margin-top: 8px !important;
+        font-size: 9px !important;
+        color: #64748B !important;
+      }
+    }
+    ${forPrint ? '''
+    :root {
+      --bg: #FFFFFF !important;
+      --card-bg: #FFFFFF !important;
+      --card-inner: #F8FAFC !important;
+      --text: #0F172A !important;
+      --text-muted: #475569 !important;
+      --border: #CBD5E1 !important;
+    }
+    body {
+      background: #FFFFFF !important;
+      color: #0F172A !important;
+      padding: 0 !important;
+      font-size: 10.5px !important;
+      line-height: 1.4 !important;
+    }
+    .card {
+      background: #FFFFFF !important;
+      border-color: #CBD5E1 !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .vehicle-specs-card, .score-box {
+      background: #F8FAFC !important;
+      border-color: #CBD5E1 !important;
+    }
+    .vehicle-specs-title, .spec-value, .summary-text, .code-term, .code-dtc, th, td {
+      color: #0F172A !important;
+    }
+    .spec-label, .code-desc {
+      color: #475569 !important;
+    }
+    ''' : ''}
   </style>
 </head>
 <body>
@@ -293,7 +592,15 @@ class KashifHtmlGenerator {
         <div>
           $headerTechInfo
         </div>
-        <div class="brand-badge">Flow Cars | فحص وتشخيص</div>
+        <div class="header-brand">
+          <div class="brand-text">
+            <div class="brand-badge">Flow Cars | فحص وتشخيص</div>
+            <div class="brand-sub">منظومة كاشف الذكي للكشف عن الأعطال</div>
+          </div>
+          ${iconBase64 != null && iconBase64.isNotEmpty ? '''
+          <img src="data:image/png;base64,$iconBase64" class="header-logo" alt="Flow Cars Logo" />
+          ''' : ''}
+        </div>
       </div>
 
       <div class="vehicle-specs-card">
@@ -321,7 +628,7 @@ class KashifHtmlGenerator {
           ${v.formattedTransmission.isNotEmpty ? '''
           <div class="spec-row">
             <span class="spec-bullet">■</span>
-            <span class="spec-label">ناقل الحركة:</span>
+            <span class="spec-label">الكمبيو:</span>
             <span class="spec-value">${esc(v.formattedTransmission)}</span>
           </div>
           ''' : ''}
@@ -349,7 +656,7 @@ class KashifHtmlGenerator {
         </div>
         <div style="flex: 1;">
           <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">الحالة: ${esc(summary.severityStatus)}</div>
-          <div style="font-weight: 800; font-size: 12.5px; color: #1A4B84; margin-bottom: 3px;">خلاصة تقييم السيارة:</div>
+          <div class="summary-heading">خلاصة تقييم السيارة:</div>
           <div class="summary-text">${esc(ReportSanitizer.clean(summary.briefSummaryArabic).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</div>
         </div>
       </div>
@@ -365,9 +672,9 @@ class KashifHtmlGenerator {
       <div class="code-row crit">
         <span class="code-dtc">${esc(f.code)}</span>
         <span style="font-size: 11px; color: var(--text-muted); margin-right: 6px;">${esc(f.moduleNameArabic.isNotEmpty ? f.moduleNameArabic : f.module)}</span>
-        <div class="code-term">${esc(f.libyanTerm)}</div>
+        <div class="code-term">${esc(ReportSanitizer.clean(f.libyanTerm))}</div>
         <div class="code-desc">${esc(f.standardDescriptionEn)}</div>
-        <div class="action-box">🛠️ التوجيه: ${esc(f.recommendedAction)}</div>
+        <div class="action-box">🛠️ التوجيه: ${esc(ReportSanitizer.clean(f.recommendedAction))}</div>
       </div>
       ''').join('')}
     </div>
@@ -383,9 +690,9 @@ class KashifHtmlGenerator {
       <div class="code-row mod">
         <span class="code-dtc">${esc(f.code)}</span>
         <span style="font-size: 11px; color: var(--text-muted); margin-right: 6px;">${esc(f.moduleNameArabic.isNotEmpty ? f.moduleNameArabic : f.module)}</span>
-        <div class="code-term">${esc(f.libyanTerm)}</div>
+        <div class="code-term">${esc(ReportSanitizer.clean(f.libyanTerm))}</div>
         <div class="code-desc">${esc(f.standardDescriptionEn)}</div>
-        <div class="action-box">🛠️ التوجيه: ${esc(f.recommendedAction)}</div>
+        <div class="action-box">🛠️ التوجيه: ${esc(ReportSanitizer.clean(f.recommendedAction))}</div>
       </div>
       ''').join('')}
     </div>
@@ -401,7 +708,7 @@ class KashifHtmlGenerator {
       <div class="code-row hist">
         <span class="code-dtc">${esc(f.code)}</span>
         <span style="font-size: 11px; color: var(--text-muted); margin-right: 6px;">${esc(f.moduleNameArabic.isNotEmpty ? f.moduleNameArabic : f.module)}</span>
-        <div class="code-term">${esc(f.libyanTerm)}</div>
+        <div class="code-term">${esc(ReportSanitizer.clean(f.libyanTerm))}</div>
         <div class="code-desc">${esc(f.standardDescriptionEn)}</div>
       </div>
       ''').join('')}
@@ -416,7 +723,7 @@ class KashifHtmlGenerator {
       </div>
       <div class="passed-grid">
         ${passedSystems.map((s) => '''
-        <div class="passed-item">✓ ${esc(s)}</div>
+        <div class="passed-item">✓ ${esc(ReportSanitizer.clean(s))}</div>
         ''').join('')}
       </div>
     </div>
@@ -440,7 +747,7 @@ class KashifHtmlGenerator {
         <tbody>
           ${spareParts.map((p) => '''
           <tr>
-            <td><strong>${esc(p.partNameLibyan)}</strong></td>
+            <td><strong>${esc(ReportSanitizer.clean(p.partNameLibyan))}</strong></td>
             <td>${esc(p.partNameEnglish)}</td>
             <td style="font-family: monospace; font-weight: bold;">${esc(p.oemPartNumber ?? 'غير متوفر')}</td>
             <td style="font-weight: bold; color: var(--amp-30);">${p.estimatedPriceRangeLYD != null ? '${p.estimatedPriceRangeLYD!.min.toInt()} - ${p.estimatedPriceRangeLYD!.max.toInt()} د.ل' : 'غير مسعر'}</td>
@@ -470,9 +777,9 @@ class KashifHtmlGenerator {
           ${checklist.map((c) => '''
           <tr>
             <td style="text-align: center; font-weight: bold;">${c.stepNumber}</td>
-            <td><strong>${esc(c.actionTitle)}</strong></td>
-            <td>${esc(c.actionDescriptionLibyan)}</td>
-            <td>${esc(c.toolingNeeded)}</td>
+            <td><strong>${esc(ReportSanitizer.clean(c.actionTitle))}</strong></td>
+            <td>${esc(ReportSanitizer.clean(c.actionDescriptionLibyan))}</td>
+            <td>${esc(ReportSanitizer.clean(c.toolingNeeded))}</td>
           </tr>
           ''').join('')}
         </tbody>
@@ -484,6 +791,17 @@ class KashifHtmlGenerator {
       <div><strong>اسم الفني:</strong> ${technicianName.isNotEmpty ? esc(technicianName) : 'فني فحص معتمد'}</div>
       <div><strong>رقم الهاتف:</strong> <span dir="ltr">${technicianPhone.isNotEmpty ? esc(technicianPhone) : '—'}</span></div>
       <div><strong>التوقيع / الختم:</strong> ____________________</div>
+    </div>
+
+    <div class="qr-verification-card">
+      <div class="qr-svg-container">
+        $qrSvg
+      </div>
+      <div class="qr-info">
+        <div class="qr-heading">رمز التحقق الذكي والمشاركة (QR Code)</div>
+        <div class="qr-subtext">امسح الكود بكاميرا أي هاتف محمول لقراءة وتأكيد ملخص الفحص الفني وحالة الأعطال فوراً دون الحاجة إلى إنترنت.</div>
+        <div class="qr-specs">Flow Cars Certified Diagnostic Summary</div>
+      </div>
     </div>
 
     <div class="footer">
@@ -500,7 +818,13 @@ class KashifHtmlGenerator {
     DiagnosticReport report,
   ) async {
     try {
-      final htmlContent = buildHtml(report);
+      String? iconBase64;
+      try {
+        final iconByteData = await rootBundle.load('assets/images/app_icon.png');
+        iconBase64 = base64Encode(iconByteData.buffer.asUint8List());
+      } catch (_) {}
+
+      final htmlContent = buildHtml(report, iconBase64: iconBase64);
       final cleanMake = report.vehicle.make.replaceAll(
         RegExp(r'[^\w\u0621-\u064A]'),
         '_',
@@ -835,3 +1159,5 @@ class KashifHtmlGenerator {
     }
   }
 }
+
+typedef HtmlReportGenerator = KashifHtmlGenerator;

@@ -1,3 +1,5 @@
+import '../../core/utils/report_sanitizer.dart';
+
 class VehicleInfo {
   final String vin;
   final String make;
@@ -86,12 +88,14 @@ class VehicleInfo {
   /// Formatted transmission description: e.g. "كمبيو أوتوماتيك 4 سرعات - كونفيرتا"
   String get formattedTransmission {
     if (engineSpecs == null) return '';
-    return engineSpecs!.transmission
-        .replaceAll('السلندر', 'البسطوني')
-        .replaceAll('سلندر', 'بسطوني')
-        .replaceAll('(', '- ')
-        .replaceAll(')', '')
-        .trim();
+    return ReportSanitizer.clean(
+      engineSpecs!.transmission
+          .replaceAll('السلندر', 'البسطوني')
+          .replaceAll('سلندر', 'بسطوني')
+          .replaceAll('(', '- ')
+          .replaceAll(')', '')
+          .trim(),
+    );
   }
 
   /// Formatted mileage: if in miles, displays both miles and kilometers

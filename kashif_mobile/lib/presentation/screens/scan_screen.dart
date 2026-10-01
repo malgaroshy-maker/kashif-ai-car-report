@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../providers/report_provider.dart';
@@ -51,43 +53,62 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   void _checkAndShowCacheNotice() {
     final state = ref.read(reportProvider);
     if (state.cacheNotice != null && mounted) {
+      final isLocalOffline = state.isFromLocalCache ||
+          (state.cacheNotice?.contains('الذاكرة') == true) ||
+          (state.cacheNotice?.contains('القاموس') == true);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 5),
+          duration: const Duration(seconds: 3),
+          showCloseIcon: true,
+          closeIconColor: Colors.white,
+          dismissDirection: DismissDirection.horizontal,
           backgroundColor: const Color(0xFF152A1E),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
             side: const BorderSide(color: Color(0xFF2E9E5B), width: 1),
           ),
-          content: Row(
-            children: [
-              const Icon(
-                Icons.offline_bolt_rounded,
-                color: Colors.greenAccent,
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  state.cacheNotice!,
-                  style: KashifTypography.arabic(
-                    fontSize: 11.5,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
+          content: InkWell(
+            onTap: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.offline_bolt_rounded,
+                  color: Colors.greenAccent,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    state.cacheNotice!,
+                    style: KashifTypography.arabic(
+                      fontSize: 11.5,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          action: SnackBarAction(
-            label: 'إعادة الفحص بالـ AI',
-            textColor: Colors.amberAccent,
-            onPressed: () {
-              ref.read(reportProvider.notifier).reAnalyzeCurrentWithAi();
-            },
-          ),
+          action: isLocalOffline
+              ? SnackBarAction(
+                  label: 'إعادة الفحص بالـ AI',
+                  textColor: Colors.amberAccent,
+                  onPressed: () {
+                    ref.read(reportProvider.notifier).reAnalyzeCurrentWithAi();
+                  },
+                )
+              : SnackBarAction(
+                  label: 'إخفاء',
+                  textColor: Colors.white70,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  },
+                ),
         ),
       );
       ref.read(reportProvider.notifier).clearCacheNotice();
@@ -195,6 +216,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
   void _showAiFailureAndFallbackDialog(BuildContext context, String errorMessage) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDailyCheckin = errorMessage.contains('apinex.bond') ||
+        errorMessage.contains('حضور يومي') ||
+        errorMessage.contains('402');
 
     showDialog(
       context: context,
@@ -253,19 +277,51 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   color: Colors.amber.withValues(alpha: 0.3),
                 ),
               ),
-              child: Text(
-                errorMessage,
-                style: KashifTypography.arabic(
-                  fontSize: 11.5,
-                  height: 1.4,
-                  color: isDark ? const Color(0xFFFFD54F) : const Color(0xFF8D6E63),
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    errorMessage,
+                    style: KashifTypography.arabic(
+                      fontSize: 11.5,
+                      height: 1.4,
+                      color: isDark ? const Color(0xFFFFD54F) : const Color(0xFF8D6E63),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (isDailyCheckin) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline_rounded, color: Colors.blueAccent, size: 16),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '💡 النماذج مجانية بالكامل 100% ولا تتطلب أي شحن رصيد؛ فقط سجل حضورك اليومي المجاني بنقرة واحدة.',
+                              style: KashifTypography.arabic(
+                                fontSize: 10.5,
+                                color: isDark ? Colors.lightBlueAccent : const Color(0xFF0D47A1),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              'هل ترغب في استخراج تقرير الفحص فورياً عبر القاموس الليبي المدمج، أو إعادة المحاولة عبر الذكاء الاصطناعي؟',
+              'هل ترغب في استخراج تقرير الفحص فورياً عبر القاموس الليبي المدمج، أو تسجيل الحضور وإعادة المحاولة؟',
               style: KashifTypography.arabic(
                 fontSize: 12,
                 height: 1.4,
@@ -277,6 +333,56 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           ],
         ),
         actions: [
+          // If Daily checkin is needed, provide direct 1-click web launcher
+          if (isDailyCheckin) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1565C0),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 2,
+                ),
+                onPressed: () async {
+                  final uri = Uri.parse('https://apinex.bond/airdrop?tab=quests');
+                  try {
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } else {
+                      await Clipboard.setData(
+                        const ClipboardData(text: 'https://apinex.bond/airdrop?tab=quests'),
+                      );
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(
+                            content: Text('تم نسخ رابط تسجيل الحضور: https://apinex.bond/airdrop?tab=quests'),
+                          ),
+                        );
+                      }
+                    }
+                  } catch (_) {
+                    await Clipboard.setData(
+                      const ClipboardData(text: 'https://apinex.bond/airdrop?tab=quests'),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.open_in_browser_rounded, size: 20),
+                label: Text(
+                  'تسجيل حضور يومي مجاني (apinex.bond) 🔗',
+                  style: KashifTypography.arabic(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+
           // 1. Primary Action: Instant Offline Dictionary Extraction
           SizedBox(
             width: double.infinity,
@@ -408,18 +514,18 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             child: Row(
               children: [
                 Container(
-                  width: 46,
-                  height: 46,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
+                    shape: BoxShape.circle,
                     border: Border.all(
                       color: KashifColors.goldPrimary,
-                      width: 1.5,
+                      width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: KashifColors.goldPrimary.withValues(alpha: 0.25),
-                        blurRadius: 8,
+                        color: KashifColors.goldPrimary.withValues(alpha: 0.35),
+                        blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
                     ],

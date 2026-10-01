@@ -23,7 +23,7 @@ class KashifShareService {
       buffer.writeln('• *المحرك:* ${v.formattedEngine}');
     }
     if (v.formattedTransmission.isNotEmpty) {
-      buffer.writeln('• *ناقل الحركة:* ${v.formattedTransmission}');
+      buffer.writeln('• *الكمبيو:* ${v.formattedTransmission}');
     }
     if (v.formattedMileage.isNotEmpty) {
       buffer.writeln('• *قراءة العداد:* ${v.formattedMileage}');

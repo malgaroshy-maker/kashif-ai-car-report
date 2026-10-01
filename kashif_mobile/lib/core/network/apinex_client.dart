@@ -228,7 +228,7 @@ class ApinexClient {
             'success': false,
             'stage': 2,
             'message':
-                '⚠️ تم التحقق من المفتاح بنجاح! لكن النموذج المجاني ($model) يتطلب تسجيل حضور يومي (Daily check-in) على apinex.bond/airdrop أو شحن رصيد. يمكنك تسجيل الحضور أو اختيار نموذج آخر من القائمة.',
+                '⚠️ تم التحقق من المفتاح بنجاح! النماذج مجانية 100% ولا تتطلب أي دفع أو شحن رصيد إطلاقاً؛ كل ما تحتاجه هو تسجيل حضور يومي مجاني (Daily Check-in) بنقرة واحدة عبر الرابط: https://apinex.bond/airdrop?tab=quests لتفعيل النموذج فوراً.',
             'availableModels': availableModels,
           };
         } else if (status == 404 || !modelInList) {
@@ -288,6 +288,8 @@ class ApinexClient {
 المطلوب:
 حلل كافة أكواد الأعطال الواردة وقارنها بالقاموس الليبي الشامل.
 حدّد القطع التالفة بأسعار السوق في ليبيا، وقدّم خطوات فحص وعزل ذكية (Checklist) واضحة قبل التبديل، وأخرج كائن JSON الصالح حصراً وفق الهيكل المطلوب.
+
+${LibyanPromptConstants.libyanMandatoryDirectives}
 ''';
 
     return _executeChatCompletion(userPrompt);
@@ -311,6 +313,8 @@ $textReport
 3. مطابقة أسماء القطع بلهجة الورش الليبية (مثل: بوبينات، شمعات، حساس مرميطة، صالة، مزاطوري...).
 4. تقديم أفكار عزل وفحص ذكية، وأسعار القطع بالدينار الليبي (LYD).
 5. إخراج كائن JSON فقط.
+
+${LibyanPromptConstants.libyanMandatoryDirectives}
 ''';
 
     return _executeChatCompletion(userPrompt);
@@ -333,7 +337,7 @@ $textReport
           {
             'type': 'text',
             'text':
-                'هذه صورة شاشة جهاز فحص السيارات (Launch / Autel / Ediag / ThinkDiag / شاشة الطبلون). اقرأ جميع أكواد الأعطال الظاهرة (DTCs) وبيانات السيارة، وحللها بالكامل وفق قاموس الورش الليبية وأخرج كائن JSON المعتمد.',
+                'هذه صورة شاشة جهاز فحص السيارات (Launch / Autel / Ediag / ThinkDiag / شاشة الطبلون). اقرأ جميع أكواد الأعطال الظاهرة (DTCs) وبيانات السيارة، وحللها بالكامل وفق قاموس الورش الليبية وأخرج كائن JSON المعتمد.\n\n${LibyanPromptConstants.libyanMandatoryDirectives}',
           },
           {
             'type': 'image_url',

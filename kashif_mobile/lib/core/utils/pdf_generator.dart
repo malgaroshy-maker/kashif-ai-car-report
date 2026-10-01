@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -6,6 +7,8 @@ import '../../data/models/diagnostic_report.dart';
 import '../../data/models/fault_code.dart';
 import '../../data/storage/hive_storage.dart';
 import 'report_sanitizer.dart';
+import 'report_qr_helper.dart';
+import 'html_generator.dart';
 
 class KashifPdfGenerator {
   static Future<pw.Font> _loadArabicFont({bool bold = false}) async {
@@ -17,9 +20,11 @@ class KashifPdfGenerator {
       return pw.Font.ttf(bytes);
     } catch (_) {
       try {
-        return bold
-            ? await PdfGoogleFonts.amiriBold()
-            : await PdfGoogleFonts.amiriRegular();
+        final fallbackPath = bold
+            ? 'assets/fonts/readex_pro_bold.ttf'
+            : 'assets/fonts/readex_pro.ttf';
+        final fallbackBytes = await rootBundle.load(fallbackPath);
+        return pw.Font.ttf(fallbackBytes);
       } catch (_) {
         return pw.Font.courier();
       }
@@ -60,12 +65,50 @@ class KashifPdfGenerator {
     );
   }
 
+  /// Generates pristine PDF using native Chromium/WebKit HTML-to-PDF rendering
+  /// with Readex Pro font, perfect Arabic ligatures, and crisp print styling.
   static Future<Uint8List> generateReportPdf(DiagnosticReport report) async {
+    try {
+      String? iconBase64;
+      try {
+        final iconBytes = await rootBundle.load('assets/images/app_icon.png');
+        iconBase64 = base64Encode(iconBytes.buffer.asUint8List());
+      } catch (_) {}
+
+      final printHtml = KashifHtmlGenerator.buildHtml(
+        report,
+        forPrint: true,
+        iconBase64: iconBase64,
+      );
+
+      final pdfBytes = await Printing.convertHtml(
+        html: printHtml,
+        format: PdfPageFormat.a4,
+      );
+      if (pdfBytes.isNotEmpty) {
+        return pdfBytes;
+      }
+    } catch (_) {
+      // Fallback to native canvas PDF if convertHtml fails on unsupported platform
+    }
+    return _generateNativeCanvasPdf(report);
+  }
+
+  static Future<Uint8List> _generateNativeCanvasPdf(DiagnosticReport report) async {
     final pdf = pw.Document();
 
-    // Load Amiri font (solves Arabic letter collision/overlap in Cairo)
+    // Load Readex Pro font (bundled in assets/fonts/)
     final arabicFont = await _loadArabicFont(bold: false);
     final arabicBoldFont = await _loadArabicFont(bold: true);
+
+    // Load circular app icon from bundled assets
+    pw.MemoryImage? appIconImage;
+    try {
+      final iconBytes = await rootBundle.load('assets/images/app_icon.png');
+      appIconImage = pw.MemoryImage(iconBytes.buffer.asUint8List());
+    } catch (_) {}
+
+    final qrSummary = ReportQrHelper.buildQrInspectionSummary(report);
 
     final workshopName = KashifStorage.workshopName;
     final workshopPhone = KashifStorage.workshopPhone;
@@ -92,67 +135,122 @@ class KashifPdfGenerator {
             padding: const pw.EdgeInsets.only(bottom: 12),
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                bottom: pw.BorderSide(color: PdfColors.grey400, width: 1.5),
+                bottom: pw.BorderSide(color: PdfColors.grey300, width: 1.2),
               ),
             ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
               children: [
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    if (workshopName.trim().isNotEmpty &&
-                        workshopName.trim() != 'ورشة الفحص الفني')
-                      pw.Text(
-                        workshopName.trim(),
-                        style: pw.TextStyle(
-                          font: arabicBoldFont,
-                          fontSize: 15,
-                          color: PdfColors.blueGrey900,
-                        ),
-                      ),
-                    if (workshopPhone.trim().isNotEmpty) ...[
+                // Right: Workshop Info
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
                       if (workshopName.trim().isNotEmpty &&
                           workshopName.trim() != 'ورشة الفحص الفني')
+                        pw.Text(
+                          workshopName.trim(),
+                          style: pw.TextStyle(
+                            font: arabicBoldFont,
+                            fontSize: 14,
+                            color: PdfColor.fromHex('0F172A'),
+                          ),
+                        )
+                      else
+                        pw.Text(
+                          'مركز الفحص والتشخيص الفني المعتمد',
+                          style: pw.TextStyle(
+                            font: arabicBoldFont,
+                            fontSize: 13,
+                            color: PdfColor.fromHex('0F172A'),
+                          ),
+                        ),
+                      if (workshopPhone.trim().isNotEmpty) ...[
                         pw.SizedBox(height: 2),
+                        pw.Text(
+                          'هاتف: ${workshopPhone.trim()}',
+                          style: pw.TextStyle(
+                            font: arabicFont,
+                            fontSize: 9.5,
+                            color: PdfColor.fromHex('475569'),
+                          ),
+                        ),
+                      ],
+                      pw.SizedBox(height: 2),
                       pw.Text(
-                        'هاتف: ${workshopPhone.trim()}',
+                        'تاريخ الفحص: ${report.generatedAt.split('T').first}',
                         style: pw.TextStyle(
                           font: arabicFont,
-                          fontSize: 10,
-                          color: PdfColors.grey700,
+                          fontSize: 8.5,
+                          color: PdfColor.fromHex('64748B'),
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+
+                // Left: Flow Cars Brand Badge & Circular App Icon
+                pw.Row(
+                  mainAxisSize: pw.MainAxisSize.min,
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Container(
-                      padding: const pw.EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      color: PdfColor.fromHex('2E7FC4'), // 15A Interactive Blue
-                      child: pw.Text(
-                        'Flow Cars | شهادة فحص فني',
-                        style: pw.TextStyle(
-                          font: arabicBoldFont,
-                          fontSize: 11,
-                          color: PdfColors.white,
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 3.5,
+                          ),
+                          decoration: pw.BoxDecoration(
+                            color: PdfColor.fromHex('0F172A'),
+                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                            border: pw.Border.all(
+                              color: PdfColor.fromHex('D4AF37'),
+                              width: 1,
+                            ),
+                          ),
+                          child: pw.Text(
+                            'Flow Cars | شهادة فحص معتمدة',
+                            style: pw.TextStyle(
+                              font: arabicBoldFont,
+                              fontSize: 9.5,
+                              color: PdfColor.fromHex('F8FAFC'),
+                            ),
+                          ),
+                        ),
+                        pw.SizedBox(height: 2.5),
+                        pw.Text(
+                          'منظومة كاشف الذكي للكشف عن الأعطال',
+                          style: pw.TextStyle(
+                            font: arabicFont,
+                            fontSize: 7.5,
+                            color: PdfColor.fromHex('64748B'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (appIconImage != null) ...[
+                      pw.SizedBox(width: 10),
+                      pw.Container(
+                        width: 38,
+                        height: 38,
+                        decoration: pw.BoxDecoration(
+                          shape: pw.BoxShape.circle,
+                          border: pw.Border.all(
+                            color: PdfColor.fromHex('D4AF37'),
+                            width: 1.8,
+                          ),
+                        ),
+                        child: pw.ClipOval(
+                          child: pw.Image(
+                            appIconImage,
+                            fit: pw.BoxFit.cover,
+                          ),
                         ),
                       ),
-                    ),
-                    pw.SizedBox(height: 3),
-                    pw.Text(
-                      'تاريخ الفحص: ${report.generatedAt.split('T').first}',
-                      style: pw.TextStyle(
-                        font: arabicFont,
-                        fontSize: 9,
-                        color: PdfColors.grey700,
-                      ),
-                    ),
+                    ],
                   ],
                 ),
               ],
@@ -165,7 +263,6 @@ class KashifPdfGenerator {
                   workshopName.trim() != 'ورشة الفحص الفني')
               ? workshopName.trim()
               : (workshopName.trim().isNotEmpty ? workshopName.trim() : 'فني فحص معتمد');
-          final techPhone = workshopPhone.trim();
 
           return pw.Container(
             padding: const pw.EdgeInsets.only(top: 8),
@@ -204,31 +301,17 @@ class KashifPdfGenerator {
                     ),
                   ),
                 ),
-                // Center: رقم هاتف الفني
+                // Center: Flow Cars Kashif AI
                 pw.Expanded(
                   flex: 3,
                   child: pw.Center(
-                    child: pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Text(
-                          'رقم الهاتف: ',
-                          style: pw.TextStyle(
-                            font: arabicBoldFont,
-                            fontSize: 9,
-                            color: PdfColors.blueGrey900,
-                          ),
-                        ),
-                        pw.Text(
-                          techPhone.isNotEmpty ? techPhone : '—',
-                          textDirection: pw.TextDirection.ltr,
-                          style: pw.TextStyle(
-                            font: arabicBoldFont,
-                            fontSize: 9,
-                            color: PdfColors.blueGrey800,
-                          ),
-                        ),
-                      ],
+                    child: pw.Text(
+                      'Flow Cars | كاشف الذكي',
+                      style: pw.TextStyle(
+                        font: arabicFont,
+                        fontSize: 8.5,
+                        color: PdfColor.fromHex('64748B'),
+                      ),
                     ),
                   ),
                 ),
@@ -396,7 +479,7 @@ class KashifPdfGenerator {
                         if (engineTitle.isNotEmpty)
                           buildSpecRow('المحرك:', engineTitle),
                         if (transTitle.isNotEmpty)
-                          buildSpecRow('ناقل الحركة:', transTitle),
+                          buildSpecRow('الكمبيو:', ReportSanitizer.clean(transTitle)),
                         if (mileageTitle.isNotEmpty)
                           buildSpecRow('قراءة العداد:', mileageTitle),
                         if (report.generatedAt.isNotEmpty)
@@ -834,7 +917,7 @@ class KashifPdfGenerator {
               pw.SizedBox(height: 16),
             ],
 
-            // Technician Info & Endorsement Box
+            // Technician Info & Endorsement Box with QR Verification
             pw.Container(
               margin: const pw.EdgeInsets.only(top: 14),
               padding: const pw.EdgeInsets.symmetric(
@@ -857,15 +940,15 @@ class KashifPdfGenerator {
                         style: pw.TextStyle(
                           font: arabicBoldFont,
                           fontSize: 10,
-                          color: PdfColor.fromHex('1E3A8A'),
+                          color: PdfColor.fromHex('0F172A'),
                         ),
                       ),
                       pw.Text(
-                        'Flow Cars Inspection Report',
+                        'Flow Cars Certified Diagnostic Report',
                         style: pw.TextStyle(
                           font: arabicFont,
                           fontSize: 8,
-                          color: PdfColors.grey600,
+                          color: PdfColor.fromHex('64748B'),
                         ),
                       ),
                     ],
@@ -873,77 +956,144 @@ class KashifPdfGenerator {
                   pw.Divider(color: PdfColor.fromHex('E2E8F0'), thickness: 0.8, height: 10),
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
-                      pw.Row(
-                        children: [
-                          pw.Text(
-                            'اسم الفني: ',
-                            style: pw.TextStyle(
-                              font: arabicBoldFont,
-                              fontSize: 10,
-                              color: PdfColors.blueGrey900,
-                            ),
-                          ),
-                          pw.Text(
-                            (workshopName.trim().isNotEmpty &&
-                                    workshopName.trim() != 'ورشة الفحص الفني')
-                                ? workshopName.trim()
-                                : (workshopName.trim().isNotEmpty ? workshopName.trim() : 'فني فحص معتمد'),
-                            style: pw.TextStyle(
-                              font: arabicBoldFont,
-                              fontSize: 10,
-                              color: PdfColors.blueGrey800,
-                            ),
-                          ),
-                        ],
-                      ),
-                      pw.Row(
-                        children: [
-                          pw.Text(
-                            'رقم الهاتف: ',
-                            style: pw.TextStyle(
-                              font: arabicBoldFont,
-                              fontSize: 10,
-                              color: PdfColors.blueGrey900,
-                            ),
-                          ),
-                          pw.Text(
-                            workshopPhone.trim().isNotEmpty
-                                ? workshopPhone.trim()
-                                : '—',
-                            textDirection: pw.TextDirection.ltr,
-                            style: pw.TextStyle(
-                              font: arabicBoldFont,
-                              fontSize: 10,
-                              color: PdfColors.blueGrey800,
-                            ),
-                          ),
-                        ],
-                      ),
-                      pw.Row(
-                        children: [
-                          pw.Text(
-                            'التوقيع / الختم: ',
-                            style: pw.TextStyle(
-                              font: arabicBoldFont,
-                              fontSize: 9.5,
-                              color: PdfColors.blueGrey700,
-                            ),
-                          ),
-                          pw.Container(
-                            width: 90,
-                            height: 18,
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(
-                                  color: PdfColors.blueGrey400,
-                                  width: 1,
-                                  style: pw.BorderStyle.dashed,
+                      // Technician & Signature Details
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Row(
+                              children: [
+                                pw.Text(
+                                  'اسم الفني: ',
+                                  style: pw.TextStyle(
+                                    font: arabicBoldFont,
+                                    fontSize: 9.5,
+                                    color: PdfColors.blueGrey900,
+                                  ),
                                 ),
-                              ),
+                                pw.Text(
+                                  (workshopName.trim().isNotEmpty &&
+                                          workshopName.trim() != 'ورشة الفحص الفني')
+                                      ? workshopName.trim()
+                                      : (workshopName.trim().isNotEmpty ? workshopName.trim() : 'فني فحص معتمد'),
+                                  style: pw.TextStyle(
+                                    font: arabicBoldFont,
+                                    fontSize: 9.5,
+                                    color: PdfColors.blueGrey800,
+                                  ),
+                                ),
+                              ],
                             ),
+                            pw.SizedBox(height: 3),
+                            pw.Row(
+                              children: [
+                                pw.Text(
+                                  'رقم الهاتف: ',
+                                  style: pw.TextStyle(
+                                    font: arabicBoldFont,
+                                    fontSize: 9.5,
+                                    color: PdfColors.blueGrey900,
+                                  ),
+                                ),
+                                pw.Text(
+                                  workshopPhone.trim().isNotEmpty
+                                      ? workshopPhone.trim()
+                                      : '—',
+                                  textDirection: pw.TextDirection.ltr,
+                                  style: pw.TextStyle(
+                                    font: arabicBoldFont,
+                                    fontSize: 9.5,
+                                    color: PdfColors.blueGrey800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            pw.SizedBox(height: 5),
+                            pw.Row(
+                              children: [
+                                pw.Text(
+                                  'التوقيع / الختم: ',
+                                  style: pw.TextStyle(
+                                    font: arabicBoldFont,
+                                    fontSize: 9,
+                                    color: PdfColors.blueGrey700,
+                                  ),
+                                ),
+                                pw.Container(
+                                  width: 90,
+                                  height: 16,
+                                  decoration: const pw.BoxDecoration(
+                                    border: pw.Border(
+                                      bottom: pw.BorderSide(
+                                        color: PdfColors.blueGrey400,
+                                        width: 1,
+                                        style: pw.BorderStyle.dashed,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // QR Code Verification Box
+                      pw.Container(
+                        padding: const pw.EdgeInsets.all(5),
+                        decoration: pw.BoxDecoration(
+                          color: PdfColors.white,
+                          border: pw.Border.all(
+                            color: PdfColor.fromHex('CBD5E1'),
+                            width: 0.8,
                           ),
-                        ],
+                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                        ),
+                        child: pw.Row(
+                          mainAxisSize: pw.MainAxisSize.min,
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.BarcodeWidget(
+                              barcode: pw.Barcode.qrCode(),
+                              data: qrSummary,
+                              width: 58,
+                              height: 58,
+                            ),
+                            pw.SizedBox(width: 8),
+                            pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Text(
+                                  'رمز التحقق الذكي (QR)',
+                                  style: pw.TextStyle(
+                                    font: arabicBoldFont,
+                                    fontSize: 8.5,
+                                    color: PdfColor.fromHex('0F172A'),
+                                  ),
+                                ),
+                                pw.SizedBox(height: 2),
+                                pw.Text(
+                                  'امسح الكود بكاميرا أي هاتف',
+                                  style: pw.TextStyle(
+                                    font: arabicFont,
+                                    fontSize: 7.5,
+                                    color: PdfColor.fromHex('64748B'),
+                                  ),
+                                ),
+                                pw.Text(
+                                  'لعرض ملخص الفحص فوراً',
+                                  style: pw.TextStyle(
+                                    font: arabicFont,
+                                    fontSize: 7.5,
+                                    color: PdfColor.fromHex('64748B'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

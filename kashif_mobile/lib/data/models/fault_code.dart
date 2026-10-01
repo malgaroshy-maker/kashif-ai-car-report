@@ -1,3 +1,5 @@
+import '../../core/utils/report_sanitizer.dart';
+
 enum CodeSeverity {
   critical, // 10A Red
   moderate, // 20A Yellow
@@ -133,23 +135,26 @@ class DiagnosticFaultCode {
     return DiagnosticFaultCode(
       code: json['code'] as String? ?? 'DTC',
       module: json['module'] as String? ?? 'ECM',
-      moduleNameArabic: json['moduleNameArabic'] as String? ?? '',
+      moduleNameArabic:
+          ReportSanitizer.clean(json['moduleNameArabic'] as String? ?? ''),
       standardDescriptionEn: json['standardDescriptionEn'] as String? ?? '',
-      libyanTerm: json['libyanTerm'] as String? ?? '',
-      standardArabicDescription:
-          json['standardArabicDescription'] as String? ?? '',
+      libyanTerm: ReportSanitizer.clean(json['libyanTerm'] as String? ?? ''),
+      standardArabicDescription: ReportSanitizer.clean(
+        json['standardArabicDescription'] as String? ?? '',
+      ),
       driverSymptoms:
           (json['driverSymptoms'] as List<dynamic>?)
-              ?.map((e) => e.toString())
+              ?.map((e) => ReportSanitizer.clean(e.toString()))
               .toList() ??
           [],
       rootCauses:
           (json['rootCauses'] as List<dynamic>?)
-              ?.map((e) => e.toString())
+              ?.map((e) => ReportSanitizer.clean(e.toString()))
               .toList() ??
           [],
       urgencyLevel: urgency,
-      recommendedAction: json['recommendedAction'] as String? ?? '',
+      recommendedAction:
+          ReportSanitizer.clean(json['recommendedAction'] as String? ?? ''),
       recommendedPartId: json['recommendedPartId'] as String?,
       severity: sev,
       electricalDiagnostics:

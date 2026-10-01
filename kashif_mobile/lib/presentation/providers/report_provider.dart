@@ -99,8 +99,8 @@ class ReportNotifier extends StateNotifier<ReportState> {
     if (str.contains('429') || str.contains('Resource Exhausted') || str.contains('QUOTA')) {
       return 'تم استنفاد كوتة الذكاء الاصطناعي (Quota Exceeded 429). يمكنك التحويل التلقائي أو استخراج التقرير بالقاموس المحلي.';
     }
-    if (str.contains('402')) {
-      return 'النموذج المجاني يتطلب تسجيل حضور يومي على apinex.bond أو شحن رصيد.';
+    if (str.contains('402') || str.contains('Daily check-in') || str.contains('check-in')) {
+      return 'النماذج في APInex مجانية 100% ولا تتطلب أي دفع أو شحن رصيد؛ كل ما تحتاجه هو تسجيل حضور يومي مجاني بنقرة واحدة على: https://apinex.bond/airdrop?tab=quests لتفعيل الكوتة اليومية.';
     }
     if (str.contains('401')) {
       return 'مفتاح الـ API غير صالح أو ملغي. يرجى مراجعة إعدادات المفاتيح.';

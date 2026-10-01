@@ -2,23 +2,19 @@
 """
 Flow Cars - Mobile Preview Launcher
 Runs a lightweight local HTTP server and opens a dedicated phone-sized browser window.
+All console output is in English to prevent Windows terminal character encoding issues.
 """
 import sys
 import os
 import subprocess
 import time
 import socket
+import shutil
 import threading
+import urllib.request
+import urllib.error
+import json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-
-# Reconfigure stdout/stderr to UTF-8 to prevent CP1252 charmap crashes on Windows
-try:
-    if sys.stdout:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-    if sys.stderr:
-        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-except Exception:
-    pass
 
 PORT = 7357
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -27,7 +23,7 @@ if not os.path.exists(os.path.join(APP_DIR, "pubspec.yaml")):
     APP_DIR = SCRIPT_DIR
 WEB_DIR = os.path.join(APP_DIR, "build", "web")
 
-# Ensure Flutter & Chrome are in PATH
+# Ensure Flutter is in PATH
 FLUTTER_DIRS = [
     r"C:\flutter\bin",
     r"F:\flutter\bin",
@@ -59,15 +55,67 @@ def kill_port_owner(port):
     if not is_port_in_use(port):
         return
     try:
-        cmd = f'powershell -Command "Get-NetTCPConnection -LocalPort {port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object {{ Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }}"'
+        cmd = f'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort {port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object {{ Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }}"'
         subprocess.run(cmd, shell=True, capture_output=True)
         time.sleep(0.5)
     except Exception:
         pass
 
+def kill_stale_processes():
+    """Kills any previous processes using port 7357 or the dev browser profile."""
+    kill_port_owner(PORT)
+    try:
+        cmd = (
+            'powershell -NoProfile -Command "'
+            'Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | '
+            'Where-Object { $_.CommandLine -like \'*kashif_chrome_dev*\' -or $_.CommandLine -like \'*127.0.0.1:7357*\' } | '
+            'ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"'
+        )
+        subprocess.run(cmd, shell=True, capture_output=True)
+        time.sleep(0.5)
+    except Exception:
+        pass
+
+def clear_browser_cache():
+    """Wipes Chrome dev profile cache completely."""
+    kill_stale_processes()
+    dev_profile = os.path.expandvars(r"%TEMP%\kashif_chrome_dev")
+    if os.path.exists(dev_profile):
+        try:
+            shutil.rmtree(dev_profile, ignore_errors=True)
+        except Exception:
+            pass
+
 class CustomHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=WEB_DIR, **kwargs)
+
+    def do_GET(self):
+        if self.path.startswith('/flutter_service_worker.js'):
+            # Return immediate unregister script so browser never uses stale worker
+            unregister_code = (
+                b"'use strict';\n"
+                b"self.addEventListener('install', () => self.skipWaiting());\n"
+                b"self.addEventListener('activate', (e) => e.waitUntil(self.registration.unregister()));\n"
+            )
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/javascript; charset=utf-8')
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(unregister_code)
+            return
+
+        super().do_GET()
+
+    def end_headers(self):
+        # Disable caching completely so the browser always loads the latest files
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        self.send_header('Pragma', 'no-cache')
+        self.send_header('Expires', '0')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        super().end_headers()
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -78,10 +126,6 @@ class CustomHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         if self.path.startswith('/apinex-proxy'):
-            import urllib.request
-            import urllib.error
-            import json
-
             sub_path = self.path[len('/apinex-proxy'):]
             target_url = f"https://api.apinex.bond/v1{sub_path}"
             content_length = int(self.headers.get('Content-Length', 0))
@@ -136,47 +180,94 @@ def run_server():
 
 def open_mobile_window():
     browser = find_browser()
-    url = f"http://127.0.0.1:{PORT}"
+    cache_buster = int(time.time())
+    url = f"http://127.0.0.1:{PORT}/?v={cache_buster}"
     if browser:
         dev_profile = os.path.expandvars(r"%TEMP%\kashif_chrome_dev")
         args = [
             browser,
             f"--app={url}",
-            "--window-size=420,880",
-            "--window-position=60,60",
+            "--window-size=430,900",
+            "--window-position=60,40",
             "--disable-web-security",
             f"--user-data-dir={dev_profile}",
-            "--allow-running-insecure-content"
+            "--allow-running-insecure-content",
+            "--disable-cache",
+            "--disable-application-cache",
+            "--disk-cache-size=1",
+            "--media-cache-size=1",
+            "--aggressive-cache-discard"
         ]
         subprocess.Popen(args)
     else:
         import webbrowser
         webbrowser.open(url)
 
+def get_latest_source_mtime():
+    """Returns the latest modification time among all source files and assets."""
+    latest = 0
+    check_dirs = [
+        os.path.join(APP_DIR, "lib"),
+        os.path.join(APP_DIR, "assets"),
+        os.path.join(APP_DIR, "web"),
+    ]
+    for cdir in check_dirs:
+        if os.path.exists(cdir):
+            for root, _, files in os.walk(cdir):
+                for f in files:
+                    if f.endswith(('.dart', '.yaml', '.json', '.png', '.ttf', '.html', '.js')):
+                        p = os.path.join(root, f)
+                        try:
+                            m = os.path.getmtime(p)
+                            if m > latest:
+                                latest = m
+                        except Exception:
+                            pass
+    pubspec = os.path.join(APP_DIR, "pubspec.yaml")
+    if os.path.exists(pubspec):
+        try:
+            latest = max(latest, os.path.getmtime(pubspec))
+        except Exception:
+            pass
+    return latest
+
+def is_web_outdated():
+    index_path = os.path.join(WEB_DIR, "index.html")
+    if not os.path.exists(index_path):
+        return True
+    try:
+        build_time = os.path.getmtime(index_path)
+        source_time = get_latest_source_mtime()
+        return source_time > (build_time + 2)
+    except Exception:
+        return False
+
 def build_web():
-    print("\n[🔨] جاري تجميع نسخة الويب السريعة بأقصى سرعة...")
+    print("\n[*] Building latest web release bundle...")
     res = subprocess.run(
         ["flutter", "build", "web", "--no-pub", "--no-wasm-dry-run", "--no-tree-shake-icons"],
         cwd=APP_DIR,
         shell=True
     )
     if res.returncode == 0:
-        print("[✓] تم التجميع بنجاح!\n")
+        print("[+] Web bundle compiled successfully!\n")
+        clear_browser_cache()
         return True
     else:
-        print("[✗] حدث خطأ أثناء التجميع.")
+        print("[-] Error compiling web bundle.")
         return False
 
 def run_dev():
     kill_port_owner(PORT)
+    clear_browser_cache()
     print("\n====================================================================")
-    print(" [أزرار التحكم أثناء العمل في وضع التطوير]:")
-    print("   - احفظ أي ملف في الكود (Ctrl + S)")
-    print("   - اضغط [ r ] للتحديث الفوري (Hot Reload)")
-    print("   - اضغط [ R ] للتحديث الكامل (Hot Restart)")
-    print("   - اضغط [ q ] لإيقاف التشغيل والخروج")
+    print(" [Hot Reload Controls in Development Mode]:")
+    print("   - Save any file in your editor (Ctrl + S)")
+    print("   - Press [ r ] for Hot Reload")
+    print("   - Press [ R ] for Full Hot Restart")
+    print("   - Press [ q ] to Quit")
     print("====================================================================\n")
-    print("جاري تشغيل المعاينة الحية...")
+    print("[*] Launching Flutter live development server...")
     user_data = os.path.expandvars(r"%USERPROFILE%\.flutter_chrome_dev")
     cmd = [
         "flutter", "run", "-d", "chrome",
@@ -191,18 +282,17 @@ def run_dev():
 
 def main():
     print("====================================================================")
-    print("         Flow Cars - تشغيل تطبيق الهاتف على الكمبيوتر")
+    print("             Flow Cars - Live Mobile App Preview")
     print("====================================================================")
-    print(f"مسار التطبيق: {APP_DIR}")
-    print("\nاختر طريقة التشغيل:")
-    print("  [1] تشغيل فوري وسريع جداً (في ثانية واحدة) [موصى به] ⚡")
-    print("  [2] تشغيل وضع التطوير والمزامنة الحية (Hot Reload) 🔄")
-    print("  [3] إعادة بناء وتحديث نسخة الويب (Rebuild Web) 🔨\n")
+    print(f"App directory: {APP_DIR}")
+    print("\nSelect launch mode:")
+    print("  [1] Instant Run (Fastest - loads in 1 second) [Recommended] *")
+    print("  [2] Live Dev Mode (Hot Reload with Flutter run)")
+    print("  [3] Rebuild Web Bundle (Force recompile from source)\n")
     print("====================================================================")
 
-    # Prompt with timeout
     choice = "1"
-    prompt = "يرجى الاختيار (سيتم تشغيل الخيار 1 تلقائياً خلال 3 ثوانٍ): "
+    prompt = "Choice (Auto-selecting [1] in 3 seconds): "
     print(prompt, end="", flush=True)
 
     import msvcrt
@@ -216,49 +306,55 @@ def main():
                 break
         time.sleep(0.05)
     else:
-        print("1 (تلقائي)")
+        print("1 (Auto)")
 
     if choice == "3":
         if build_web():
             choice = "1"
         else:
-            input("\nاضغط Enter للمتابعة...")
+            input("\nPress Enter to exit...")
             return
 
     if choice == "2":
         run_dev()
         return
 
-    # Option 1: Instant Run
+    # Option 1: Instant Run with Smart Auto-Rebuild
     index_path = os.path.join(WEB_DIR, "index.html")
     if not os.path.exists(index_path):
-        print("\n[⚡] نسخة الويب غير مبنية، جاري بناؤها لمرة واحدة فقط...")
+        print("\n[*] Web bundle not found. Compiling for the first time...")
         if not build_web():
-            input("\nاضغط Enter للمتابعة...")
+            input("\nPress Enter to exit...")
             return
+    elif is_web_outdated():
+        print("\n[*] Detected newer source code changes!")
+        print("[*] Automatically updating web bundle to display latest features...")
+        if not build_web():
+            print("[!] Continuing with existing build...")
 
     kill_port_owner(PORT)
+    clear_browser_cache()
 
-    print("\n[1/2] تشغيل الخادم المحلي على المنفذ 7357...")
+    print("\n[1/2] Starting local HTTP server on port 7357...")
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     time.sleep(0.8)
 
-    print("[2/2] فتح نافذة الهاتف الذكي في المتصفح...")
+    print("[2/2] Opening dedicated phone preview window in browser...")
     open_mobile_window()
 
     print("\n====================================================================")
-    print(" ✅ تم تشغيل تطبيق Flow Cars بنجاح كشاشة هاتف مستقلة!")
+    print(" [OK] Flow Cars is running in mobile phone mode!")
     print("====================================================================")
-    print(f" الخادم يعمل الآن (http://127.0.0.1:{PORT})")
-    print(" اضغط [Enter] أو أي زر لإغلاق هذه النافذة وإنهاء الخادم...")
+    print(f" Local URL: http://127.0.0.1:{PORT}")
+    print(" Press [Enter] to stop the server and close this window...")
     print("====================================================================")
 
     try:
         input()
     except (KeyboardInterrupt, EOFError):
         pass
-    print("تم إغلاق الخادم بنجاح.")
+    print("Server stopped.")
 
 if __name__ == "__main__":
     main()

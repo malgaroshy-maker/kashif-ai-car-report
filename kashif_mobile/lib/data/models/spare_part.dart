@@ -1,3 +1,5 @@
+import '../../core/utils/report_sanitizer.dart';
+
 class PriceRangeLYD {
   final double min;
   final double max;
@@ -53,8 +55,10 @@ class SparePartItem {
     return SparePartItem(
       id: json['id'] as String? ?? '',
       relatedCode: json['relatedCode'] as String? ?? '',
-      partNameLibyan: json['partNameLibyan'] as String? ?? '',
-      partNameStandardArabic: json['partNameStandardArabic'] as String? ?? '',
+      partNameLibyan:
+          ReportSanitizer.clean(json['partNameLibyan'] as String? ?? ''),
+      partNameStandardArabic:
+          ReportSanitizer.clean(json['partNameStandardArabic'] as String? ?? ''),
       partNameEnglish: json['partNameEnglish'] as String? ?? '',
       oemPartNumber: json['oemPartNumber'] as String?,
       aftermarketReplacements:

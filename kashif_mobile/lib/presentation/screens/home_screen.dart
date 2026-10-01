@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
-import '../providers/settings_provider.dart';
 import '../providers/history_provider.dart';
 import 'scan_screen.dart';
 import 'report_screen.dart';
@@ -35,7 +34,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final settings = ref.watch(settingsProvider);
 
     final screens = [
       ScanScreen(onReportReady: () => _navigateToTab(1)),
@@ -58,6 +56,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: 28,
+              height: 28,
+              margin: const EdgeInsets.only(left: 6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFD4AF37),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
+                    blurRadius: 4,
+                  ),
+                ],
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/app_icon.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(

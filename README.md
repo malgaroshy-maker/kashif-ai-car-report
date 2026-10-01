@@ -41,6 +41,12 @@
    - مشاركة الملخص بنقرة واحدة عبر WhatsApp والطباعة المباشرة لـ PDF بقياس A4.
 7. **مساعد الأسطى كاشف التفاعلي (AI Mechanic Chat):**
    - شات ذكي يقدم نصائح ميكانيكية وخطوات فحص عملية باللهجة الليبية الفنية.
+8. **تطبيق الهاتف الذكي المخصص لورش الصيانة (Flow Cars Mobile App):**
+   - تطبيق أصيل مبني بـ Flutter يدعم أندرويد و iOS، متوفر في مجلد [`kashif_mobile`](kashif_mobile/README.md).
+   - مسح مباشر لشاشات أجهزة الفحص عبر الكاميرا (Camera OCR) وأجهزة Launch و Autel و Ediag و ThinkDiag.
+   - تكامل كامل مع بوابات الذكاء الاصطناعي (APInex متعدد النماذج و Google Gemini).
+   - محرك تعريب وتدقيق صارم للمصطلحات الليبية المعتمدة (كمبيو، بومبة، باطنيات، سمياص، براتشوات، مزاطوريات، شمعات، بوبينات).
+   - تصدير تقارير PDF قياسية (A4) بخط Readex Pro وتقارير HTML مستقلة عالية التباين، ومشاركة فورية عبر QR Code.
 
 ---
 
@@ -229,6 +235,11 @@ npx wrangler secret put GEMINI_API_KEY
 │   └── deploy-cloudflare.yml  # فحص فقط — النشر من لوحة Cloudflare
 ├── wrangler.jsonc             # إعدادات Cloudflare Workers & Assets
 ├── open-next.config.ts        # إعدادات محوّل OpenNext
+├── kashif_mobile/             # تطبيق الهاتف الذكي الأصيل (Flutter)
+│   ├── assets/                # خطوط Readex Pro وأيقونات النظام
+│   ├── lib/                   # الكود المصدري (Riverpod, Dio, APInex, Hive)
+│   ├── android/               # إعدادات أندرويد وبناء حزمة الـ APK
+│   └── README.md              # توثيق تطبيق الهاتف ودليل التشغيل والبناء
 ├── PRODUCT.md                 # حقائق المنتج الثابتة
 ├── DESIGN.md                  # نظام التصميم والهوية (لوحة الفيوزات)
 ├── plan.md                    # خطة إعادة البناء والمراجعة الهندسية

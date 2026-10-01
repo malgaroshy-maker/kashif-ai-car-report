@@ -1,3 +1,5 @@
+import '../../core/utils/report_sanitizer.dart';
+
 class DiagnosticChecklistStep {
   final int stepNumber;
   final String actionTitle;
@@ -22,18 +24,23 @@ class DiagnosticChecklistStep {
       stepNumber: json['stepNumber'] is int
           ? json['stepNumber'] as int
           : int.tryParse(json['stepNumber']?.toString() ?? '') ?? 1,
-      actionTitle:
-          (json['actionTitle'] ?? json['targetComponent'] ?? '') as String,
-      actionDescriptionLibyan:
-          (json['actionDescriptionLibyan'] ??
-                  json['actionRequiredLibyan'] ??
-                  '')
-              as String,
-      purpose: (json['purpose'] ?? json['testPurpose'] ?? '') as String,
+      actionTitle: ReportSanitizer.clean(
+        (json['actionTitle'] ?? json['targetComponent'] ?? '') as String,
+      ),
+      actionDescriptionLibyan: ReportSanitizer.clean(
+        (json['actionDescriptionLibyan'] ??
+                json['actionRequiredLibyan'] ??
+                '')
+            as String,
+      ),
+      purpose: ReportSanitizer.clean(
+        (json['purpose'] ?? json['testPurpose'] ?? '') as String,
+      ),
       estimatedTime:
           (json['estimatedTime'] ?? json['timeEstimated'] ?? '') as String,
-      toolingNeeded:
-          (json['toolingNeeded'] ?? json['toolNeeded'] ?? '') as String,
+      toolingNeeded: ReportSanitizer.clean(
+        (json['toolingNeeded'] ?? json['toolNeeded'] ?? '') as String,
+      ),
       isCompleted: json['isCompleted'] as bool? ?? false,
     );
   }
