@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -193,10 +193,203 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     }
   }
 
+  void _showAiFailureAndFallbackDialog(BuildContext context, String errorMessage) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF0F1E38) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isDark
+                ? KashifColors.goldPrimary.withValues(alpha: 0.4)
+                : KashifColors.royalBlue.withValues(alpha: 0.3),
+            width: 1.2,
+          ),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.smart_toy_outlined,
+                color: Colors.amber,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'تعذر الفحص بالذكاء الاصطناعي',
+                style: KashifTypography.arabic(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1410) : const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.amber.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Text(
+                errorMessage,
+                style: KashifTypography.arabic(
+                  fontSize: 11.5,
+                  height: 1.4,
+                  color: isDark ? const Color(0xFFFFD54F) : const Color(0xFF8D6E63),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'هل ترغب في استخراج تقرير الفحص فورياً عبر القاموس الليبي المدمج، أو إعادة المحاولة عبر الذكاء الاصطناعي؟',
+              style: KashifTypography.arabic(
+                fontSize: 12,
+                height: 1.4,
+                color: isDark
+                    ? KashifColors.darkTextMuted
+                    : KashifColors.lightTextMuted,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          // 1. Primary Action: Instant Offline Dictionary Extraction
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2E9E5B),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 2,
+              ),
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                await ref
+                    .read(reportProvider.notifier)
+                    .generateOfflineReportForPending();
+                if (ref.read(reportProvider).report != null && mounted) {
+                  _checkAndShowCacheNotice();
+                  widget.onReportReady();
+                }
+              },
+              icon: const Icon(Icons.offline_bolt_rounded, size: 20),
+              label: Text(
+                'استخراج التقرير بالقاموس المحلي فوراً ⚡',
+                style: KashifTypography.arabic(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 2. Secondary Actions: Retry AI or Settings
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue,
+                    side: BorderSide(
+                      color: isDark
+                          ? KashifColors.goldPrimary.withValues(alpha: 0.6)
+                          : KashifColors.royalBlue.withValues(alpha: 0.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    ref.read(reportProvider.notifier).reAnalyzeCurrentWithAi();
+                  },
+                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  label: Text(
+                    'إعادة المحاولة 🔄',
+                    style: KashifTypography.arabic(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white70 : Colors.black87,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    ref.read(reportProvider.notifier).dismissOfflineFallback();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.settings_outlined, size: 16),
+                  label: Text(
+                    'الإعدادات ⚙️',
+                    style: KashifTypography.arabic(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(reportProvider);
+
+    ref.listen<ReportState>(reportProvider, (prev, next) {
+      if (next.canFallbackToOffline &&
+          !next.isLoading &&
+          next.errorMessage != null &&
+          mounted) {
+        _showAiFailureAndFallbackDialog(context, next.errorMessage!);
+      }
+    });
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -366,36 +559,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                           elevation: 2,
                         ),
                         onPressed: () async {
-                          final lastCodes =
-                              _codesController.text.trim().isNotEmpty
-                              ? _codesController.text.trim()
-                              : ref.read(reportProvider).lastManualCodes;
-                          final lastVin = _vinController.text.trim().isNotEmpty
-                              ? _vinController.text.trim()
-                              : ref.read(reportProvider).lastManualVin;
-
-                          if (lastCodes != null && lastCodes.isNotEmpty) {
-                            await ref
-                                .read(reportProvider.notifier)
-                                .generateOfflineReport(lastCodes, lastVin);
-                            if (ref.read(reportProvider).report != null &&
-                                mounted) {
-                              _checkAndShowCacheNotice();
-                              widget.onReportReady();
-                            }
-                          } else {
-                            ref.read(reportProvider.notifier).clearError();
-                            setState(() {
-                              _showManualInput = true;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  '⚡ أدخل كود العطل هنا وسيتم التشخيص فورياً بدون إنترنت!',
-                                ),
-                                duration: Duration(seconds: 4),
-                              ),
-                            );
+                          await ref
+                              .read(reportProvider.notifier)
+                              .generateOfflineReportForPending();
+                          if (ref.read(reportProvider).report != null &&
+                              mounted) {
+                            _checkAndShowCacheNotice();
+                            widget.onReportReady();
                           }
                         },
                         icon: const Icon(Icons.offline_bolt_rounded, size: 17),

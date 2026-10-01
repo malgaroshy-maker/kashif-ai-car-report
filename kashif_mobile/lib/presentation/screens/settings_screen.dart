@@ -16,43 +16,28 @@ class SettingsScreen extends ConsumerStatefulWidget {
   static const List<Map<String, String>> apinexFreeModels = [
     {
       'id': 'free/gpt-6-luna',
-      'name': 'GPT-6 Luna (مجاني • الأفضل للأعطال والورش الليبية)',
-      'desc': 'الموديل الموصى به لتقارير الفحص والأسعار بالدينار الليبي',
+      'name': 'GPT-6 Luna (مجاني • الافتراضي لكاشف)',
+      'desc': 'الموديل المعتمد لتقارير الفحص ومصطلحات الورش الليبية (1M Context)',
     },
     {
-      'id': 'free/gemini-3.8-flash',
-      'name': 'Gemini 3.8 Flash (مجاني • فائق السرعة وقراءة الصور)',
-      'desc': 'سرعة استجابة فورية ودعم صور أجهزة الكشف',
-    },
-    {
-      'id': 'free/gemini-3.1-pro',
-      'name': 'Gemini 3.1 Pro (مجاني • دقة تشخيصية عالية)',
-      'desc': 'تحليل عميق للأعطال المعقدة والمتشابكة',
+      'id': 'free/glm-5.3-flash',
+      'name': 'GLM-5.3 Flash (مجاني • سرعة فائقة)',
+      'desc': 'استجابة فورية وسريعة جداً في قراءة وتحليل الأعطال (1M Context)',
     },
     {
       'id': 'free/deepseek-v4.1-flash',
-      'name': 'DeepSeek v4.1 Flash (مجاني • هندسة تشخيصية ممتازة)',
-      'desc': 'قوي جداً في استنتاج الأكواد والدوائر الكهربائية',
+      'name': 'DeepSeek V4.1 Flash (مجاني • دقة ومطابقة)',
+      'desc': 'قوي جداً في استنتاج الأكواد وتشخيص الأنظمة والدوائر (1M Context)',
     },
     {
-      'id': 'free/claude-sonnet-4.6',
-      'name': 'Claude Sonnet 4.6 (مجاني • صياغة فنية راقية)',
-      'desc': 'تقارير فنية مفصلة وصياغة احترافية شاملة',
+      'id': 'free/deepseek-v4-pro-0813',
+      'name': 'DeepSeek V4 Pro (مجاني • تحليل معماري دقيق)',
+      'desc': 'استدلال منطقي متقدم لأعطال السيارات الشديدة والمتشابكة (1M Context)',
     },
     {
-      'id': 'free/qwen-3.8-max',
-      'name': 'Qwen 3.8 Max (مجاني • قدرات تحليلية متقدمة)',
-      'desc': 'فهم سياق قوي ومتعدد اللغات',
-    },
-    {
-      'id': 'free/kimi-k3',
-      'name': 'Kimi K3 (مجاني • استنتاج سريع)',
-      'desc': 'معالجة سريعة للبيانات والأعطال',
-    },
-    {
-      'id': 'free/minimax-m3.1',
-      'name': 'MiniMax M3.1 (مجاني • خفيف وسريع)',
-      'desc': 'استجابة سريعة للاستعلامات الفنية',
+      'id': 'free/mimo-v2.6-pro',
+      'name': 'Mimo V2.6 Pro (مجاني • استنتاج احترافي)',
+      'desc': 'معالجة فنية متطورة وصياغة تقارير موثوقة (1M Context)',
     },
     {
       'id': 'custom',
@@ -75,6 +60,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _obscureKey = true;
   bool _obscureApinexKey = false;
   bool _isTestingApinex = false;
+  bool _isFetchingModels = false;
+  List<String> _liveServerModels = [];
 
   final Map<String, bool> _testingMap = {};
   final Map<String, String?> _testResults = {};
@@ -245,6 +232,262 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _fetchServerModels() async {
+    setState(() => _isFetchingModels = true);
+    final key = _apinexKeyController.text.trim();
+    try {
+      final models = await ApinexClient().fetchAvailableModels(keyOverride: key);
+      if (mounted) {
+        setState(() {
+          _liveServerModels = models;
+          _isFetchingModels = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '✅ تم جلب ${models.length} نموذجاً متاحاً من سيرفر APInex بنجاح!',
+              style: KashifTypography.arabic(fontSize: 12),
+            ),
+            backgroundColor: const Color(0xFF1B5E20),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isFetchingModels = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '❌ تعذر جلب النماذج من السيرفر: ${e.toString()}',
+              style: KashifTypography.arabic(fontSize: 12),
+            ),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showConnectionResultModal({
+    required bool success,
+    required int stage,
+    required String message,
+    required String modelName,
+    required List<String> availableModels,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F1E38) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            border: Border.all(
+              color: isDark
+                  ? KashifColors.goldPrimary.withValues(alpha: 0.3)
+                  : KashifColors.royalBlue.withValues(alpha: 0.2),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : Colors.black26,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Icon(
+                    success
+                        ? Icons.check_circle_rounded
+                        : (stage == 2
+                            ? Icons.warning_amber_rounded
+                            : Icons.cancel_rounded),
+                    color: success
+                        ? const Color(0xFF2E9E5B)
+                        : (stage == 2 ? Colors.amber : Colors.redAccent),
+                    size: 26,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      success
+                          ? 'نتيجة فحص الاتصال: ناجح تماماً ✅'
+                          : (stage == 2
+                              ? 'المفتاح متصل • تنبيه بالنموذج ⚠️'
+                              : 'فشل فحص الاتصال ❌'),
+                      style: KashifTypography.arabic(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Two-Stage Status Card
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF142444)
+                      : const Color(0xFFF0F4FA),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? Colors.white12 : Colors.black12,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          stage >= 1 && (success || stage == 2)
+                              ? Icons.check_circle_outline_rounded
+                              : Icons.cancel_outlined,
+                          color: stage >= 1 && (success || stage == 2)
+                              ? const Color(0xFF2E9E5B)
+                              : Colors.redAccent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'المرحلة 1: التحقق من صلاحية المفتاح وسيرفر APInex',
+                            style: KashifTypography.arabic(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        if (availableModels.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2E9E5B).withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '${availableModels.length} نموذج',
+                              style: KashifTypography.mono(
+                                fontSize: 10.5,
+                                color: const Color(0xFF2E9E5B),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const Divider(height: 14),
+                    Row(
+                      children: [
+                        Icon(
+                          success
+                              ? Icons.check_circle_outline_rounded
+                              : (stage == 2
+                                  ? Icons.warning_amber_rounded
+                                  : Icons.cancel_outlined),
+                          color: success
+                              ? const Color(0xFF2E9E5B)
+                              : (stage == 2 ? Colors.amber : Colors.redAccent),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'المرحلة 2: جاهزية واستجابة النموذج ($modelName)',
+                            style: KashifTypography.arabic(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Detail Message Box
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: success
+                      ? (isDark
+                          ? const Color(0xFF13281C)
+                          : const Color(0xFFE8F5E9))
+                      : (isDark
+                          ? const Color(0xFF2A1F10)
+                          : const Color(0xFFFFF8E1)),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: success
+                        ? const Color(0xFF2E9E5B)
+                        : Colors.amber.shade700,
+                  ),
+                ),
+                child: Text(
+                  message,
+                  style: KashifTypography.arabic(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark
+                      ? KashifColors.goldPrimary
+                      : KashifColors.royalBlue,
+                  foregroundColor: isDark
+                      ? const Color(0xFF070E1E)
+                      : Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  'تم والمتابعة',
+                  style: KashifTypography.arabic(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _testApinexConnection() async {
     setState(() => _isTestingApinex = true);
     final keyToTest = _apinexKeyController.text.trim();
@@ -257,23 +500,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
     }
 
-    final res = await ApinexClient().testConnectionDetailed();
+    final res = await ApinexClient().testConnectionDetailed(
+      keyOverride: keyToTest,
+      modelOverride: modelToTest,
+    );
     final success = res['success'] == true;
+    final stage = (res['stage'] as int?) ?? 1;
     final message = res['message']?.toString() ?? '';
+    final models = (res['availableModels'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+
+    if (models.isNotEmpty) {
+      setState(() {
+        _liveServerModels = models;
+      });
+    }
 
     if (mounted) {
       setState(() => _isTestingApinex = false);
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.clearSnackBars();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            message,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: success ? const Color(0xFF1B5E20) : Colors.redAccent,
-          duration: const Duration(seconds: 4),
-        ),
+      _showConnectionResultModal(
+        success: success,
+        stage: stage,
+        message: message,
+        modelName: modelToTest,
+        availableModels: models,
       );
     }
   }
@@ -1225,7 +1477,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
                     value: s.isApinexAutoFailoverEnabled,
-                    activeColor: isDark
+                    activeThumbColor: isDark
                         ? KashifColors.goldPrimary
                         : KashifColors.royalBlue,
                     onChanged: (val) {
@@ -1364,12 +1616,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
 
                   const SizedBox(height: 16),
-                  Text(
-                    'اختر النموذج المجاني (Free Model):',
-                    style: KashifTypography.arabic(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        'اختر النموذج المجاني (Free Model):',
+                        style: KashifTypography.arabic(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (_isFetchingModels)
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        InkWell(
+                          onTap: _fetchServerModels,
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.cloud_sync_outlined,
+                                  size: 14,
+                                  color: isDark
+                                      ? KashifColors.goldLight
+                                      : KashifColors.royalBlue,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _liveServerModels.isNotEmpty
+                                      ? 'محدث (${_liveServerModels.length})'
+                                      : 'جلب من السيرفر',
+                                  style: KashifTypography.arabic(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark
+                                        ? KashifColors.goldLight
+                                        : KashifColors.royalBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 6),
 

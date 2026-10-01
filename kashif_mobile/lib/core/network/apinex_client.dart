@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import '../constants/libyan_dictionary_prompt.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/storage/hive_storage.dart';
 
 class ApinexClient {
   static const String directBaseUrl = 'https://api.apinex.bond/v1';
-  static const String defaultApiKey = 'sk-apx6963c3f6039e5c06788e4a6e7920707a1f17d36c90319db';
+  static const String defaultApiKey = 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
   static const String defaultModel = 'free/gpt-6-luna';
 
   static String get defaultBaseUrl {
@@ -29,8 +29,8 @@ class ApinexClient {
             Dio(
               BaseOptions(
                 baseUrl: defaultBaseUrl,
-                connectTimeout: const Duration(seconds: 25),
-                receiveTimeout: const Duration(seconds: 50),
+                connectTimeout: const Duration(seconds: 30),
+                receiveTimeout: const Duration(seconds: 90),
                 headers: {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
@@ -51,115 +51,16 @@ class ApinexClient {
     return (model.isNotEmpty) ? model : defaultModel;
   }
 
-  static const String _systemInstruction = '''
-أنت خبير كشف وتشخيص أعطال سيارات في ورش ليبيا (كاشف AI).
-مهمتك إرجاع تقرير الفحص الفني بصيغة JSON حصراً، دون أي مقدمات أو كلام قبله أو بعده.
+  String get masterInstruction => LibyanPromptConstants.getMasterSystemInstruction();
 
-قواعد إلزامية وصارمة جداً:
-1. استخراج بيانات المركبة (الشركة المصنعة Make، الموديل Model، سنة الصنع Year، رقم الهيكل VIN، قراءة العداد Mileage) بدقة 100% كما هي مذكورة في تقرير الفحص المرفق. ممنوع منعاً باتاً تخمين سيارة كامري أو غيرها إذا كانت السيارة BMW أو أي نوع آخر!
-2. الاعتماد حصراً على أكواد الأعطال الحقيقية الواردة في التقرير الأصلي، وممنوع اختراع أكواد OBD عامة من عندك.
-3. مصطلحات الورش الليبية المعتمدة (إلزامية):
-   - دبة التلوث / علبة الكربون / الشكمانات (ممنوع منعاً باتاً استخدام كلمة "الخفّاز" أو أي ترجمة آلية غريبة).
-   - بوبينة (Ignition Coil) / شمعات (Spark Plugs).
-   - بومبة البنزين أو طرمبة البنزين / عوامة خزان الوقود (Fuel Pump / Level Sensor).
-   - بسطوني (Piston / Cylinder) / فطفطة (Misfire).
-   - كمبيو (Transmission / Gearbox).
-   - ستاقوبا الزيت أو كرتير الزيت (Oil Pan / Sump).
-   - كوادرو (Instrument Cluster) / فنارات (Headlights).
-   - كوشينتي / موتسو العجلة (Wheel Bearing / Hub).
-   - باور ستيرنج كهربائي EPS / عمود الستيرنج / كولونة التوجيه (Electric Power Steering).
-   - حساس زاوية الستيرنج (Steering Angle Sensor) / حساس العزم (Torque Sensor) / معايرة وتصفير زاوية المقود (Calibration).
-   - شريط الإيرباق / سبرنقة الستيرسو (Clock Spring / Spiral Cable).
-   - طكاكة / قفل حزام الأمان (Seat Belt Buckle Switch).
-   - بساط الكرسي / حساس وزن وقعدة الراكب (Occupant Classification Sensor) / محاكي إيرباق.
-   - صالة ومقصات ومزاطوريات ودوزان وميزان رصاص (Suspension & Steering Alignment).
-4. أفكار ذكية وحلول خارج الصندوق في الإجراء الفني المطلوب (recommendedAction) وخطوات الفحص (workshopChecklist):
-   - تجنب تماماً الحلول الروتينية الجاهزة أو التبديل العشوائي الفوري للقطع.
-   - قدّم دائماً أفكاراً ذكية وموفرة للمال وطرق فحص عملية من واقع خبرة الورش:
-     * عند عطل بوبينة أو شمعة أو فطفطة بسطوني (Misfire): انصح دائماً بـ "بدل بوبينة البسطوني المتضرر مع بسطوني سليم مجاور للتأكد هل ينتقل العطل قبل الشراء، وافحص الشمعات". إذا انتقل كود العطل فالمشكلة في البوبينة، وإذا بقي في مكانه فالمشكلة شمعة أو ضفيرة سلك أو بخاخ.
-     * عند عطل حساس وزن وقعدة الكرسي / إيرباق الراكب: انصح بـ "فحص أسلاك وفيشة البيانتو تحت الكرسي أو تركيب محاكي إيرباق معتمد (Bypass Emulator)" كحل اقتصادي وسريع ومضمون لإطفاء لمبة الإيرباق.
-     * عند عطل حساس سرعة العجلة أو ABS: انصح بـ "تتبع سلك الحساس عند المزاطوري والصرة وتنظيف سنون الموتسو من الأتربة وبرادة الحديد قبل الشراء والتغيير".
-     * عند عطل عوامة البنزين: انصح بـ "تنظيف مسارات المقاومة الكربونية في العوامة بالسبراي قبل الاستبدال".
-     * عند أعطال تسريب هواء أو خليط وقود فقير: انصح بـ "فحص خراطيم الهواء بسبراي كاربراتير أو جهاز الدخان قبل استبدال الحساسات".
-     * عند أعطال موديولات الإضاءة أو الكنترول: انصح بـ "فحص فيوزات التغذية وكتاوت التحكم وترانزستور الإضاءة أو عمل ريست للسيارة قبل الحكم بتلف الموديول".
-يجب أن يكون الرد متوافقاً تماماً مع الهيكل التالي:
-{
-  "reportId": "kashif-report-id",
-  "generatedAt": "2026-09-30T00:00:00Z",
-  "scannerInfo": {
-    "toolName": "فحص كمبيوتر إلكتروني شامل",
-    "serialNumber": "SN-ONLINE",
-    "testTime": "2026-09-30"
-  },
-  "vehicle": {
-    "make": "اسم الشركة",
-    "model": "الموديل",
-    "year": "السنة",
-    "vin": "رقم الهيكل أو N/A",
-    "mileage": "الممشى أو غير محدد"
-  },
-  "summary": {
-    "overallHealthScore": 75,
-    "severityStatus": "حرج / افحص فوراً أو متوسط / انتبه أو سليم / خفيف",
-    "briefSummaryArabic": "ملخص فني شامل بلهجة الورش الليبية لحالة السيارة وما يجب فعله",
-    "systemsCheckedCount": 4,
-    "faultsFoundCount": 2,
-    "passedSystemsCount": 2
-  },
-  "faultCategories": {
-    "criticalFaults": [
-      {
-        "code": "رمز العطل",
-        "module": "ECM أو ABS أو SRS",
-        "moduleNameArabic": "اسم الوحدة بالعربي",
-        "standardDescriptionEn": "الوصف بالإنجليزية",
-        "libyanTerm": "اسم القطعة بلهجة الورش الليبية (مثال: بوبينة، شريط ستيرسو، حساس ماف)",
-        "standardArabicDescription": "الشرح الفني بالعربي",
-        "driverSymptoms": ["الأعراض التي يحس بها السائق"],
-        "rootCauses": ["الأسباب المحتملة للعطل"],
-        "urgencyLevel": "عالي جداً",
-        "recommendedAction": "بدل بوبينة البسطوني المتضرر مع بسطوني سليم مجاور للتأكد هل ينتقل العطل قبل الشراء، وافحص الشمعات."
-      }
-    ],
-    "moderateFaults": [],
-    "minorOrHistoricalFaults": []
-  },
-  "passedSystems": ["كمبيوتر المحرك (ECM)", "منظومة الفرامل (ABS)"],
-  "sparePartsRequired": [
-    {
-      "id": "part-1",
-      "relatedCode": "رمز الكود",
-      "partNameLibyan": "اسم القطعة بالليبي",
-      "partNameStandardArabic": "الاسم الفصيح",
-      "partNameEnglish": "Part Name",
-      "aftermarketReplacements": ["أصلي", "تجاري معتمد"],
-      "estimatedPriceRangeLYD": {
-        "min": 50,
-        "max": 150,
-        "marketNote": "سعر سوق قطع الغيار في ليبيا"
-      }
-    }
-  ],
-  "workshopChecklist": [
-    {
-      "stepNumber": 1,
-      "actionTitle": "عنوان خطوة الفحص",
-      "actionDescriptionLibyan": "شرح الخطوة بالملتيميتر أو العدة اليدوية بالورشة",
-      "purpose": "الهدف من الخطوة قبل التبديل العشوائي",
-      "estimatedTime": "10 دقائق",
-      "toolingNeeded": "ملتيميتر"
-    }
-  ]
-}
-''';
-
-  Future<Response> _postRequest(dynamic data) async {
+  Future<Response> _postRequest(dynamic data, {String? keyOverride}) async {
+    final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride : _activeApiKey;
     try {
       return await _dio.post(
         '/chat/completions',
         options: Options(
           headers: {
-            'Authorization': 'Bearer $_activeApiKey',
+            'Authorization': 'Bearer $key',
             if (!kIsWeb)
               'User-Agent':
                   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -172,8 +73,8 @@ class ApinexClient {
         final directDio = Dio(
           BaseOptions(
             baseUrl: directBaseUrl,
-            connectTimeout: const Duration(seconds: 25),
-            receiveTimeout: const Duration(seconds: 50),
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 90),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -183,7 +84,7 @@ class ApinexClient {
         return await directDio.post(
           '/chat/completions',
           options: Options(
-            headers: {'Authorization': 'Bearer $_activeApiKey'},
+            headers: {'Authorization': 'Bearer $key'},
           ),
           data: data,
         );
@@ -192,36 +93,180 @@ class ApinexClient {
     }
   }
 
-  /// Detailed test returning success and error message
-  Future<Map<String, dynamic>> testConnectionDetailed() async {
+  /// Fetches available models from APInex GET /models
+  Future<List<String>> fetchAvailableModels({String? keyOverride}) async {
+    final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride : _activeApiKey;
+    try {
+      final res = await _dio.get(
+        '/models',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $key',
+            if (!kIsWeb)
+              'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          },
+        ),
+      );
+      if (res.statusCode == 200 && res.data is Map && res.data['data'] is List) {
+        final list = res.data['data'] as List;
+        return list
+            .map((m) => m is Map ? m['id']?.toString() ?? '' : '')
+            .where((id) => id.isNotEmpty)
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      if (kIsWeb && _dio.options.baseUrl != directBaseUrl) {
+        final directDio = Dio(
+          BaseOptions(
+            baseUrl: directBaseUrl,
+            connectTimeout: const Duration(seconds: 15),
+            receiveTimeout: const Duration(seconds: 25),
+          ),
+        );
+        final res = await directDio.get(
+          '/models',
+          options: Options(headers: {'Authorization': 'Bearer $key'}),
+        );
+        if (res.statusCode == 200 && res.data is Map && res.data['data'] is List) {
+          final list = res.data['data'] as List;
+          return list
+              .map((m) => m is Map ? m['id']?.toString() ?? '' : '')
+              .where((id) => id.isNotEmpty)
+              .toList();
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// Two-stage intelligent connection test:
+  /// Stage 1: Validates API key and server connectivity via GET /models
+  /// Stage 2: Tests selected model completion via POST /chat/completions
+  Future<Map<String, dynamic>> testConnectionDetailed({
+    String? keyOverride,
+    String? modelOverride,
+  }) async {
+    final key = (keyOverride != null && keyOverride.isNotEmpty)
+        ? keyOverride
+        : _activeApiKey;
+    final model = (modelOverride != null && modelOverride.isNotEmpty)
+        ? modelOverride
+        : _activeModel;
+
+    List<String> availableModels = [];
+
+    // Stage 1: Validate API key and connectivity
+    try {
+      availableModels = await fetchAvailableModels(keyOverride: key);
+    } catch (e) {
+      if (e is DioException) {
+        final status = e.response?.statusCode;
+        if (status == 401) {
+          return {
+            'success': false,
+            'stage': 1,
+            'message': '❌ مفتاح APInex غير صالح أو منتهي الصلاحية (رمز 401). تأكد من صحة المفتاح.',
+            'availableModels': <String>[],
+          };
+        } else if (status == 403) {
+          return {
+            'success': false,
+            'stage': 1,
+            'message': '❌ تم حظر الوصول لمفتاح APInex (رمز 403).',
+            'availableModels': <String>[],
+          };
+        }
+      }
+      return {
+        'success': false,
+        'stage': 1,
+        'message': '❌ تعذر الوصول إلى سيرفر APInex. تأكد من اتصال هاتفك بالإنترنت.',
+        'availableModels': <String>[],
+      };
+    }
+
+    final modelInList = availableModels.isEmpty || availableModels.contains(model);
+
+    // Stage 2: Test selected model with short prompt
     try {
       final res = await _postRequest({
-        'model': _activeModel,
+        'model': model,
         'messages': [
           {'role': 'user', 'content': 'قل متصل'}
         ],
         'max_tokens': 10,
-      });
+      }, keyOverride: key);
+
       if (res.statusCode == 200) {
         return {
           'success': true,
-          'message': '✅ تم الاتصال بنجاح بـ APInex ($_activeModel)',
+          'stage': 2,
+          'message': '✅ تم الاتصال بنجاح! المفتاح متصل والنموذج ($model) جاهز ويعمل بكفاءة فائقة.',
+          'availableModels': availableModels,
         };
       } else {
         return {
           'success': false,
+          'stage': 2,
           'message': '❌ رد السيرفر برمز: ${res.statusCode}',
+          'availableModels': availableModels,
         };
       }
     } catch (e) {
+      if (e is DioException) {
+        final status = e.response?.statusCode;
+        final resData = e.response?.data;
+        String? serverMsg;
+        if (resData is Map && resData['error'] is Map) {
+          serverMsg = resData['error']['message']?.toString();
+        }
+
+        if (status == 402) {
+          return {
+            'success': false,
+            'stage': 2,
+            'message':
+                '⚠️ تم التحقق من المفتاح بنجاح! لكن النموذج المجاني ($model) يتطلب تسجيل حضور يومي (Daily check-in) على apinex.bond/airdrop أو شحن رصيد. يمكنك تسجيل الحضور أو اختيار نموذج آخر من القائمة.',
+            'availableModels': availableModels,
+          };
+        } else if (status == 404 || !modelInList) {
+          return {
+            'success': false,
+            'stage': 2,
+            'message':
+                '❌ النموذج المختار ($model) غير متوفر في قائمة السيرفر الحالية.',
+            'availableModels': availableModels,
+          };
+        } else if (status == 429) {
+          return {
+            'success': false,
+            'stage': 2,
+            'message':
+                '⏳ تم تجاوز معدل الطلبات المسموح به للنموذج ($model) حالياً (Rate Limit 429). يرجى الانتظار دقيقة وإعادة المحاولة.',
+            'availableModels': availableModels,
+          };
+        } else if (serverMsg != null && serverMsg.isNotEmpty) {
+          return {
+            'success': false,
+            'stage': 2,
+            'message': '⚠️ استجابة سيرفر APInex: $serverMsg',
+            'availableModels': availableModels,
+          };
+        }
+      }
+
       return {
         'success': false,
-        'message': '❌ خطأ في الاتصال: ${e.toString()}',
+        'stage': 2,
+        'message': '❌ خطأ أثناء اختبار النموذج ($model): ${e.toString()}',
+        'availableModels': availableModels,
       };
     }
   }
 
-  /// Test connection to APInex to verify API Key and model response
+  /// Test connection returning simple boolean
   Future<bool> testConnection() async {
     final res = await testConnectionDetailed();
     return res['success'] == true;
@@ -236,11 +281,13 @@ class ApinexClient {
     String? year,
   }) async {
     final userPrompt = '''
-بيانات الفحص اليدوي:
-- أكواد الأعطال: $codes
+بيانات الفحص اليدوي من ورشة صيانة السيارات:
+- أكواد الأعطال (DTCs): $codes
 - رقم الهيكل (VIN): ${vin ?? 'غير محدد'}
-- المركبة: ${make ?? ''} ${model ?? ''} ${year ?? ''}
-المطلوب: حلل الأعطال كاملة وجهز التقرير الفني الليبي الشامل بصيغة JSON.
+- بيانات المركبة: ${make ?? ''} ${model ?? ''} ${year ?? ''}
+المطلوب:
+حلل كافة أكواد الأعطال الواردة وقارنها بالقاموس الليبي الشامل.
+حدّد القطع التالفة بأسعار السوق في ليبيا، وقدّم خطوات فحص وعزل ذكية (Checklist) واضحة قبل التبديل، وأخرج كائن JSON الصالح حصراً وفق الهيكل المطلوب.
 ''';
 
     return _executeChatCompletion(userPrompt);
@@ -255,10 +302,15 @@ class ApinexClient {
     String? year,
   }) async {
     final userPrompt = '''
-تقرير جهاز الكشف المستخرج:
+نص تقرير الفحص المستخرج من جهاز كشف السيارات (Launch / Autel / Ediag / ThinkDiag):
 $textReport
-- سيارة: ${make ?? ''} ${model ?? ''} ${year ?? ''}
-المطلوب: قراءة كافة الأعطال والأنظمة السليمة واستخراج تقرير الفحص الشامل بصيغة JSON.
+- بيانات السيارة المعروفة: ${make ?? ''} ${model ?? ''} ${year ?? ''} - رقم الهيكل: ${vin ?? ''}
+المطلوب:
+1. استخراج بيانات السيارة (Make, Model, Year, VIN, Mileage) بدقة 100% من التقرير الأصلي.
+2. حصر جميع أكواد الأعطال الحقيقية فقط دون اختراع أعطال إضافية.
+3. مطابقة أسماء القطع بلهجة الورش الليبية (مثل: بوبينات، شمعات، حساس مرميطة، صالة، مزاطوري...).
+4. تقديم أفكار عزل وفحص ذكية، وأسعار القطع بالدينار الليبي (LYD).
+5. إخراج كائن JSON فقط.
 ''';
 
     return _executeChatCompletion(userPrompt);
@@ -274,14 +326,14 @@ $textReport
     final dataUri = 'data:image/$ext;base64,$base64Image';
 
     final messages = [
-      {'role': 'system', 'content': _systemInstruction},
+      {'role': 'system', 'content': masterInstruction},
       {
         'role': 'user',
         'content': [
           {
             'type': 'text',
             'text':
-                'هذه صورة شاشة جهاز فحص السيارات. اقرأ جميع أكواد الأعطال والبيانات الظاهرة وحللها بالكامل وفق هيكل JSON المعتمد.',
+                'هذه صورة شاشة جهاز فحص السيارات (Launch / Autel / Ediag / ThinkDiag / شاشة الطبلون). اقرأ جميع أكواد الأعطال الظاهرة (DTCs) وبيانات السيارة، وحللها بالكامل وفق قاموس الورش الليبية وأخرج كائن JSON المعتمد.',
           },
           {
             'type': 'image_url',
@@ -296,7 +348,7 @@ $textReport
 
   Future<DiagnosticReport> _executeChatCompletion(String userContent) async {
     final messages = [
-      {'role': 'system', 'content': _systemInstruction},
+      {'role': 'system', 'content': masterInstruction},
       {'role': 'user', 'content': userContent},
     ];
     return _sendRequestAndParse(messages);
@@ -306,7 +358,7 @@ $textReport
     final res = await _postRequest({
       'model': _activeModel,
       'messages': messages,
-      'temperature': 0.15,
+      'temperature': 0.1,
     });
 
     if (res.statusCode != 200 || res.data == null) {
@@ -325,6 +377,8 @@ $textReport
 
   DiagnosticReport _parseReportContent(String rawContent) {
     String clean = rawContent.trim();
+
+    // 1. Strip markdown code fences if present
     if (clean.contains('```json')) {
       final start = clean.indexOf('```json') + 7;
       final end = clean.indexOf('```', start);
@@ -343,6 +397,13 @@ $textReport
       }
     }
 
+    // 2. Locate first '{' and last '}' if extra preamble or postamble exists
+    final firstBrace = clean.indexOf('{');
+    final lastBrace = clean.lastIndexOf('}');
+    if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+      clean = clean.substring(firstBrace, lastBrace + 1).trim();
+    }
+
     try {
       final decoded = jsonDecode(clean);
       if (decoded is Map<String, dynamic>) {
@@ -352,7 +413,20 @@ $textReport
           decoded.map((k, v) => MapEntry(k.toString(), v)),
         );
       }
-    } catch (_) {}
+    } catch (e) {
+      // Attempt to clean escaped characters or formatting issues
+      try {
+        final sanitized = clean
+            .replaceAll(RegExp(r',\s*}'), '}')
+            .replaceAll(RegExp(r',\s*]'), ']');
+        final decoded = jsonDecode(sanitized);
+        if (decoded is Map) {
+          return DiagnosticReport.fromJson(
+            decoded.map((k, v) => MapEntry(k.toString(), v)),
+          );
+        }
+      } catch (_) {}
+    }
 
     throw Exception('تعذر استخراج بيانات تقرير الفحص بصيغة صالحة من النموذج.');
   }

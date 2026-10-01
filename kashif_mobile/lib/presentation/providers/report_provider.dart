@@ -19,6 +19,7 @@ class ReportState {
   final bool lastScannedIsPdf;
   final String? lastManualCodes;
   final String? lastManualVin;
+  final bool canFallbackToOffline;
 
   ReportState({
     this.report,
@@ -32,6 +33,7 @@ class ReportState {
     this.lastScannedIsPdf = false,
     this.lastManualCodes,
     this.lastManualVin,
+    this.canFallbackToOffline = false,
   });
 
   ReportState copyWith({
@@ -48,6 +50,7 @@ class ReportState {
     bool? lastScannedIsPdf,
     String? lastManualCodes,
     String? lastManualVin,
+    bool? canFallbackToOffline,
   }) {
     return ReportState(
       report: report ?? this.report,
@@ -61,6 +64,7 @@ class ReportState {
       lastScannedIsPdf: lastScannedIsPdf ?? this.lastScannedIsPdf,
       lastManualCodes: lastManualCodes ?? this.lastManualCodes,
       lastManualVin: lastManualVin ?? this.lastManualVin,
+      canFallbackToOffline: canFallbackToOffline ?? this.canFallbackToOffline,
     );
   }
 }
@@ -70,9 +74,9 @@ class ReportNotifier extends StateNotifier<ReportState> {
   final ApinexClient _apinexClient;
 
   ReportNotifier({KashifApiClient? apiClient, ApinexClient? apinexClient})
-    : _apiClient = apiClient ?? KashifApiClient(),
-      _apinexClient = apinexClient ?? ApinexClient(),
-      super(ReportState());
+      : _apiClient = apiClient ?? KashifApiClient(),
+        _apinexClient = apinexClient ?? ApinexClient(),
+        super(ReportState());
 
   void clearCacheNotice() {
     if (state.cacheNotice != null) {
@@ -81,98 +85,140 @@ class ReportNotifier extends StateNotifier<ReportState> {
   }
 
   void clearError() {
-    if (state.errorMessage != null) {
-      state = state.copyWith(clearError: true);
+    if (state.errorMessage != null || state.canFallbackToOffline) {
+      state = state.copyWith(clearError: true, canFallbackToOffline: false);
     }
   }
 
+  void dismissOfflineFallback() {
+    state = state.copyWith(canFallbackToOffline: false);
+  }
+
+  String _formatFriendlyError(dynamic e) {
+    final str = e.toString();
+    if (str.contains('429') || str.contains('Resource Exhausted') || str.contains('QUOTA')) {
+      return 'تم استنفاد كوتة الذكاء الاصطناعي (Quota Exceeded 429). يمكنك التحويل التلقائي أو استخراج التقرير بالقاموس المحلي.';
+    }
+    if (str.contains('402')) {
+      return 'النموذج المجاني يتطلب تسجيل حضور يومي على apinex.bond أو شحن رصيد.';
+    }
+    if (str.contains('401')) {
+      return 'مفتاح الـ API غير صالح أو ملغي. يرجى مراجعة إعدادات المفاتيح.';
+    }
+    if (str.contains('SocketException') || str.contains('Failed host lookup') || str.contains('Timeout')) {
+      return 'تعذر الاتصال بخادم الذكاء الاصطناعي (تحقق من اتصال الإنترنت).';
+    }
+    return 'تعذر إتمام الفحص عبر الذكاء الاصطناعي: $str';
+  }
+
+  /// Scan PDF with strict AI prioritization
   Future<void> scanPdfBytes(
     Uint8List bytes,
     String fileName, {
     bool forceAi = false,
   }) async {
-    // 1. Smart Local Cache Check (0 API calls if already analyzed)
     final fp = KashifStorage.computeFingerprint(bytes);
-    if (!forceAi) {
-      // 1. Offline Ediag Recognition Engine (0 Internet, 0 API Calls, 100% Precision)
-      try {
-        final extracted = EdiagPdfParser.extractFromPdfBytes(bytes);
-        if (extracted.isValid && (extracted.hasFaults || extracted.hasPassedSystems || extracted.vin != null)) {
-          final offlineReport = OfflineReportService.buildOfflineReportFromEdiag(extracted);
-          await KashifStorage.cacheReportByFingerprint(fp, offlineReport);
-          state = state.copyWith(
-            isLoading: false,
-            report: offlineReport,
-            isFromLocalCache: true,
-            cacheNotice: '⚡ تم قراءة وتحليل تقرير الفحص فورياً بدون إنترنت',
-            lastScannedBytes: bytes,
-            lastScannedFileName: fileName,
-            lastScannedIsPdf: true,
-            clearError: true,
-          );
-          return;
-        }
-      } catch (_) {
-        // Fallback to local cache or online AI pipeline
-      }
 
-      // 2. Smart Local Cache Check (0 API calls if already analyzed)
+    // 1. If not forcing AI and already cached from previous run, return cached
+    if (!forceAi) {
       final cached = KashifStorage.getReportByFingerprint(fp);
       if (cached != null) {
         state = state.copyWith(
           isLoading: false,
           report: cached,
           isFromLocalCache: true,
-          cacheNotice:
-              '⚡ تم تحميل التقرير فورياً من الذاكرة المحلية (تم توفير طلب API)',
+          cacheNotice: '⚡ تم تحميل التقرير فورياً من الذاكرة المحلية (تم توفير طلب API)',
           lastScannedBytes: bytes,
           lastScannedFileName: fileName,
           lastScannedIsPdf: true,
           clearError: true,
+          canFallbackToOffline: false,
         );
         return;
       }
     }
 
-    // Check if user set APInex as Primary AI
+    // 2. Primary Engine Execution (Always prioritize AI first)
     if (KashifStorage.useApinexAsPrimary) {
       final activeModel = KashifStorage.apinexModel;
       state = state.copyWith(
         isLoading: true,
-        progressText: 'جاري التحليل عبر محرك APInex ($activeModel)...',
+        progressText: 'جاري تشخيص ملف الـ PDF عبر محرك APInex ($activeModel)...',
         clearError: true,
         clearNotice: true,
+        canFallbackToOffline: false,
         lastScannedBytes: bytes,
         lastScannedFileName: fileName,
         lastScannedIsPdf: true,
       );
+
       try {
         final rawText = EdiagPdfParser.extractRawTextFromPdf(bytes);
         final apReport = await _apinexClient.analyzeTextReport(rawText);
         await KashifStorage.cacheReportByFingerprint(fp, apReport);
+        await KashifStorage.saveReport(apReport);
         state = state.copyWith(
           isLoading: false,
           report: apReport,
-          isFromLocalCache: true,
+          isFromLocalCache: false,
           cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
           lastScannedBytes: bytes,
           lastScannedFileName: fileName,
           lastScannedIsPdf: true,
           clearError: true,
+          canFallbackToOffline: false,
         );
         return;
-      } catch (e) {
-        // If APInex primary failed, continue to standard pipeline
+      } catch (apError) {
+        // Failover to Gemini if configured
+        if (KashifStorage.customApiKey?.isNotEmpty == true) {
+          try {
+            state = state.copyWith(progressText: 'تحويل إلى محرك Gemini...');
+            final report = await _apiClient.analyzePdfBytes(
+              bytes,
+              fileName,
+              customApiKey: KashifStorage.customApiKey,
+            );
+            await KashifStorage.cacheReportByFingerprint(fp, report);
+            await KashifStorage.saveReport(report);
+            state = state.copyWith(
+              isLoading: false,
+              report: report,
+              isFromLocalCache: false,
+              clearNotice: true,
+              lastScannedBytes: bytes,
+              lastScannedFileName: fileName,
+              lastScannedIsPdf: true,
+              clearError: true,
+              canFallbackToOffline: false,
+            );
+            return;
+          } catch (_) {}
+        }
+
+        // Both AI engines failed -> ask user instead of silent bypass
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: _formatFriendlyError(apError),
+          canFallbackToOffline: true,
+          progressText: '',
+          lastScannedBytes: bytes,
+          lastScannedFileName: fileName,
+          lastScannedIsPdf: true,
+        );
+        return;
       }
     }
 
+    // Default: Gemini as Primary
     state = state.copyWith(
       isLoading: true,
       progressText: forceAi
-          ? 'إعادة التحليل العميق بالذكاء الاصطناعي...'
-          : 'جاري رفع تقرير الفحص وقراءة النصوص...',
+          ? 'إعادة الفحص والتحليل العميق بالذكاء الاصطناعي...'
+          : 'جاري رفع تقرير الفحص وقراءة النصوص عبر Gemini...',
       clearError: true,
       clearNotice: true,
+      canFallbackToOffline: false,
       lastScannedBytes: bytes,
       lastScannedFileName: fileName,
       lastScannedIsPdf: true,
@@ -186,73 +232,65 @@ class ReportNotifier extends StateNotifier<ReportState> {
         customApiKey: apiKey,
       );
       await KashifStorage.cacheReportByFingerprint(fp, report);
+      await KashifStorage.saveReport(report);
       state = state.copyWith(
         isLoading: false,
         report: report,
         progressText: '',
         isFromLocalCache: false,
         clearNotice: true,
+        clearError: true,
+        canFallbackToOffline: false,
       );
-    } catch (e) {
-      // 1. Check if offline Ediag parser can rescue it
-      try {
-        final extracted = EdiagPdfParser.extractFromPdfBytes(bytes);
-        if (extracted.isValid && (extracted.hasFaults || extracted.hasPassedSystems || extracted.vin != null)) {
-          final offlineReport = OfflineReportService.buildOfflineReportFromEdiag(extracted);
-          await KashifStorage.cacheReportByFingerprint(fp, offlineReport);
-          state = state.copyWith(
-            isLoading: false,
-            report: offlineReport,
-            isFromLocalCache: true,
-            cacheNotice: '⚡ تم تشخيص تقرير الفحص عبر القاموس المحلي بنجاح',
-            lastScannedBytes: bytes,
-            lastScannedFileName: fileName,
-            lastScannedIsPdf: true,
-            clearError: true,
-            progressText: '',
-          );
-          return;
-        }
-      } catch (_) {}
-
-      // 2. Seamless failover to APInex
+    } catch (geminiError) {
+      // Automatic failover to APInex if enabled
       if (KashifStorage.isApinexAutoFailoverEnabled) {
         try {
           final activeModel = KashifStorage.apinexModel;
-          state = state.copyWith(progressText: 'جاري التحويل التلقائي إلى محرك APInex ($activeModel)...');
+          state = state.copyWith(
+            progressText: 'جاري التحويل التلقائي إلى محرك APInex ($activeModel)...',
+          );
           final rawText = EdiagPdfParser.extractRawTextFromPdf(bytes);
           final apReport = await _apinexClient.analyzeTextReport(rawText);
           await KashifStorage.cacheReportByFingerprint(fp, apReport);
+          await KashifStorage.saveReport(apReport);
           state = state.copyWith(
             isLoading: false,
             report: apReport,
-            isFromLocalCache: true,
+            isFromLocalCache: false,
             cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
             lastScannedBytes: bytes,
             lastScannedFileName: fileName,
             lastScannedIsPdf: true,
             clearError: true,
+            canFallbackToOffline: false,
             progressText: '',
           );
           return;
         } catch (_) {}
       }
 
+      // Both AI attempts failed -> notify user and offer fallback
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: _formatFriendlyError(geminiError),
+        canFallbackToOffline: true,
         progressText: '',
+        lastScannedBytes: bytes,
+        lastScannedFileName: fileName,
+        lastScannedIsPdf: true,
       );
     }
   }
 
+  /// Scan Camera/Gallery Image with strict AI prioritization
   Future<void> scanImageBytes(
     Uint8List bytes,
     String fileName, {
     bool forceAi = false,
   }) async {
-    // 1. Smart Local Cache Check (0 API calls if already analyzed)
     final fp = KashifStorage.computeFingerprint(bytes);
+
     if (!forceAi) {
       final cached = KashifStorage.getReportByFingerprint(fp);
       if (cached != null) {
@@ -260,52 +298,94 @@ class ReportNotifier extends StateNotifier<ReportState> {
           isLoading: false,
           report: cached,
           isFromLocalCache: true,
-          cacheNotice:
-              '⚡ تم تحميل التقرير فورياً من الذاكرة المحلية (تم توفير طلب API)',
+          cacheNotice: '⚡ تم تحميل التقرير فورياً من الذاكرة المحلية (تم توفير طلب API)',
           lastScannedBytes: bytes,
           lastScannedFileName: fileName,
           lastScannedIsPdf: false,
           clearError: true,
+          canFallbackToOffline: false,
         );
         return;
       }
     }
 
-    // Check if user set APInex as Primary AI
+    // APInex as Primary
     if (KashifStorage.useApinexAsPrimary) {
+      final activeModel = KashifStorage.apinexModel;
       state = state.copyWith(
         isLoading: true,
-        progressText: 'جاري فحص الشاشة عبر محرك APInex (GPT-6 Luna)...',
+        progressText: 'جاري فحص شاشة جهاز الفحص عبر APInex ($activeModel)...',
         clearError: true,
         clearNotice: true,
+        canFallbackToOffline: false,
         lastScannedBytes: bytes,
         lastScannedFileName: fileName,
         lastScannedIsPdf: false,
       );
+
       try {
         final apReport = await _apinexClient.analyzeImage(bytes, fileName);
         await KashifStorage.cacheReportByFingerprint(fp, apReport);
+        await KashifStorage.saveReport(apReport);
         state = state.copyWith(
           isLoading: false,
           report: apReport,
-          isFromLocalCache: true,
-          cacheNotice: '⚡ تم فحص شاشة الجهاز عبر محرك APInex (GPT-6 Luna)',
+          isFromLocalCache: false,
+          cacheNotice: '⚡ تم فحص الشاشة بنجاح عبر محرك APInex ($activeModel)',
           lastScannedBytes: bytes,
           lastScannedFileName: fileName,
           lastScannedIsPdf: false,
           clearError: true,
+          canFallbackToOffline: false,
         );
         return;
-      } catch (_) {}
+      } catch (apError) {
+        // Try Gemini fallback if configured
+        if (KashifStorage.customApiKey?.isNotEmpty == true) {
+          try {
+            state = state.copyWith(progressText: 'تحويل إلى محرك Gemini Vision...');
+            final report = await _apiClient.analyzeImageBytes(
+              bytes,
+              fileName,
+              customApiKey: KashifStorage.customApiKey,
+            );
+            await KashifStorage.cacheReportByFingerprint(fp, report);
+            await KashifStorage.saveReport(report);
+            state = state.copyWith(
+              isLoading: false,
+              report: report,
+              progressText: '',
+              isFromLocalCache: false,
+              clearNotice: true,
+              clearError: true,
+              canFallbackToOffline: false,
+            );
+            return;
+          } catch (_) {}
+        }
+
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: _formatFriendlyError(apError),
+          canFallbackToOffline: true,
+          progressText: '',
+          lastScannedBytes: bytes,
+          lastScannedFileName: fileName,
+          lastScannedIsPdf: false,
+        );
+        return;
+      }
     }
 
+    // Gemini as Primary
     state = state.copyWith(
       isLoading: true,
       progressText: forceAi
-          ? 'إعادة التحليل العميق بالذكاء الاصطناعي...'
+          ? 'إعادة المسح والتحليل العميق بالذكاء الاصطناعي...'
           : 'جاري مسح شاشة جهاز الفحص وتحليل الرموز بالذكاء الاصطناعي...',
       clearError: true,
       clearNotice: true,
+      canFallbackToOffline: false,
       lastScannedBytes: bytes,
       lastScannedFileName: fileName,
       lastScannedIsPdf: false,
@@ -319,30 +399,36 @@ class ReportNotifier extends StateNotifier<ReportState> {
         customApiKey: apiKey,
       );
       await KashifStorage.cacheReportByFingerprint(fp, report);
+      await KashifStorage.saveReport(report);
       state = state.copyWith(
         isLoading: false,
         report: report,
         progressText: '',
         isFromLocalCache: false,
         clearNotice: true,
+        clearError: true,
+        canFallbackToOffline: false,
       );
-    } catch (e) {
-      // Seamless failover to APInex Vision
+    } catch (geminiError) {
       if (KashifStorage.isApinexAutoFailoverEnabled) {
         try {
           final activeModel = KashifStorage.apinexModel;
-          state = state.copyWith(progressText: 'جاري فحص الشاشة عبر محرك APInex ($activeModel)...');
+          state = state.copyWith(
+            progressText: 'جاري فحص الشاشة عبر محرك APInex ($activeModel)...',
+          );
           final apReport = await _apinexClient.analyzeImage(bytes, fileName);
           await KashifStorage.cacheReportByFingerprint(fp, apReport);
+          await KashifStorage.saveReport(apReport);
           state = state.copyWith(
             isLoading: false,
             report: apReport,
-            isFromLocalCache: true,
-            cacheNotice: '⚡ تم فحص شاشة الجهاز بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
+            isFromLocalCache: false,
+            cacheNotice: '⚡ تم فحص الشاشة بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
             lastScannedBytes: bytes,
             lastScannedFileName: fileName,
             lastScannedIsPdf: false,
             clearError: true,
+            canFallbackToOffline: false,
             progressText: '',
           );
           return;
@@ -351,24 +437,17 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: _formatFriendlyError(geminiError),
+        canFallbackToOffline: true,
         progressText: '',
+        lastScannedBytes: bytes,
+        lastScannedFileName: fileName,
+        lastScannedIsPdf: false,
       );
     }
   }
 
-  Future<void> scanPdf(dynamic file) async {
-    final bytes = await file.readAsBytes() as Uint8List;
-    final name = file.path.toString().split(RegExp(r'[/\\]')).last;
-    await scanPdfBytes(bytes, name);
-  }
-
-  Future<void> scanImage(dynamic file) async {
-    final bytes = await file.readAsBytes() as Uint8List;
-    final name = file.path.toString().split(RegExp(r'[/\\]')).last;
-    await scanImageBytes(bytes, name);
-  }
-
+  /// Scan Manual Codes with strict AI prioritization
   Future<void> scanManual(
     String codes,
     String? vin, {
@@ -377,44 +456,23 @@ class ReportNotifier extends StateNotifier<ReportState> {
     final fp = KashifStorage.computeCodesFingerprint(codes, vin);
 
     if (!forceAi) {
-      // 1. Instant Offline Dictionary Engine Check (0 API calls for known codes)
-      final offlineReport = OfflineReportService.tryBuildOfflineReport(
-        codes,
-        vin: vin,
-      );
-      if (offlineReport != null) {
-        await KashifStorage.cacheReportByFingerprint(fp, offlineReport);
-        state = state.copyWith(
-          isLoading: false,
-          report: offlineReport,
-          isFromLocalCache: true,
-          cacheNotice:
-              '⚡ تم استخراج التقرير فورياً من القاموس الليبي الداخلي (0 استهلاك API)',
-          lastManualCodes: codes,
-          lastManualVin: vin,
-          clearError: true,
-        );
-        return;
-      }
-
-      // 2. Previously Cached Manual Diagnostic Check
       final cached = KashifStorage.getReportByFingerprint(fp);
       if (cached != null) {
         state = state.copyWith(
           isLoading: false,
           report: cached,
           isFromLocalCache: true,
-          cacheNotice:
-              '⚡ تم تحميل التقرير فورياً من الذاكرة المحلية (تم توفير طلب API)',
+          cacheNotice: '⚡ تم تحميل التقرير فورياً من الذاكرة المحلية (تم توفير طلب API)',
           lastManualCodes: codes,
           lastManualVin: vin,
           clearError: true,
+          canFallbackToOffline: false,
         );
         return;
       }
     }
 
-    // Check if user set APInex as Primary AI
+    // 1. APInex as Primary
     if (KashifStorage.useApinexAsPrimary) {
       final activeModel = KashifStorage.apinexModel;
       state = state.copyWith(
@@ -422,33 +480,71 @@ class ReportNotifier extends StateNotifier<ReportState> {
         progressText: 'جاري تشخيص الأكواد عبر محرك APInex ($activeModel)...',
         clearError: true,
         clearNotice: true,
+        canFallbackToOffline: false,
         lastManualCodes: codes,
         lastManualVin: vin,
       );
+
       try {
         final apReport = await _apinexClient.analyzeManualCodes(codes, vin: vin);
         await KashifStorage.cacheReportByFingerprint(fp, apReport);
+        await KashifStorage.saveReport(apReport);
         state = state.copyWith(
           isLoading: false,
           report: apReport,
-          isFromLocalCache: true,
+          isFromLocalCache: false,
           cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
           lastManualCodes: codes,
           lastManualVin: vin,
           clearError: true,
+          canFallbackToOffline: false,
         );
         return;
-      } catch (_) {}
+      } catch (apError) {
+        if (KashifStorage.customApiKey?.isNotEmpty == true) {
+          try {
+            state = state.copyWith(progressText: 'تحويل إلى محرك Gemini...');
+            final report = await _apiClient.analyzeManual(
+              codes: codes,
+              vin: vin,
+              customApiKey: KashifStorage.customApiKey,
+            );
+            await KashifStorage.cacheReportByFingerprint(fp, report);
+            await KashifStorage.saveReport(report);
+            state = state.copyWith(
+              isLoading: false,
+              report: report,
+              isFromLocalCache: false,
+              lastManualCodes: codes,
+              lastManualVin: vin,
+              clearError: true,
+              canFallbackToOffline: false,
+            );
+            return;
+          } catch (_) {}
+        }
+
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: _formatFriendlyError(apError),
+          canFallbackToOffline: true,
+          progressText: '',
+          lastManualCodes: codes,
+          lastManualVin: vin,
+        );
+        return;
+      }
     }
 
-    // 3. Online Gemini AI Fallback for rare or unrecognized codes
+    // 2. Gemini as Primary
     state = state.copyWith(
       isLoading: true,
       progressText: forceAi
-          ? 'إعادة التحليل العميق بالذكاء الاصطناعي...'
-          : 'جاري مطابقة الأكواد مع قاموس الصيانة الليبي عبر الذكاء الاصطناعي...',
+          ? 'إعادة الفحص والتحليل العميق بالذكاء الاصطناعي...'
+          : 'جاري تشخيص الأكواد ومطابقتها عبر الذكاء الاصطناعي...',
       clearError: true,
       clearNotice: true,
+      canFallbackToOffline: false,
       lastManualCodes: codes,
       lastManualVin: vin,
     );
@@ -461,27 +557,35 @@ class ReportNotifier extends StateNotifier<ReportState> {
         customApiKey: apiKey,
       );
       await KashifStorage.cacheReportByFingerprint(fp, report);
+      await KashifStorage.saveReport(report);
       state = state.copyWith(
         isLoading: false,
         report: report,
         progressText: '',
         isFromLocalCache: false,
         clearNotice: true,
+        clearError: true,
+        canFallbackToOffline: false,
       );
-    } catch (e) {
+    } catch (geminiError) {
       if (KashifStorage.isApinexAutoFailoverEnabled) {
         try {
-          state = state.copyWith(progressText: 'جاري تشخيص الأكواد عبر محرك APInex البديل...');
+          final activeModel = KashifStorage.apinexModel;
+          state = state.copyWith(
+            progressText: 'جاري تشخيص الأكواد عبر محرك APInex ($activeModel)...',
+          );
           final apReport = await _apinexClient.analyzeManualCodes(codes, vin: vin);
           await KashifStorage.cacheReportByFingerprint(fp, apReport);
+          await KashifStorage.saveReport(apReport);
           state = state.copyWith(
             isLoading: false,
             report: apReport,
-            isFromLocalCache: true,
-            cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك الذكاء البديل (APInex • GPT-6 Luna)',
+            isFromLocalCache: false,
+            cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
             lastManualCodes: codes,
             lastManualVin: vin,
             clearError: true,
+            canFallbackToOffline: false,
             progressText: '',
           );
           return;
@@ -490,10 +594,57 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: _formatFriendlyError(geminiError),
+        canFallbackToOffline: true,
         progressText: '',
+        lastManualCodes: codes,
+        lastManualVin: vin,
       );
     }
+  }
+
+  /// User explicitly chose to extract the report instantly using the offline local dictionary
+  Future<void> generateOfflineReportForPending() async {
+    DiagnosticReport? offlineReport;
+
+    // Check if pending input was a PDF
+    if (state.lastScannedBytes != null && state.lastScannedIsPdf) {
+      try {
+        final extracted = EdiagPdfParser.extractFromPdfBytes(state.lastScannedBytes!);
+        if (extracted.isValid && (extracted.hasFaults || extracted.hasPassedSystems || extracted.vin != null)) {
+          offlineReport = OfflineReportService.buildOfflineReportFromEdiag(extracted);
+        }
+      } catch (_) {}
+    }
+
+    // Check if pending input was manual DTC codes
+    if (offlineReport == null && state.lastManualCodes != null && state.lastManualCodes!.isNotEmpty) {
+      offlineReport = OfflineReportService.tryBuildOfflineReport(
+        state.lastManualCodes!,
+        vin: state.lastManualVin,
+      );
+      offlineReport ??= OfflineReportService.buildOfflineReportFallback(
+        state.lastManualCodes!,
+        vin: state.lastManualVin,
+      );
+    }
+
+    // If still null, generate a fallback report
+    offlineReport ??= OfflineReportService.buildOfflineReportFallback(
+      state.lastManualCodes ?? 'P0100',
+      vin: state.lastManualVin,
+    );
+
+    await KashifStorage.saveReport(offlineReport);
+    state = state.copyWith(
+      isLoading: false,
+      report: offlineReport,
+      isFromLocalCache: true,
+      canFallbackToOffline: false,
+      cacheNotice: '⚡ تم استخراج التقرير فورياً عبر القاموس الليبي المدمج (0 إنترنت)',
+      clearError: true,
+      progressText: '',
+    );
   }
 
   /// Generates a local offline report using the Libyan dictionary immediately (0 API calls)
@@ -510,8 +661,8 @@ class ReportNotifier extends StateNotifier<ReportState> {
       isLoading: false,
       report: report,
       isFromLocalCache: true,
-      cacheNotice:
-          '⚡ تم إنشاء التقرير فورياً من القاموس الليبي الداخلي (0 استهلاك للـ AI)',
+      canFallbackToOffline: false,
+      cacheNotice: '⚡ تم إنشاء التقرير فورياً من القاموس الليبي الداخلي (0 استهلاك للـ AI)',
       lastManualCodes: cleanCodes,
       lastManualVin: vin,
       clearError: true,
@@ -519,7 +670,7 @@ class ReportNotifier extends StateNotifier<ReportState> {
     );
   }
 
-  /// Forces an AI re-analysis on the current cached report
+  /// Forces an AI re-analysis on the current pending or cached scan
   Future<void> reAnalyzeCurrentWithAi() async {
     if (state.lastScannedBytes != null) {
       if (state.lastScannedIsPdf) {
@@ -549,6 +700,7 @@ class ReportNotifier extends StateNotifier<ReportState> {
       isLoading: true,
       progressText: 'تحميل نموذج فحص جاهز...',
       clearError: true,
+      canFallbackToOffline: false,
     );
 
     try {
