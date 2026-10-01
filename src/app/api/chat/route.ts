@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             recentHistory
               .map(
                 (h) =>
-                  `${h.sender === "user" ? "المستخدم" : "الأسطى كاشف"}: ${h.text}`
+                  `${h.sender === "user" ? "المستخدم" : "المساعد الفني كاشف"}: ${h.text}`
               )
               .join("\n")
           : "";
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       const prompt = `${systemInstruction}
 ${historyText}
 المستخدم: "${question}"
-الأسطى كاشف (أجب بلهجة ليبية فنية محترفة ودقيقة مع مصطلحات الورش الليبية المعتمدة):`;
+المساعد الفني كاشف (أجب بلهجة ليبية فنية محترفة ودقيقة مع مصطلحات الورش الليبية المعتمدة):`;
 
       const reply = await tryAgyPrompt(prompt, 60_000);
       if (reply) {

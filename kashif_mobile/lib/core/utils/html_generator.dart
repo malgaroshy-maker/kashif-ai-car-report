@@ -455,14 +455,14 @@ class KashifHtmlGenerator {
     ${checklist.isNotEmpty ? '''
     <div class="card">
       <div class="section-title">
-        <span>📋 قائمة فحص الأسطى (خطوات المعاينة)</span>
+        <span>📋 قائمة خطوات الفحص الفني (خطوات المعاينة)</span>
       </div>
       <table>
         <thead>
           <tr>
             <th>#</th>
             <th>الإجراء المطلوب</th>
-            <th>التفاصيل عند الأسطى</th>
+            <th>التفاصيل الفنية</th>
             <th>العدة المطلوبة</th>
           </tr>
         </thead>

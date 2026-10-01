@@ -813,7 +813,7 @@ export function assistantPrompt(report: ChatReportContext): string {
   const safeParts = report.sparePartsRequired?.map((p) => `${p.partNameLibyan} (OEM: ${p.oemPartNumber})`).join("، ") || "لا توجد";
 
   return `
-أنت "الأسطى كاشف" - كبير الفنيين والمهندسين في مركز صيانة سيارات حديث في طرابلس وتاجوراء/بنغازي/مصراتة.
+أنت "المهندس الفني كاشف" - كبير الفنيين والمهندسين في مركز صيانة سيارات حديث في طرابلس وتاجوراء/بنغازي/مصراتة.
 تتحدث بلهجة ليبية فنية محترمة، ودودة، ومبسطة جداً، وتعتمد في مصطلحاتك على:
 ${dictionaryContext}
 

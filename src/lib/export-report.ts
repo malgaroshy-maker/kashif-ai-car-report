@@ -730,8 +730,8 @@ export async function downloadReportHtml(
     <!-- Official Workshop Sign-off -->
     <div class="signoff-box">
       <div>
-        <div style="font-size: 13px; font-weight: 700; color: inherit; margin-bottom: 2px;">توقيع الأسطى</div>
-        <p style="font-size: 11px; color: var(--ink-2);">كاشف قرا تقرير جهاز الفحص وترجمه. الاعتماد يجي من الأسطى اللي كشف على السيارة.</p>
+        <div style="font-size: 13px; font-weight: 700; color: inherit; margin-bottom: 2px;">توقيع الفني</div>
+        <p style="font-size: 11px; color: var(--ink-2);">كاشف قرا تقرير جهاز الفحص وترجمه. الاعتماد يجي من الفني اللي كشف على السيارة.</p>
         ${
           safe.analyzedByModel
             ? `<p style="font-size: 10px; color: var(--ink-3); margin-top: 2px;">قراءة الملف تمت بـ <span dir="ltr">${safe.analyzedByModel}</span></p>`

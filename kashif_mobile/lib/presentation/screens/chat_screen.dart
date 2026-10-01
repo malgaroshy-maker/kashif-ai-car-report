@@ -96,7 +96,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'الأسطى مطلع على تقرير: ${report.vehicle.make} ${report.vehicle.model} (${report.totalFaultsCount} أعطال)',
+                      'المساعد الفني مطلع على تقرير: ${report.vehicle.make} ${report.vehicle.model} (${report.totalFaultsCount} أعطال)',
                       style: KashifTypography.arabic(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -136,7 +136,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'الأسطى يكتب الرد بالمصطلحات الليبية...',
+                    'المساعد الفني يكتب الرد بالمصطلحات الليبية...',
                     style: KashifTypography.arabic(
                       fontSize: 11,
                       color: isDark
@@ -235,7 +235,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     decoration: InputDecoration(
                       hintText: chatState.isListening
                           ? 'تحدث الآن... جاري الاستماع'
-                          : 'اسأل الأسطى عن أي عطل أو قطعة...',
+                          : 'اسأل المساعد الفني عن أي عطل أو قطعة...',
                       hintStyle: KashifTypography.arabic(
                         fontSize: 12,
                         color: chatState.isListening
@@ -311,7 +311,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    isUser ? 'أنت' : 'الأسطى الذكي (Flow Cars)',
+                    isUser ? 'أنت' : 'المساعد الفني الذكي (Flow Cars)',
                     style: KashifTypography.arabic(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,

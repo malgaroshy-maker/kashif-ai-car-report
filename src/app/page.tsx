@@ -161,7 +161,7 @@ export default function HomePage() {
 
       <footer className="border-t border-[var(--rib)] px-[var(--s4)] py-[var(--s4)]">
         <p className="mx-auto max-w-[1180px] k-label normal-case">
-          كاشف يقرا تقرير جهاز الفحص ويترجمه. مش بديل عن كشف الأسطى على
+          كاشف يقرا تقرير جهاز الفحص ويترجمه. مش بديل عن كشف الفني على
           السيارة نفسها.
         </p>
       </footer>

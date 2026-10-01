@@ -604,7 +604,7 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'طريقة الفحص عند الأسطى: ',
+                'طريقة الفحص الفني: ',
                 style: KashifTypography.arabic(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,

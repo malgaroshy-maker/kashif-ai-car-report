@@ -253,7 +253,7 @@ export default function MobileAppScreen() {
                     <Calendar className="w-6 h-6" />
                   </div>
                   <span className="font-semibold text-sm text-slate-200">حجز موعد وفحص</span>
-                  <span className="text-[11px] text-slate-400">خطوات فحص الأسطى</span>
+                  <span className="text-[11px] text-slate-400">خطوات الفحص الفني</span>
                 </button>
 
                 {/* 4: تنبيهات وقاموس الورش */}

@@ -257,7 +257,7 @@ class KashifApiClient {
     }
   }
 
-  /// Send message to the AI Mechanic Chat (الأسطى الذكي)
+  /// Send message to the AI Mechanic Chat (المساعد الفني الذكي)
   Future<String> sendChatMessage({
     required String message,
     required Map<String, dynamic> reportContext,

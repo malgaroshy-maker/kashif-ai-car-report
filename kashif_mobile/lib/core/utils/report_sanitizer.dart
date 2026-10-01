@@ -29,6 +29,11 @@ class ReportSanitizer {
           '',
         )
         .replaceAll('تفتفة', 'فطفطة')
+        .replaceAll(
+          RegExp(r'خطوات\s+فحص\s+الأ?سطى\s+والورشة|خطوات\s+فحص\s+الأ?سطى|فحص\s+الأ?سطى', caseSensitive: false),
+          'خطوات الفحص الفني والورشة',
+        )
+        .replaceAll(RegExp(r'الأ?سطى', caseSensitive: false), 'الفني')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
         .trim();
   }

@@ -765,7 +765,7 @@ class KashifPdfGenerator {
             // Workshop Inspection Checklist
             if (report.checklist.isNotEmpty) ...[
               pw.Text(
-                'قائمة خطوات فحص الأسطى والورشة:',
+                'قائمة خطوات الفحص الفني والورشة:',
                 style: pw.TextStyle(font: arabicBoldFont, fontSize: 12),
               ),
               pw.SizedBox(height: 6),

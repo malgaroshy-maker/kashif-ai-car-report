@@ -161,7 +161,7 @@ export function AssistantPanel({ report }: { report: KashifDiagnosticReport }) {
                         : undefined
                     }
                   >
-                    {m.sender === "user" ? "سؤالك" : "الأسطى كاشف"}
+                    {m.sender === "user" ? "سؤالك" : "المساعد الفني كاشف"}
                   </span>
                   <span data-num className="k-label">
                     {m.timestamp}
