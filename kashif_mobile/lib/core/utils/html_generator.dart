@@ -481,12 +481,13 @@ class KashifHtmlGenerator {
     ''' : ''}
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; margin-top: 16px; font-size: 13px;">
-      <div><strong>اسم الفني:</strong> ${technicianName.isNotEmpty ? esc(technicianName) : '—'}</div>
-      <div><strong>رقم الهاتف:</strong> ${technicianPhone.isNotEmpty ? esc(technicianPhone) : '—'}</div>
+      <div><strong>اسم الفني:</strong> ${technicianName.isNotEmpty ? esc(technicianName) : 'فني فحص معتمد'}</div>
+      <div><strong>رقم الهاتف:</strong> <span dir="ltr">${technicianPhone.isNotEmpty ? esc(technicianPhone) : '—'}</span></div>
+      <div><strong>التوقيع / الختم:</strong> ____________________</div>
     </div>
 
     <div class="footer">
-      تم إنشاء هذا التقرير الفني آلياً بواسطة تطبيق <strong>Flow Cars</strong> • هاتف مطور التطبيق: <strong dir="ltr">0910077239</strong>
+      تم إنشاء هذا التقرير الفني المعتمد آلياً بواسطة نظام <strong>Flow Cars</strong>
     </div>
   </div>
 </body>
