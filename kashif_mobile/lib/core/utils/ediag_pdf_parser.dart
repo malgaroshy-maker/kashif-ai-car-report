@@ -44,7 +44,7 @@ class ExtractedEdiagReport {
   const ExtractedEdiagReport({
     required this.isValid,
     required this.rawText,
-    this.scannerName = 'Ediag All System Diagnostic',
+    this.scannerName = 'فحص إلكتروني شامل',
     this.serialNumber,
     this.make,
     this.model,
@@ -649,7 +649,7 @@ class EdiagPdfParser {
     return ExtractedEdiagReport(
       isValid: isValidReport,
       rawText: rawText,
-      scannerName: 'جهاز فحص Ediag / Launch',
+      scannerName: 'فحص كمبيوتر شامل',
       serialNumber: serialNumber,
       make: rawMake,
       model: rawModel,

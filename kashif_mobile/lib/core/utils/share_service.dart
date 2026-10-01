@@ -2,6 +2,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/repositories/dashboard_lights_repository.dart';
 import '../../data/storage/hive_storage.dart';
+import 'report_sanitizer.dart';
 
 class KashifShareService {
   static Future<void> shareReportViaWhatsApp(DiagnosticReport report) async {
@@ -90,7 +91,7 @@ class KashifShareService {
     }
 
     buffer.writeln('💡 *خلاصة تقييم السيارة:*');
-    buffer.writeln(report.summary.briefSummaryArabic);
+    buffer.writeln(ReportSanitizer.clean(report.summary.briefSummaryArabic));
 
     await SharePlus.instance.share(
       ShareParams(

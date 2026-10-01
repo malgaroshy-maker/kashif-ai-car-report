@@ -22,6 +22,7 @@ import '../../core/utils/share_service.dart';
 import 'report_compare_screen.dart';
 import 'fuse_box_screen.dart';
 import 'dashboard_lights_screen.dart';
+import '../../core/utils/report_sanitizer.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
   final VoidCallback onOpenChat;
@@ -747,7 +748,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
           ),
           const SizedBox(height: 6),
           Text(
-            report.summary.briefSummaryArabic,
+            ReportSanitizer.clean(report.summary.briefSummaryArabic),
             style: KashifTypography.arabic(
               fontSize: 12,
               height: 1.5,

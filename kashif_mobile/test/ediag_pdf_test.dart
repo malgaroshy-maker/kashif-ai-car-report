@@ -203,7 +203,7 @@ SRS-Supplemental Inflatable Restraint System 8 problems exist
     expect(report.vehicle.model, 'Camry');
     expect(report.vehicle.year, '2007');
     expect(report.vehicle.vin, '4T1BE46K17U046638');
-    expect(report.scannerInfo.toolName, contains('Ediag'));
+    expect(report.scannerInfo.toolName.contains('Ediag'), isFalse);
     expect(report.criticalFaults.isNotEmpty, isTrue);
     expect(report.spareParts.isNotEmpty, isTrue);
     expect(report.checklist.isNotEmpty, isTrue);
@@ -260,7 +260,7 @@ The following systems are OK:
     expect(report.vehicle.year, '1997.07');
     expect(report.vehicle.vin, 'WBADD6100VBR32540');
     expect(report.vehicle.mileage, '281461 Miles');
-    expect(report.scannerInfo.toolName, contains('Ediag'));
+    expect(report.scannerInfo.toolName, contains('فحص كمبيوتر'));
     expect(report.criticalFaults.isNotEmpty, isTrue);
     expect(report.summary.faultsFoundCount, 12);
     expect(report.summary.passedSystemsCount, 6);
@@ -397,6 +397,37 @@ The following systems are OK:
       expect(extracted.faults.isNotEmpty, isTrue);
       final report = OfflineReportService.buildOfflineReportFromEdiag(extracted);
       expect(report.vehicle.vin, isNotEmpty);
+    }
+  });
+
+  test('Scanner tool brand names (Ediag, Launch) are completely eliminated from customer-facing reports', () {
+    const rawReport = '''
+All System Diagnostic Report
+The Report is created by Ediag
+Vehicle Information
+SN:9TBC29728913
+Make:BMW/Rolls Royce/Mini
+Model:528i
+Year:1997.07
+VIN:WBADD6100VBR32540
+Mileage:281461 Miles
+Test Time:09/24/2026 21:00:40
+Inspection Result
+ECM-Engine Control Module - DME/DDE 1 problems exist
+1.02 Ignition, Cylinder 4
+''';
+
+    final extracted = EdiagPdfParser.extractFromText(rawReport);
+    final report = OfflineReportService.buildOfflineReportFromEdiag(extracted);
+
+    // Assert that the customer-facing summary does NOT contain Ediag or Launch
+    expect(report.summary.briefSummaryArabic.contains('Ediag'), isFalse);
+    expect(report.summary.briefSummaryArabic.contains('Launch'), isFalse);
+    expect(report.scannerInfo.toolName.contains('Ediag'), isFalse);
+
+    for (final step in report.checklist) {
+      expect(step.actionDescriptionLibyan.contains('Ediag'), isFalse);
+      expect(step.toolingNeeded.contains('Ediag'), isFalse);
     }
   });
 }

@@ -890,7 +890,7 @@ class OfflineReportService {
         'تصفير ذاكرة الكمبيوتر أو تبديل موديول الـ EPS',
       ],
       urgencyLevel: 'متوسط',
-      recommendedAction: 'تثبيت المقود في وضع الاستقامة التامة والسيارة على أرضية مستوية، وإجراء عملية معايرة زاوية التوجيه (SAS Calibration / Zero Setting) بجهاز الفحص الإلكتروني (Ediag أو ما يعادله) دون الحاجة لتبديل قطع.',
+      recommendedAction: 'تثبيت المقود في وضع الاستقامة التامة والسيارة على أرضية مستوية، وإجراء عملية معايرة زاوية التوجيه (SAS Calibration / Zero Setting) بجهاز الفحص الإلكتروني المتخصص دون الحاجة لتبديل قطع.',
       severity: CodeSeverity.moderate,
       partNameLibyan: 'برمجة ومعايرة تصفير زاوية الستيرنج (بدون قطع)',
       partNameEnglish: 'Steering Angle Sensor Zero Calibration Service',
@@ -1583,7 +1583,7 @@ class OfflineReportService {
     return DiagnosticReport(
       reportId: 'local_${now.millisecondsSinceEpoch}',
       generatedAt: now.toIso8601String(),
-      scannerInfo: ScannerInfo(toolName: 'كاشف AI (فحص القاموس المحلي الفوري)'),
+      scannerInfo: ScannerInfo(toolName: 'فحص كمبيوتر إلكتروني شامل'),
       vehicle: vInfo,
       summary: summary,
       criticalFaults: critFaults,
@@ -1775,7 +1775,7 @@ class OfflineReportService {
       reportId: 'offline_${now.millisecondsSinceEpoch}',
       generatedAt: now.toIso8601String(),
       scannerInfo: ScannerInfo(
-        toolName: 'كاشف AI (التشخيص المحلي السريع بدون إنترنت)',
+        toolName: 'فحص كمبيوتر إلكتروني شامل',
       ),
       vehicle: vInfo,
       summary: summary,
@@ -1949,7 +1949,7 @@ class OfflineReportService {
     String summaryText;
     if (isBmw) {
       summaryText =
-          'تم إجراء كشف شامل لسيارة BMW 528i بواسطة جهاز كشف Ediag، وأظهر التقرير وجود مشاكل حرجة ومتعددة تشمل فطفطة في المحرك بسبب بوبينة البسطوني الرابع، ومشاكل في حساسات الـ ABS وسرعة العجلات وتأثر الإيرباق بسبب حساس ركوب الكرسي، بالإضافة إلى عيوب في حساسات طوان الفيول ومستشعر زيت المحرك.';
+          'تم إجراء فحص وتشخيص شامل لسيارة BMW 528i، وأظهر الفحص وجود مشاكل حرجة ومتعددة تشمل فطفطة في المحرك بسبب بوبينة البسطوني الرابع، ومشاكل في حساسات الـ ABS وسرعة العجلات وتأثر الإيرباق بسبب حساس ركوب الكرسي، بالإضافة إلى عيوب في عوامات خزان الوقود ومستشعر زيت المحرك.';
       healthScore = 42;
       severityStatus = 'حرج / خطر';
 
@@ -2060,7 +2060,7 @@ class OfflineReportService {
       ]);
     } else if (isHyundai) {
       summaryText =
-          'تم إجراء كشف شامل لسيارة هيونداي إلنترا (HD) بواسطة جهاز كشف Ediag بدون إنترنت. المنظومات الحيوية الرئيسية (المحرك، الكمبيو، مانع الانغلاق ABS، والإيرباق SRS، والمانع IMM) كلها سليمة وناجحة بنسبة 100%، بينما ينحصر الخلل في منظومة المقود الكهربائي (EPS / الباور ستيرنج) بعد تسجيل ${extracted.faults.length} أعطال حالية (Present) تشمل حساس زاوية المقود وحساس العزم، والسيارة بحاجة إلى معايرة وبرمجة تصفير زاوية التوجيه (SAS Calibration) وفحص فيش عمود المقود لإطفاء لمبة EPS واستعادة خفة ونعومة الستيرنج.';
+          'تم إجراء فحص وتشخيص شامل لسيارة هيونداي إلنترا (HD). المنظومات الحيوية الرئيسية (المحرك، الكمبيو، مانع الانغلاق ABS، والإيرباق SRS، والمانع IMM) كلها سليمة وناجحة بنسبة 100%، بينما ينحصر الخلل في منظومة المقود الكهربائي (EPS / الباور ستيرنج) بعد تسجيل ${extracted.faults.length} أعطال حالية (Present) تشمل حساس زاوية المقود وحساس العزم، والسيارة بحاجة إلى معايرة وبرمجة تصفير زاوية التوجيه (SAS Calibration) وفحص فيش عمود المقود لإطفاء لمبة EPS واستعادة خفة ونعومة الستيرنج.';
       healthScore = 68;
       severityStatus = 'متوسط / انتبه';
 
@@ -2093,7 +2093,7 @@ class OfflineReportService {
           partNameStandardArabic: 'معايرة وضبط الصفر لحساس زاوية التوجيه بجهاز الكشف',
           partNameEnglish: 'Steering Angle Sensor Zero Calibration Service',
           oemPartNumber: 'DIAG-CAL-SAS',
-          aftermarketReplacements: ['برمجة عبر جهاز كشف Ediag أو G-Scan'],
+          aftermarketReplacements: ['برمجة ومعايرة فحص كمبيوتر بالورشة'],
           estimatedPriceRangeLYD: PriceRangeLYD(min: 25, max: 50, marketNote: 'أجرة برمجة فحص كمبيوتر في الورش الليبية'),
         ),
       ]);
@@ -2104,10 +2104,10 @@ class OfflineReportService {
           stepNumber: 1,
           actionTitle: 'برمجة ومعايرة زاوية الستيرنج (SAS Calibration)',
           actionDescriptionLibyan:
-              'وقف السيارة على أرضية مستوية والمقود مستقيم 0.0°، وادخل بجهاز الكشف واعمل معايرة تصفير لمستشعر زاوية المقود لإلغاء كود C1261.',
+              'وقف السيارة على أرضية مستوية والمقود مستقيم 0.0°، واعمل معايرة تصفير لمستشعر زاوية المقود لإلغاء كود C1261.',
           purpose: 'إعادة ضبط نقطة الصفر لكمبيوتر الـ EPS واستعادة محاذاة التوجيه',
           estimatedTime: '10 دقائق',
-          toolingNeeded: 'جهاز فحص كمبيوتر (Ediag أو ما يعادله)',
+          toolingNeeded: 'جهاز فحص كمبيوتر مخصص',
         ),
         DiagnosticChecklistStep(
           stepNumber: 2,
@@ -2138,9 +2138,9 @@ class OfflineReportService {
         ),
       ]);
     } else if (isToyota) {
-      summaryText = 'تم قراءة تقرير الفحص لسيارة تويوتا كامري بجهاز Ediag بدون إنترنت. الأعطال متمركزة في منظومة الإيرباق (SRS) بإجمالي ${extracted.faults.length} ملاحظات تشمل شريط الستيرسو الداخلي، حساس وزن المقعد، وقفل الحزام.';
+      summaryText = 'تم إجراء فحص وتشخيص شامل لسيارة تويوتا كامري. الأعطال متمركزة في منظومة الإيرباق (SRS) بإجمالي ${extracted.faults.length} ملاحظات تشمل شريط الستيرسو الداخلي، حساس وزن المقعد، وقفل الحزام.';
     } else {
-      summaryText = 'تم فحص وتشخيص تقرير جهاز Ediag لمركبة ${extracted.make ?? ''} ${extracted.model ?? ''} فورياً بدون إنترنت وحصر ${extracted.faults.length} عطل بنجاح.';
+      summaryText = 'تم فحص وتشخيص مركبة ${extracted.make ?? ''} ${extracted.model ?? ''} وحصر ${extracted.faults.length} عطل بنجاح.';
     }
 
     final totalChecked = extracted.faults.map((f) => f.shortModule).toSet().length + cleanPassed.length;
@@ -2195,7 +2195,7 @@ class OfflineReportService {
       reportId: 'ediag_offline_${now.millisecondsSinceEpoch}',
       generatedAt: extracted.testTime ?? now.toIso8601String(),
       scannerInfo: ScannerInfo(
-        toolName: 'جهاز فحص Ediag (نظام فحص ذكي بدون إنترنت)',
+        toolName: 'فحص كمبيوتر إلكتروني شامل',
         serialNumber: extracted.serialNumber ?? 'SN-9TBC29728913',
         testTime: extracted.testTime ?? now.toIso8601String(),
       ),

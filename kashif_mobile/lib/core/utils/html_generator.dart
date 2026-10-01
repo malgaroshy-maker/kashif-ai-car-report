@@ -10,6 +10,7 @@ import '../../data/storage/hive_storage.dart';
 import '../theme/colors.dart';
 import '../theme/typography.dart';
 import 'web_downloader.dart';
+import 'report_sanitizer.dart';
 
 class KashifHtmlGenerator {
   // HTML escape helper
@@ -349,7 +350,7 @@ class KashifHtmlGenerator {
         <div style="flex: 1;">
           <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">الحالة: ${esc(summary.severityStatus)}</div>
           <div style="font-weight: 800; font-size: 12.5px; color: #1A4B84; margin-bottom: 3px;">خلاصة تقييم السيارة:</div>
-          <div class="summary-text">${esc(summary.briefSummaryArabic.replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</div>
+          <div class="summary-text">${esc(ReportSanitizer.clean(summary.briefSummaryArabic).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</div>
         </div>
       </div>
     </div>

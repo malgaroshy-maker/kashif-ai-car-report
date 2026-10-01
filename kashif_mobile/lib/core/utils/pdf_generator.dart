@@ -5,6 +5,7 @@ import 'package:printing/printing.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/models/fault_code.dart';
 import '../../data/storage/hive_storage.dart';
+import 'report_sanitizer.dart';
 
 class KashifPdfGenerator {
   static Future<pw.Font> _loadArabicFont({bool bold = false}) async {
@@ -479,7 +480,7 @@ class KashifPdfGenerator {
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      report.summary.briefSummaryArabic
+                      ReportSanitizer.clean(report.summary.briefSummaryArabic)
                           .replaceAll('السلندر', 'البسطوني')
                           .replaceAll('سلندر', 'بسطوني'),
                       style: pw.TextStyle(
@@ -564,10 +565,10 @@ class KashifPdfGenerator {
                   String sevLabel = 'متوسط';
                   if (f.severity == CodeSeverity.critical) sevLabel = 'حرج';
                   if (f.severity == CodeSeverity.history) sevLabel = 'ذاكرة';
-                  final cleanLibyanTerm = f.libyanTerm
+                  final cleanLibyanTerm = ReportSanitizer.clean(f.libyanTerm)
                       .replaceAll('السلندر', 'البسطوني')
                       .replaceAll('سلندر', 'بسطوني');
-                  final cleanAction = f.recommendedAction
+                  final cleanAction = ReportSanitizer.clean(f.recommendedAction)
                       .replaceAll('السلندر', 'البسطوني')
                       .replaceAll('سلندر', 'بسطوني');
                   return [
@@ -798,14 +799,14 @@ class KashifPdfGenerator {
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
                             pw.Text(
-                              'خطوة ${step.stepNumber}: ${step.actionTitle.replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني')}',
+                              'خطوة ${step.stepNumber}: ${ReportSanitizer.clean(step.actionTitle).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني')}',
                               style: pw.TextStyle(
                                 font: arabicBoldFont,
                                 fontSize: 9,
                               ),
                             ),
                             pw.Text(
-                              step.actionDescriptionLibyan
+                              ReportSanitizer.clean(step.actionDescriptionLibyan)
                                   .replaceAll('السلندر', 'البسطوني')
                                   .replaceAll('سلندر', 'بسطوني'),
                               style: pw.TextStyle(
@@ -818,7 +819,7 @@ class KashifPdfGenerator {
                       ),
                       if (step.toolingNeeded.isNotEmpty)
                         pw.Text(
-                          'العدة: ${step.toolingNeeded.replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني')}',
+                          'العدة: ${ReportSanitizer.clean(step.toolingNeeded).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني')}',
                           style: pw.TextStyle(
                             font: arabicFont,
                             fontSize: 8,
