@@ -7,6 +7,7 @@ import 'package:kashif_mobile/core/utils/pdf_generator.dart';
 import 'package:kashif_mobile/core/utils/html_generator.dart';
 import 'package:kashif_mobile/data/repositories/offline_report_service.dart';
 import 'package:kashif_mobile/data/storage/hive_storage.dart';
+import 'package:kashif_mobile/data/models/report_sections_config.dart';
 import 'dart:typed_data';
 
 void main() {
@@ -346,5 +347,47 @@ void main() {
         expect(html, contains('P0300'));
       },
     );
+
+    test('ReportSectionsConfig toggles and controls HTML export sections', () {
+      final report = OfflineReportService.buildOfflineReportFallback(
+        'P0300',
+        vin: 'TESTSECTIONVIN',
+      );
+
+      // Default: all sections enabled
+      const defaultConfig = ReportSectionsConfig();
+      expect(defaultConfig.includeTechnicalAssessment, isTrue);
+      expect(defaultConfig.includeFaultsTable, isTrue);
+      expect(defaultConfig.includePassedSystems, isTrue);
+      expect(defaultConfig.includeProbabilitiesTable, isTrue);
+      expect(defaultConfig.includeChecklist, isTrue);
+      expect(defaultConfig.toItemList().length, 6);
+
+      final fullHtml = KashifHtmlGenerator.buildHtml(
+        report,
+        sectionsConfig: defaultConfig,
+      );
+      expect(fullHtml, contains('خلاصة تقييم السيارة'));
+      expect(fullHtml, contains('أعطال حرجة'));
+      expect(fullHtml, contains('جدول احتمالات ومسببات الأعطال'));
+      expect(fullHtml, contains('قائمة خطوات الفحص الفني'));
+
+      // Disabled: toggle off technical assessment, faults table, probabilities, and checklist
+      final customConfig = defaultConfig
+          .copyWith(
+            includeTechnicalAssessment: false,
+            includeFaultsTable: false,
+            includeProbabilitiesTable: false,
+            includeChecklist: false,
+          );
+      final filteredHtml = KashifHtmlGenerator.buildHtml(
+        report,
+        sectionsConfig: customConfig,
+      );
+      expect(filteredHtml, isNot(contains('خلاصة تقييم السيارة:')));
+      expect(filteredHtml, isNot(contains('أعطال حرجة')));
+      expect(filteredHtml, isNot(contains('جدول احتمالات ومسببات الأعطال')));
+      expect(filteredHtml, isNot(contains('قائمة خطوات الفحص الفني')));
+    });
   });
 }

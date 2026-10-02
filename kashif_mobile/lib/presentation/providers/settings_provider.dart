@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/storage/hive_storage.dart';
+import '../../data/models/report_sections_config.dart';
 
 class SettingsState {
   final List<String> customApiKeys;
@@ -13,6 +14,7 @@ class SettingsState {
   final bool isApinexAutoFailoverEnabled;
   final bool useApinexAsPrimary;
   final bool isTokenSaverEnabled;
+  final ReportSectionsConfig reportSectionsConfig;
 
   SettingsState({
     List<String>? customApiKeys,
@@ -25,6 +27,7 @@ class SettingsState {
     bool? isApinexAutoFailoverEnabled,
     bool? useApinexAsPrimary,
     bool? isTokenSaverEnabled,
+    ReportSectionsConfig? reportSectionsConfig,
   })  : customApiKeys =
             customApiKeys ?? (customApiKey != null ? [customApiKey] : []),
         apinexApiKey = apinexApiKey ?? KashifStorage.apinexApiKey,
@@ -34,7 +37,9 @@ class SettingsState {
         useApinexAsPrimary =
             useApinexAsPrimary ?? KashifStorage.useApinexAsPrimary,
         isTokenSaverEnabled =
-            isTokenSaverEnabled ?? KashifStorage.isTokenSaverEnabled;
+            isTokenSaverEnabled ?? KashifStorage.isTokenSaverEnabled,
+        reportSectionsConfig =
+            reportSectionsConfig ?? KashifStorage.reportSectionsConfig;
 
   SettingsState copyWith({
     List<String>? customApiKeys,
@@ -47,6 +52,7 @@ class SettingsState {
     bool? isApinexAutoFailoverEnabled,
     bool? useApinexAsPrimary,
     bool? isTokenSaverEnabled,
+    ReportSectionsConfig? reportSectionsConfig,
     bool clearKey = false,
   }) {
     final newKeys = customApiKeys ?? this.customApiKeys;
@@ -66,6 +72,7 @@ class SettingsState {
           isApinexAutoFailoverEnabled ?? this.isApinexAutoFailoverEnabled,
       useApinexAsPrimary: useApinexAsPrimary ?? this.useApinexAsPrimary,
       isTokenSaverEnabled: isTokenSaverEnabled ?? this.isTokenSaverEnabled,
+      reportSectionsConfig: reportSectionsConfig ?? this.reportSectionsConfig,
     );
   }
 }
@@ -84,6 +91,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           isApinexAutoFailoverEnabled: KashifStorage.isApinexAutoFailoverEnabled,
           useApinexAsPrimary: KashifStorage.useApinexAsPrimary,
           isTokenSaverEnabled: KashifStorage.isTokenSaverEnabled,
+          reportSectionsConfig: KashifStorage.reportSectionsConfig,
         ),
       );
 
@@ -171,6 +179,30 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   Future<void> setTokenSaverEnabled(bool enabled) async {
     await KashifStorage.setTokenSaverEnabled(enabled);
     state = state.copyWith(isTokenSaverEnabled: enabled);
+  }
+
+  Future<void> updateReportSectionsConfig(ReportSectionsConfig config) async {
+    await KashifStorage.setReportSectionsConfig(config);
+    state = state.copyWith(reportSectionsConfig: config);
+  }
+
+  Future<void> toggleReportSection(String key, bool enabled) async {
+    final updated = state.reportSectionsConfig.toggleByKey(key, enabled);
+    await KashifStorage.setReportSectionsConfig(updated);
+    state = state.copyWith(reportSectionsConfig: updated);
+  }
+
+  Future<void> setAllReportSections(bool enabled) async {
+    final updated = ReportSectionsConfig(
+      includeTechnicalAssessment: enabled,
+      includeFaultsTable: enabled,
+      includePassedSystems: enabled,
+      includeProbabilitiesTable: enabled,
+      includeChecklist: enabled,
+      includeSpareParts: enabled,
+    );
+    await KashifStorage.setReportSectionsConfig(updated);
+    state = state.copyWith(reportSectionsConfig: updated);
   }
 }
 

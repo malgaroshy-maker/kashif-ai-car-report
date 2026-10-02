@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/diagnostic_report.dart';
+import '../models/report_sections_config.dart';
 
 class KashifStorage {
   static const String reportsBoxName = 'kashif_reports';
@@ -302,4 +303,18 @@ class KashifStorage {
 
   static Future<void> setTokenSaverEnabled(bool val) async =>
       await settingsBox.put('isTokenSaverEnabled', val);
+
+  // Report Sections Visibility Configuration
+  static ReportSectionsConfig get reportSectionsConfig {
+    try {
+      final raw = settingsBox.get('reportSectionsConfig');
+      if (raw is Map) {
+        return ReportSectionsConfig.fromMap(_deepConvertMap(raw));
+      }
+    } catch (_) {}
+    return const ReportSectionsConfig();
+  }
+
+  static Future<void> setReportSectionsConfig(ReportSectionsConfig config) async =>
+      await settingsBox.put('reportSectionsConfig', config.toMap());
 }

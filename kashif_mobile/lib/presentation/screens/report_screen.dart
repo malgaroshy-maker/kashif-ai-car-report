@@ -8,6 +8,7 @@ import '../../data/models/spare_part.dart';
 import '../../data/models/checklist_step.dart';
 import '../providers/report_provider.dart';
 import '../providers/history_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
 import '../widgets/health_score_gauge.dart';
@@ -34,28 +35,14 @@ class ReportScreen extends ConsumerStatefulWidget {
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
 }
 
-class _ReportScreenState extends ConsumerState<ReportScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 6, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+class _ReportScreenState extends ConsumerState<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final reportState = ref.watch(reportProvider);
     final report = reportState.report;
     final savedReports = ref.watch(historyProvider);
+    final sectionsConfig = ref.watch(settingsProvider).reportSectionsConfig;
     final isSaved =
         report != null &&
         savedReports.any((r) => r.reportId == report.reportId);
@@ -98,113 +85,188 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
       );
     }
 
-    return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Vehicle Header Card
-                    _buildVehicleHeader(report, isDark, isSaved),
-                    const SizedBox(height: 12),
+    final allFaultsList = [
+      ...report.criticalFaults,
+      ...report.moderateFaults,
+      ...report.historyFaults,
+    ];
+    final multiCauseFaults =
+        allFaultsList.where((f) => f.rootCauses.length > 1).toList();
 
-                    // Health Score & Priority Summary
-                    _buildHealthScoreCard(report, isDark),
-                    const SizedBox(height: 12),
+    final activeTabs = <({Widget tab, Widget view})>[
+      if (sectionsConfig.includeFaultsTable) ...[
+        (
+          tab: Tab(text: 'أعطال حرجة (${report.criticalFaults.length})'),
+          view: _buildFaultsList(
+            report.criticalFaults,
+            'لا توجد أعطال حرجة تهدد أمان السيارة بحمد الله.',
+            CodeSeverity.critical,
+          ),
+        ),
+        (
+          tab: Tab(text: 'أعطال متوسطة (${report.moderateFaults.length})'),
+          view: _buildFaultsList(
+            report.moderateFaults,
+            'لا توجد أعطال متوسطة مسجلة.',
+            CodeSeverity.moderate,
+          ),
+        ),
+        (
+          tab: Tab(text: 'في الذاكرة (${report.historyFaults.length})'),
+          view: _buildFaultsList(
+            report.historyFaults,
+            'لا توجد أكواد أعطال قديمة في الذاكرة.',
+            CodeSeverity.history,
+          ),
+        ),
+      ],
+      if (sectionsConfig.includePassedSystems)
+        (
+          tab: Tab(
+            text: 'الأنظمة السليمة (${report.passedSystems.length})',
+          ),
+          view: _buildPassedSystemsList(report.passedSystems, isDark),
+        ),
+      if (sectionsConfig.includeSpareParts)
+        (
+          tab: Tab(text: 'قطع الغيار (${report.spareParts.length})'),
+          view: _buildPartsList(report.spareParts, isDark),
+        ),
+      if (sectionsConfig.includeProbabilitiesTable && multiCauseFaults.isNotEmpty)
+        (
+          tab: Tab(text: 'الاحتمالات (${multiCauseFaults.length})'),
+          view: _buildProbabilitiesList(multiCauseFaults, isDark),
+        ),
+      if (sectionsConfig.includeChecklist)
+        (
+          tab: Tab(text: 'خطوات الفحص (${report.checklist.length})'),
+          view: _buildChecklist(report.checklist, isDark),
+        ),
+    ];
 
-                    // Mechanic Summary Alert
-                    _buildMechanicSummary(report, isDark),
-                    const SizedBox(height: 12),
-
-                    // Active Dashboard Warning Lights
-                    ActiveLightsCard(
-                      report: report,
-                      onUpdateLights: (newLights) {
-                        final updated = report.copyWith(
-                          activeWarningLightIds: newLights,
-                        );
-                        ref.read(reportProvider.notifier).setReport(updated);
-                      },
-                    ),
-
-                    const MoldedRib(label: 'أقسام التقرير التفصيلي'),
-                  ],
-                ),
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _TabBarDelegate(
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicatorColor: isDark
-                      ? KashifColors.goldLight
-                      : KashifColors.royalBlue,
-                  labelColor: isDark
-                      ? KashifColors.goldLight
-                      : KashifColors.royalBlue,
-                  unselectedLabelColor: isDark
-                      ? KashifColors.darkTextMuted
-                      : KashifColors.lightTextMuted,
-                  labelStyle: KashifTypography.arabic(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+    final displayTabs = activeTabs.isNotEmpty
+        ? activeTabs
+        : [
+            (
+              tab: const Tab(text: 'أقسام التقرير'),
+              view: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.visibility_off_outlined,
+                        size: 48,
+                        color: isDark
+                            ? KashifColors.darkTextMuted
+                            : KashifColors.lightTextMuted,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'جميع أقسام التقرير التفصيلي معطلة حالياً',
+                        style: KashifTypography.arabic(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? KashifColors.darkTextPrimary
+                              : KashifColors.lightTextPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'يمكنك إعادة تفعيلها من شاشة الإعدادات > أقسام ومكونات التقرير',
+                        textAlign: TextAlign.center,
+                        style: KashifTypography.arabic(
+                          fontSize: 12,
+                          color: isDark
+                              ? KashifColors.darkTextMuted
+                              : KashifColors.lightTextMuted,
+                        ),
+                      ),
+                    ],
                   ),
-                  unselectedLabelStyle: KashifTypography.arabic(fontSize: 12),
-                  tabs: [
-                    Tab(text: 'أعطال حرجة (${report.criticalFaults.length})'),
-                    Tab(text: 'أعطال متوسطة (${report.moderateFaults.length})'),
-                    Tab(text: 'في الذاكرة (${report.historyFaults.length})'),
-                    Tab(
-                      text: 'الأنظمة السليمة (${report.passedSystems.length})',
-                    ),
-                    Tab(text: 'قطع الغيار (${report.spareParts.length})'),
-                    Tab(text: 'خطوات الفحص (${report.checklist.length})'),
-                  ],
                 ),
-                isDark: isDark,
               ),
             ),
           ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // Tab 1: Critical Faults (10A)
-            _buildFaultsList(
-              report.criticalFaults,
-              'لا توجد أعطال حرجة تهدد أمان السيارة بحمد الله.',
-              CodeSeverity.critical,
-            ),
-            // Tab 2: Moderate Faults (20A)
-            _buildFaultsList(
-              report.moderateFaults,
-              'لا توجد أعطال متوسطة مسجلة.',
-              CodeSeverity.moderate,
-            ),
-            // Tab 3: History Faults (25A)
-            _buildFaultsList(
-              report.historyFaults,
-              'لا توجد أكواد أعطال قديمة في الذاكرة.',
-              CodeSeverity.history,
-            ),
-            // Tab 4: Passed Systems (30A)
-            _buildPassedSystemsList(report.passedSystems, isDark),
-            // Tab 5: Spare Parts Guide
-            _buildPartsList(report.spareParts, isDark),
-            // Tab 6: Diagnostic Checklist
-            _buildChecklist(report.checklist, isDark),
-          ],
+
+    return DefaultTabController(
+      length: displayTabs.length,
+      key: ValueKey('report_tabs_${displayTabs.length}_${sectionsConfig.hashCode}'),
+      child: Scaffold(
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Vehicle Header Card
+                      _buildVehicleHeader(report, isDark, isSaved),
+                      const SizedBox(height: 12),
+
+                      // Health Score & Priority Summary
+                      _buildHealthScoreCard(report, isDark),
+                      const SizedBox(height: 12),
+
+                      // Mechanic Summary Alert (تقييم الفني للسيارة)
+                      if (sectionsConfig.includeTechnicalAssessment) ...[
+                        _buildMechanicSummary(report, isDark),
+                        const SizedBox(height: 12),
+                      ],
+
+                      // Active Dashboard Warning Lights
+                      ActiveLightsCard(
+                        report: report,
+                        onUpdateLights: (newLights) {
+                          final updated = report.copyWith(
+                            activeWarningLightIds: newLights,
+                          );
+                          ref.read(reportProvider.notifier).setReport(updated);
+                        },
+                      ),
+
+                      const MoldedRib(label: 'أقسام التقرير التفصيلي'),
+                    ],
+                  ),
+                ),
+              ),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _TabBarDelegate(
+                  TabBar(
+                    isScrollable: true,
+                    indicatorColor: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue,
+                    labelColor: isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue,
+                    unselectedLabelColor: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
+                    labelStyle: KashifTypography.arabic(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    unselectedLabelStyle: KashifTypography.arabic(fontSize: 12),
+                    tabs: displayTabs.map((t) => t.tab).toList(),
+                  ),
+                  isDark: isDark,
+                ),
+              ),
+            ];
+          },
+          body: TabBarView(
+            children: displayTabs.map((t) => t.view).toList(),
+          ),
         ),
-      ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
@@ -932,6 +994,188 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
       itemCount: steps.length,
       itemBuilder: (context, index) {
         return ChecklistItemWidget(step: steps[index]);
+      },
+    );
+  }
+
+  Widget _buildProbabilitiesList(List<DiagnosticFaultCode> faults, bool isDark) {
+    if (faults.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                size: 48,
+                color: isDark
+                    ? KashifColors.fuse30AInkDark
+                    : KashifColors.fuse30AInkLight,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'لا توجد أعطال متعددة الاحتمالات مسجلة بحمد الله.',
+                textAlign: TextAlign.center,
+                style: KashifTypography.arabic(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: faults.length,
+      itemBuilder: (context, index) {
+        final f = faults[index];
+        final causes = f.rootCauses;
+        final causesChain = causes.asMap().entries.map((entry) {
+          final cleanCause = ReportSanitizer.clean(entry.value)
+              .replaceAll('السلندر', 'البسطوني')
+              .replaceAll('سلندر', 'بسطوني');
+          return '${entry.key + 1}. $cleanCause';
+        }).join('  ←  ');
+
+        return FuseCell(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Row: Code, Module, Severity
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF132347)
+                          : const Color(0xFFE8F0FC),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? KashifColors.goldPrimary.withValues(alpha: 0.6)
+                            : KashifColors.royalBlue.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      f.code,
+                      style: KashifTypography.mono(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: isDark
+                            ? KashifColors.goldLight
+                            : KashifColors.royalBlue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: (isDark
+                              ? KashifColors.royalBlueLight
+                              : KashifColors.royalBlue)
+                          .withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      f.module,
+                      style: KashifTypography.mono(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? KashifColors.royalBlueElectric
+                            : KashifColors.royalBlue,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  SeveritySeat(severity: f.severity, compact: true),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Libyan Description
+              Text(
+                ReportSanitizer.clean(f.libyanTerm)
+                    .replaceAll('السلندر', 'البسطوني')
+                    .replaceAll('سلندر', 'بسطوني'),
+                style: KashifTypography.arabic(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: isDark
+                      ? KashifColors.darkTextPrimary
+                      : KashifColors.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Probabilities Chain Box
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF0F1A30)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.4)
+                        : const Color(0xFFCBD5E1),
+                    width: 0.8,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.alt_route_rounded,
+                          size: 15,
+                          color: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'سلسلة احتمالات ومسببات العطل:',
+                          style: KashifTypography.arabic(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? KashifColors.goldLight
+                                : KashifColors.royalBlue,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      causesChain,
+                      style: KashifTypography.arabic(
+                        fontSize: 12,
+                        height: 1.6,
+                        color: isDark
+                            ? KashifColors.darkTextPrimary
+                            : KashifColors.lightTextPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }

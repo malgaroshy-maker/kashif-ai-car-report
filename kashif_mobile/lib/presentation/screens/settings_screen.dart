@@ -10,6 +10,7 @@ import '../../core/theme/typography.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
+import '../../data/models/report_sections_config.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -732,7 +733,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Text(
                           s.themeMode == ThemeMode.dark
                               ? 'الوضع الليلي (الداكن)'
-                              : 'الوضع النهاري (الفاتح)',
+                              : s.themeMode == ThemeMode.light
+                                  ? 'الوضع النهاري (الفاتح)'
+                                  : 'تلقائي (حسب إعدادات الهاتف)',
                           style: KashifTypography.arabic(
                             fontSize: 10.5,
                             color: isDark
@@ -756,8 +759,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         icon: Icon(Icons.light_mode_rounded, size: 16),
                         label: Text('فاتح'),
                       ),
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        icon: Icon(Icons.settings_brightness_rounded, size: 16),
+                        label: Text('تلقائي'),
+                      ),
                     ],
-                    selected: {s.themeMode == ThemeMode.light ? ThemeMode.light : ThemeMode.dark},
+                    selected: {s.themeMode},
                     onSelectionChanged: (newSelection) {
                       ref.read(settingsProvider.notifier).updateThemeMode(newSelection.first);
                     },
@@ -881,6 +889,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 16),
+            // Report Sections Customizer Section
+            const MoldedRib(
+              label: 'أقسام ومكونات تقرير الفحص (تخصيص العرض والطباعة)',
+            ),
+            const SizedBox(height: 10),
+            _buildReportSectionsCustomizer(isDark, s),
 
             const SizedBox(height: 16),
             // Multi-Key Pool Section
@@ -1957,40 +1973,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
-            const MoldedRib(label: 'مظهر غطاء الفيوز (Theme)'),
-            const SizedBox(height: 10),
 
-            FuseCell(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                children: [
-                  _buildThemeOption(
-                    'المظهر النهاري الملكي (Royal Daylight)',
-                    'خلفية نقية مع عناصر بالأزرق الملكي ولمسات ذهبية',
-                    ThemeMode.light,
-                    s.themeMode,
-                    isDark,
-                  ),
-                  const Divider(height: 16),
-                  _buildThemeOption(
-                    'المظهر الليلي الملكي (Royal Navy & Gold)',
-                    'أزرق ملكي داكن مع لمعان ذهبي مطابق لشعار Flow Cars',
-                    ThemeMode.dark,
-                    s.themeMode,
-                    isDark,
-                  ),
-                  const Divider(height: 16),
-                  _buildThemeOption(
-                    'مطابقة مظهر الجهاز (System Default)',
-                    'يتبع إعدادات ومظهر الهاتف تلقائياً',
-                    ThemeMode.system,
-                    s.themeMode,
-                    isDark,
-                  ),
-                ],
-              ),
-            ),
 
             const SizedBox(height: 16),
             ElevatedButton(
@@ -2078,79 +2061,153 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeOption(
-    String title,
-    String subtitle,
-    ThemeMode mode,
-    ThemeMode currentMode,
-    bool isDark,
-  ) {
-    final isSelected = mode == currentMode;
-    return InkWell(
-      onTap: () => ref.read(settingsProvider.notifier).updateThemeMode(mode),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          children: [
-            Container(
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected
-                      ? (isDark
-                            ? KashifColors.fuse15AInkDark
-                            : KashifColors.fuse15AInkLight)
-                      : (isDark
-                            ? KashifColors.darkBorder
-                            : KashifColors.lightBorder),
-                  width: 2,
+  Widget _buildReportSectionsCustomizer(bool isDark, SettingsState s) {
+    final sections = s.reportSectionsConfig.toItemList();
+    final allEnabled = sections.every((item) => item.isEnabled);
+
+    return FuseCell(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isDark ? KashifColors.goldPrimary : KashifColors.royalBlue)
+                      .withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.tune_rounded,
+                  size: 20,
+                  color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
                 ),
               ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDark
-                              ? KashifColors.fuse15AInkDark
-                              : KashifColors.fuse15AInkLight,
-                        ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'التحكم في أجزاء التقرير المعروض والمطبوع:',
+                      style: KashifTypography.arabic(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
                       ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'حدد الأقسام التي تظهر داخل شاشة الفحص وملفات التصدير (PDF / HTML)',
+                      style: KashifTypography.arabic(
+                        fontSize: 10,
+                        color: isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
+                ),
+                onPressed: () {
+                  ref.read(settingsProvider.notifier).setAllReportSections(!allEnabled);
+                },
+                child: Text(
+                  allEnabled ? 'تعطيل الكل' : 'تفعيل الكل',
+                  style: KashifTypography.arabic(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Divider(
+            height: 1,
+            thickness: 0.8,
+            color: isDark ? Colors.white12 : Colors.black12,
+          ),
+          const SizedBox(height: 10),
+          // Dynamic iteration over all extensible sections
+          ...sections.map((item) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? (item.isEnabled ? KashifColors.darkBoard : Colors.black26)
+                    : (item.isEnabled ? KashifColors.lightBoard : const Color(0xFFF1F5F9)),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: item.isEnabled
+                      ? (isDark
+                          ? KashifColors.goldPrimary.withValues(alpha: 0.3)
+                          : KashifColors.royalBlue.withValues(alpha: 0.2))
+                      : (isDark ? Colors.white10 : Colors.black12),
+                  width: 0.8,
+                ),
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    title,
-                    style: KashifTypography.arabic(
-                      fontSize: 13,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                  Icon(
+                    item.icon,
+                    size: 20,
+                    color: item.isEnabled
+                        ? (isDark ? KashifColors.goldLight : KashifColors.royalBlue)
+                        : (isDark ? KashifColors.darkTextMuted : KashifColors.lightTextMuted),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: KashifTypography.arabic(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: item.isEnabled
+                                ? (isDark
+                                    ? KashifColors.darkTextPrimary
+                                    : KashifColors.lightTextPrimary)
+                                : (isDark
+                                    ? KashifColors.darkTextMuted
+                                    : KashifColors.lightTextMuted),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.description,
+                          style: KashifTypography.arabic(
+                            fontSize: 9.5,
+                            color: isDark
+                                ? KashifColors.darkTextMuted
+                                : KashifColors.lightTextMuted,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    subtitle,
-                    style: KashifTypography.arabic(
-                      fontSize: 11,
-                      color: isDark
-                          ? KashifColors.darkTextMuted
-                          : KashifColors.lightTextMuted,
-                    ),
+                  Switch.adaptive(
+                    value: item.isEnabled,
+                    activeColor:
+                        isDark ? KashifColors.goldPrimary : KashifColors.royalBlue,
+                    onChanged: (val) {
+                      ref
+                          .read(settingsProvider.notifier)
+                          .toggleReportSection(item.key, val);
+                    },
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
+            );
+          }),
+        ],
       ),
     );
   }

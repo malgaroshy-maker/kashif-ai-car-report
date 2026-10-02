@@ -15,6 +15,7 @@ import 'web_downloader.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/models/fault_code.dart';
 import '../../data/storage/hive_storage.dart';
+import '../../data/models/report_sections_config.dart';
 import 'report_sanitizer.dart';
 import 'report_qr_helper.dart';
 import 'html_generator.dart';
@@ -77,12 +78,19 @@ class KashifPdfGenerator {
 
   /// Generates pristine vector PDF natively using pdf/widgets canvas.
   /// 100% offline, instantaneous (<200ms), and fully reliable across all Android/iOS/Web devices.
-  static Future<Uint8List> generateReportPdf(DiagnosticReport report) async {
-    return _generateNativeCanvasPdf(report);
+  static Future<Uint8List> generateReportPdf(
+    DiagnosticReport report, {
+    ReportSectionsConfig? sectionsConfig,
+  }) async {
+    return _generateNativeCanvasPdf(report, sectionsConfig: sectionsConfig);
   }
 
-  static Future<Uint8List> _generateNativeCanvasPdf(DiagnosticReport report) async {
+  static Future<Uint8List> _generateNativeCanvasPdf(
+    DiagnosticReport report, {
+    ReportSectionsConfig? sectionsConfig,
+  }) async {
     final pdf = pw.Document();
+    final config = sectionsConfig ?? KashifStorage.reportSectionsConfig;
 
     // Load Readex Pro font (bundled in assets/fonts/)
     final arabicFont = await _loadArabicFont(bold: false);
@@ -530,8 +538,9 @@ class KashifPdfGenerator {
             ),
             pw.SizedBox(height: 12),
 
-            // Brief summary
-            if (report.summary.briefSummaryArabic.isNotEmpty) ...[
+            // Brief summary (تقييم الفني للسيارة)
+            if (config.includeTechnicalAssessment &&
+                report.summary.briefSummaryArabic.isNotEmpty) ...[
               pw.Container(
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
@@ -566,18 +575,19 @@ class KashifPdfGenerator {
               pw.SizedBox(height: 14),
             ],
 
-            // Fault Codes Table (RTL: rightmost is الكود, leftmost is الإجراء المطلوب)
-            pw.Text(
-              'جدول تشخيص وحصر الأعطال المسجلة:',
-              style: pw.TextStyle(font: arabicBoldFont, fontSize: 11),
-            ),
-            pw.SizedBox(height: 5),
-            if (allFaults.isEmpty)
+            // Fault Codes Table (جدول تشخيص وحصر الأعطال)
+            if (config.includeFaultsTable) ...[
               pw.Text(
-                'لا توجد أعطال مسجلة في هذا الفحص.',
-                style: pw.TextStyle(font: arabicFont, fontSize: 9.5),
-              )
-            else
+                'جدول تشخيص وحصر الأعطال المسجلة:',
+                style: pw.TextStyle(font: arabicBoldFont, fontSize: 11),
+              ),
+              pw.SizedBox(height: 5),
+              if (allFaults.isEmpty)
+                pw.Text(
+                  'لا توجد أعطال مسجلة في هذا الفحص.',
+                  style: pw.TextStyle(font: arabicFont, fontSize: 9.5),
+                )
+              else
               pw.TableHelper.fromTextArray(
                 border: pw.TableBorder.all(
                   color: PdfColors.grey300,
@@ -651,10 +661,11 @@ class KashifPdfGenerator {
                   ];
                 }).toList(),
               ),
-            pw.SizedBox(height: 12),
+              pw.SizedBox(height: 12),
+            ],
 
             // Passed & Healthy Inspected Systems Section (المنظومات السليمة)
-            ...[
+            if (config.includePassedSystems) ...[
               pw.Container(
                 margin: const pw.EdgeInsets.only(top: 4, bottom: 6),
                 child: pw.Row(
@@ -753,8 +764,8 @@ class KashifPdfGenerator {
               pw.SizedBox(height: 12),
             ],
 
-            // Spare Parts Guide Table (RTL: rightmost is القطعة بالليبي, leftmost is السعر التقديري)
-            if (report.spareParts.isNotEmpty) ...[
+            // Spare Parts Guide Table (دليل قطع الغيار)
+            if (config.includeSpareParts && report.spareParts.isNotEmpty) ...[
               pw.Text(
                 'دليل قطع الغيار المطلوبة والأسعار التقديرية بالدينار الليبي:',
                 style: pw.TextStyle(font: arabicBoldFont, fontSize: 11),
@@ -832,8 +843,84 @@ class KashifPdfGenerator {
               pw.SizedBox(height: 12),
             ],
 
-            // Workshop Inspection Checklist
-            if (report.checklist.isNotEmpty) ...[
+            // Fault Probabilities Matrix (جدول احتمالات ومسببات الأعطال المشتركة)
+            if (config.includeProbabilitiesTable &&
+                allFaults.any((f) => f.rootCauses.length > 1)) ...[
+              pw.Text(
+                'جدول احتمالات ومسببات الأعطال (فحص متسلسل للأعطال متعددة الأسباب):',
+                style: pw.TextStyle(font: arabicBoldFont, fontSize: 11),
+              ),
+              pw.SizedBox(height: 5),
+              pw.TableHelper.fromTextArray(
+                border: pw.TableBorder.all(
+                  color: PdfColors.grey300,
+                  width: 0.5,
+                ),
+                headerStyle: pw.TextStyle(
+                  font: arabicBoldFont,
+                  fontSize: 8,
+                  color: PdfColors.white,
+                ),
+                headerDecoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex('1A365D'), // Navy
+                ),
+                headerPadding: const pw.EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 5,
+                ),
+                cellStyle: pw.TextStyle(
+                  font: arabicFont,
+                  fontSize: 7.5,
+                  height: 1.3,
+                ),
+                cellPadding: const pw.EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 4,
+                ),
+                headers: [
+                  'الاحتمالات وسلسلة الفحص المقترحة',
+                  'وصف العطل بالليبي',
+                  'الكود',
+                ],
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(4.6), // الاحتمالات (يسار)
+                  1: const pw.FlexColumnWidth(2.6), // وصف العطل (وسط)
+                  2: const pw.FlexColumnWidth(1.2), // الكود (يمين)
+                },
+                cellAlignments: {
+                  0: pw.Alignment.centerRight,
+                  1: pw.Alignment.centerRight,
+                  2: pw.Alignment.center,
+                },
+                headerAlignments: {
+                  0: pw.Alignment.center,
+                  1: pw.Alignment.center,
+                  2: pw.Alignment.center,
+                },
+                data: allFaults
+                    .where((f) => f.rootCauses.length > 1)
+                    .map((f) {
+                  final cleanLibyanTerm = ReportSanitizer.clean(f.libyanTerm)
+                      .replaceAll('السلندر', 'البسطوني')
+                      .replaceAll('سلندر', 'بسطوني');
+                  final causesChain = f.rootCauses.asMap().entries.map((entry) {
+                    final cleanCause = ReportSanitizer.clean(entry.value)
+                        .replaceAll('السلندر', 'البسطوني')
+                        .replaceAll('سلندر', 'بسطوني');
+                    return '${entry.key + 1}. $cleanCause';
+                  }).join(' ← ');
+                  return [
+                    causesChain,
+                    cleanLibyanTerm,
+                    f.code,
+                  ];
+                }).toList(),
+              ),
+              pw.SizedBox(height: 12),
+            ],
+
+            // Workshop Inspection Checklist (قائمة خطوات الفحص)
+            if (config.includeChecklist && report.checklist.isNotEmpty) ...[
               pw.Text(
                 'قائمة خطوات الفحص الفني والورشة:',
                 style: pw.TextStyle(font: arabicBoldFont, fontSize: 12),

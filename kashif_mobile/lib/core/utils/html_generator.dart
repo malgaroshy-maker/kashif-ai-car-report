@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/storage/hive_storage.dart';
+import '../../data/models/report_sections_config.dart';
 import '../theme/colors.dart';
 import '../theme/typography.dart';
 import 'web_downloader.dart';
@@ -32,7 +33,9 @@ class KashifHtmlGenerator {
     DiagnosticReport report, {
     String? iconBase64,
     bool forPrint = false,
+    ReportSectionsConfig? sectionsConfig,
   }) {
+    final config = sectionsConfig ?? KashifStorage.reportSectionsConfig;
     final v = report.vehicle;
     final summary = report.summary;
     final workshopName = KashifStorage.workshopName;
@@ -67,6 +70,8 @@ class KashifHtmlGenerator {
     final critFaults = report.criticalFaults;
     final modFaults = report.moderateFaults;
     final histFaults = report.historyFaults;
+    final allFaults = [...critFaults, ...modFaults, ...histFaults];
+    final multiCauseFaults = allFaults.where((f) => f.rootCauses.length > 1).toList();
     final passedSystems = report.soundSystems;
     final spareParts = report.spareParts;
     final checklist = report.checklist;
@@ -656,13 +661,15 @@ class KashifHtmlGenerator {
         </div>
         <div style="flex: 1;">
           <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">الحالة: ${esc(summary.severityStatus)}</div>
+          ${config.includeTechnicalAssessment ? '''
           <div class="summary-heading">خلاصة تقييم السيارة:</div>
           <div class="summary-text">${esc(ReportSanitizer.clean(summary.briefSummaryArabic).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</div>
+          ''' : ''}
         </div>
       </div>
     </div>
 
-    ${critFaults.isNotEmpty ? '''
+    ${config.includeFaultsTable && critFaults.isNotEmpty ? '''
     <div class="card">
       <div class="section-title">
         <span class="badge badge-crit">أعطال حرجة (${critFaults.length})</span>
@@ -680,7 +687,7 @@ class KashifHtmlGenerator {
     </div>
     ''' : ''}
 
-    ${modFaults.isNotEmpty ? '''
+    ${config.includeFaultsTable && modFaults.isNotEmpty ? '''
     <div class="card">
       <div class="section-title">
         <span class="badge badge-mod">أعطال متوسطة (${modFaults.length})</span>
@@ -698,7 +705,7 @@ class KashifHtmlGenerator {
     </div>
     ''' : ''}
 
-    ${histFaults.isNotEmpty ? '''
+    ${config.includeFaultsTable && histFaults.isNotEmpty ? '''
     <div class="card">
       <div class="section-title">
         <span class="badge badge-hist">أعطال الذاكرة (${histFaults.length})</span>
@@ -715,7 +722,7 @@ class KashifHtmlGenerator {
     </div>
     ''' : ''}
 
-    ${passedSystems.isNotEmpty ? '''
+    ${config.includePassedSystems && passedSystems.isNotEmpty ? '''
     <div class="card">
       <div class="section-title">
         <span class="badge badge-pass">الأنظمة السليمة (${passedSystems.length})</span>
@@ -729,7 +736,7 @@ class KashifHtmlGenerator {
     </div>
     ''' : ''}
 
-    ${spareParts.isNotEmpty ? '''
+    ${config.includeSpareParts && spareParts.isNotEmpty ? '''
     <div class="card">
       <div class="section-title">
         <span>📦 قطع الغيار المطلوبة (${spareParts.length})</span>
@@ -759,7 +766,36 @@ class KashifHtmlGenerator {
     </div>
     ''' : ''}
 
-    ${checklist.isNotEmpty ? '''
+    ${config.includeProbabilitiesTable && multiCauseFaults.isNotEmpty ? '''
+    <div class="card">
+      <div class="section-title">
+        <span>🔀 جدول احتمالات ومسببات الأعطال (فحص متسلسل)</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 14%; text-align: center;">الكود</th>
+            <th style="width: 28%;">وصف العطل بالليبي</th>
+            <th>الاحتمالات وسلسلة الفحص المقترحة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${multiCauseFaults.map((f) {
+            final causesChain = f.rootCauses.asMap().entries.map((e) => '<span style="font-weight: 600;">${e.key + 1}.</span> ${esc(ReportSanitizer.clean(e.value).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}').join(' <span style="color: var(--gold); font-weight: bold; margin: 0 4px;">&larr;</span> ');
+            return '''
+            <tr>
+              <td style="font-family: monospace; font-weight: bold; text-align: center; color: var(--text);">${esc(f.code)}</td>
+              <td><strong>${esc(ReportSanitizer.clean(f.libyanTerm).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</strong></td>
+              <td style="color: var(--text); line-height: 1.6;">$causesChain</td>
+            </tr>
+            ''';
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    ''' : ''}
+
+    ${config.includeChecklist && checklist.isNotEmpty ? '''
     <div class="card">
       <div class="section-title">
         <span>📋 قائمة خطوات الفحص الفني (خطوات المعاينة)</span>
