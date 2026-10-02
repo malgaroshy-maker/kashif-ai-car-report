@@ -51,7 +51,9 @@ class ApinexClient {
     return (model.isNotEmpty) ? model : defaultModel;
   }
 
-  String get masterInstruction => LibyanPromptConstants.getMasterSystemInstruction();
+  String get masterInstruction => KashifStorage.isTokenSaverEnabled
+      ? LibyanPromptConstants.getCompactSystemInstruction()
+      : LibyanPromptConstants.getMasterSystemInstruction();
 
   Future<Response> _postRequest(dynamic data, {String? keyOverride}) async {
     final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride : _activeApiKey;

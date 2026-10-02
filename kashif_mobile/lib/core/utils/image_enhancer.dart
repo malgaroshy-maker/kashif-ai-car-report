@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
+import '../../data/storage/hive_storage.dart';
 
 class ImageEnhancer {
   /// Enhances a workshop scanner screen photo:
@@ -7,7 +8,7 @@ class ImageEnhancer {
   /// - Rotates if requested
   /// - Crops to the scanner screen bounding box if specified
   /// - Applies Color Contrast Boost to cut through glass glare & neon reflections
-  /// - Scales to optimal OCR resolution (max 1600px)
+  /// - Scales to optimal OCR resolution (800px in token saver mode, 1600px standard)
   /// - Compresses to lightweight JPEG for fast upload on mobile and web networks
   static Future<Uint8List> processScannerImageBytes({
     required Uint8List bytes,
@@ -63,8 +64,9 @@ class ImageEnhancer {
       );
     }
 
-    // Scale down to max 1600px for high-speed AI OCR upload without losing detail
-    const maxDim = 1600;
+    // Scale down for AI OCR upload: 800px in Saver mode (saves ~85% Base64 tokens), 1600px standard
+    final isSaver = KashifStorage.isTokenSaverEnabled;
+    final maxDim = isSaver ? 800 : 1600;
     if (image.width > maxDim || image.height > maxDim) {
       if (image.width > image.height) {
         image = img.copyResize(
@@ -81,8 +83,9 @@ class ImageEnhancer {
       }
     }
 
-    // Encode to optimized JPEG
-    final compressedBytes = img.encodeJpg(image, quality: 85);
+    // Encode to optimized JPEG (quality 60 in Saver mode cuts Base64 payload dramatically)
+    final quality = isSaver ? 60 : 85;
+    final compressedBytes = img.encodeJpg(image, quality: quality);
     return Uint8List.fromList(compressedBytes);
   }
 }

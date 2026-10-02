@@ -295,4 +295,11 @@ class KashifStorage {
 
   static Future<void> setUseApinexAsPrimary(bool val) async =>
       await settingsBox.put('useApinexAsPrimary', val);
+
+  // Ultra Token Saver Mode
+  static bool get isTokenSaverEnabled =>
+      settingsBox.get('isTokenSaverEnabled', defaultValue: false) as bool;
+
+  static Future<void> setTokenSaverEnabled(bool val) async =>
+      await settingsBox.put('isTokenSaverEnabled', val);
 }

@@ -12,6 +12,7 @@ class SettingsState {
   final String apinexModel;
   final bool isApinexAutoFailoverEnabled;
   final bool useApinexAsPrimary;
+  final bool isTokenSaverEnabled;
 
   SettingsState({
     List<String>? customApiKeys,
@@ -23,6 +24,7 @@ class SettingsState {
     String? apinexModel,
     bool? isApinexAutoFailoverEnabled,
     bool? useApinexAsPrimary,
+    bool? isTokenSaverEnabled,
   })  : customApiKeys =
             customApiKeys ?? (customApiKey != null ? [customApiKey] : []),
         apinexApiKey = apinexApiKey ?? KashifStorage.apinexApiKey,
@@ -30,7 +32,9 @@ class SettingsState {
         isApinexAutoFailoverEnabled =
             isApinexAutoFailoverEnabled ?? KashifStorage.isApinexAutoFailoverEnabled,
         useApinexAsPrimary =
-            useApinexAsPrimary ?? KashifStorage.useApinexAsPrimary;
+            useApinexAsPrimary ?? KashifStorage.useApinexAsPrimary,
+        isTokenSaverEnabled =
+            isTokenSaverEnabled ?? KashifStorage.isTokenSaverEnabled;
 
   SettingsState copyWith({
     List<String>? customApiKeys,
@@ -42,6 +46,7 @@ class SettingsState {
     String? apinexModel,
     bool? isApinexAutoFailoverEnabled,
     bool? useApinexAsPrimary,
+    bool? isTokenSaverEnabled,
     bool clearKey = false,
   }) {
     final newKeys = customApiKeys ?? this.customApiKeys;
@@ -60,6 +65,7 @@ class SettingsState {
       isApinexAutoFailoverEnabled:
           isApinexAutoFailoverEnabled ?? this.isApinexAutoFailoverEnabled,
       useApinexAsPrimary: useApinexAsPrimary ?? this.useApinexAsPrimary,
+      isTokenSaverEnabled: isTokenSaverEnabled ?? this.isTokenSaverEnabled,
     );
   }
 }
@@ -77,6 +83,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           apinexModel: KashifStorage.apinexModel,
           isApinexAutoFailoverEnabled: KashifStorage.isApinexAutoFailoverEnabled,
           useApinexAsPrimary: KashifStorage.useApinexAsPrimary,
+          isTokenSaverEnabled: KashifStorage.isTokenSaverEnabled,
         ),
       );
 
@@ -159,6 +166,11 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       isApinexAutoFailoverEnabled: autoFailover,
       useApinexAsPrimary: asPrimary,
     );
+  }
+
+  Future<void> setTokenSaverEnabled(bool enabled) async {
+    await KashifStorage.setTokenSaverEnabled(enabled);
+    state = state.copyWith(isTokenSaverEnabled: enabled);
   }
 }
 

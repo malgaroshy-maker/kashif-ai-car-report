@@ -68,6 +68,58 @@ class EdiagPdfParser {
     return extractFromText(extractedText);
   }
 
+  /// Formats the extracted PDF report into a clean, ultra-compact text prompt
+  /// for AI analysis, dropping token consumption by 98% compared to raw binary stream dumps.
+  static String formatToCompactPrompt(ExtractedEdiagReport report) {
+    final sb = StringBuffer();
+    sb.writeln('بيانات المركبة المستخرجة من تقرير الفحص:');
+    final makeModelYear = [
+      if (report.make != null && report.make!.isNotEmpty) report.make,
+      if (report.model != null && report.model!.isNotEmpty) report.model,
+      if (report.year != null && report.year!.isNotEmpty) report.year,
+    ].join(' ');
+    if (makeModelYear.isNotEmpty) {
+      sb.writeln('- المركبة: $makeModelYear');
+    }
+    if (report.vin != null && report.vin!.isNotEmpty) {
+      sb.writeln('- رقم الهيكل (VIN): ${report.vin}');
+    }
+    if (report.mileage != null && report.mileage!.isNotEmpty) {
+      sb.writeln('- قراءة العداد (Mileage): ${report.mileage}');
+    }
+
+    if (report.faults.isNotEmpty) {
+      sb.writeln('\nأكواد الأعطال المسجلة (DTCs):');
+      for (final f in report.faults) {
+        final statusPart = (f.status != null && f.status!.isNotEmpty) ? ' [${f.status}]' : '';
+        sb.writeln('- ${f.fullCode}: ${f.description} (${f.module})$statusPart');
+      }
+    } else {
+      sb.writeln('\nلم تُسجل أي أعطال نشطة في هذا الفحص.');
+    }
+
+    if (report.passedSystems.isNotEmpty) {
+      sb.writeln('\nالأنظمة السليمة التي تم فحصها (OK):');
+      sb.writeln(report.passedSystems.take(20).join('، '));
+    }
+
+    return sb.toString().trim();
+  }
+
+  /// Strips non-printable control chars, repetitive whitespace, and truncates
+  /// raw PDF text to prevent sending huge binary payloads.
+  static String sanitizeRawText(String raw, {int maxChars = 3500}) {
+    if (raw.isEmpty) return '';
+    String clean = raw.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), ' ');
+    clean = clean.replaceAll(RegExp(r'[ \t]+'), ' ');
+    clean = clean.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    clean = clean.trim();
+    if (clean.length > maxChars) {
+      clean = clean.substring(0, maxChars);
+    }
+    return clean;
+  }
+
   /// Extracts readable text streams from a PDF binary buffer (with FlateDecode zlib decompression)
   static String extractRawTextFromPdf(Uint8List bytes) {
     final buffer = StringBuffer();

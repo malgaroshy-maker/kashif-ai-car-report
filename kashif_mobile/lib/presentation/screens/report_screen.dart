@@ -23,6 +23,7 @@ import 'report_compare_screen.dart';
 import 'fuse_box_screen.dart';
 import 'dashboard_lights_screen.dart';
 import '../../core/utils/report_sanitizer.dart';
+import '../../core/utils/pdf_generator.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
   final VoidCallback onOpenChat;
@@ -529,6 +530,19 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.picture_as_pdf_rounded,
+                    size: 19,
+                    color: Color(0xFFC62828),
+                  ),
+                  tooltip: 'تحميل وفتح تقرير PDF',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () =>
+                      KashifPdfGenerator.generateAndSavePdf(context, report),
+                ),
+                const SizedBox(width: 4),
                 IconButton(
                   icon: Icon(
                     Icons.ios_share_rounded,

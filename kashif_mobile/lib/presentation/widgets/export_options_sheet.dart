@@ -83,18 +83,18 @@ class ExportOptionsSheet extends StatelessWidget {
               ),
               const Divider(height: 16),
 
-              // Option 1: PDF Export & Print
+              // Option 1: PDF Export & Open
               _buildOptionTile(
                 context: context,
                 icon: Icons.picture_as_pdf_rounded,
                 iconColor: const Color(0xFFC62828),
-                title: 'طباعة وتصدير PDF (A4)',
+                title: 'تنزيل وفتح تقرير PDF (A4 معتمد)',
                 subtitle:
-                    'وثيقة رسمية معتمدة تدعم الطباعة المباشرة، الختم والتوقيع',
+                    'حفظ المستند وفتحه فوراً، أو مشاركته وطباعته بختم الاعتماد',
                 isDark: isDark,
                 onTap: () async {
                   Navigator.pop(context);
-                  await KashifPdfGenerator.printOrShareReport(report);
+                  await KashifPdfGenerator.generateAndSavePdf(context, report);
                 },
               ),
               const SizedBox(height: 8),

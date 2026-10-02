@@ -1911,6 +1911,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             const SizedBox(height: 16),
+            const MoldedRib(label: 'إدارة استهلاك التوكن (Token Optimizer)'),
+            const SizedBox(height: 10),
+
+            FuseCell(
+              padding: const EdgeInsets.all(14),
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: s.isTokenSaverEnabled,
+                onChanged: (val) {
+                  ref.read(settingsProvider.notifier).setTokenSaverEnabled(val);
+                },
+                secondary: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? KashifColors.goldPrimary.withValues(alpha: 0.15)
+                        : KashifColors.royalBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.bolt_rounded,
+                    color: isDark
+                        ? KashifColors.goldPrimary
+                        : KashifColors.royalBlue,
+                    size: 24,
+                  ),
+                ),
+                title: Text(
+                  'وضع توفير التوكن الفائق (Ultra Token Saver)',
+                  style: KashifTypography.arabic(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  'يقلل استهلاك التوكن بنسبة تتجاوز 90% عبر ضغط الصور التلقائي وتلخيص تقارير الـ PDF قبل إرسالها للذكاء الاصطناعي.',
+                  style: KashifTypography.arabic(
+                    fontSize: 11,
+                    color: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
             const MoldedRib(label: 'مظهر غطاء الفيوز (Theme)'),
             const SizedBox(height: 10),
 

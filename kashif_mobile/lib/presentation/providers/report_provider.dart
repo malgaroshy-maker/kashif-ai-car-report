@@ -153,8 +153,17 @@ class ReportNotifier extends StateNotifier<ReportState> {
       );
 
       try {
-        final rawText = EdiagPdfParser.extractRawTextFromPdf(bytes);
-        final apReport = await _apinexClient.analyzeTextReport(rawText);
+        final extracted = EdiagPdfParser.extractFromPdfBytes(bytes);
+        final cleanText = extracted.faults.isNotEmpty
+            ? EdiagPdfParser.formatToCompactPrompt(extracted)
+            : EdiagPdfParser.sanitizeRawText(extracted.rawText);
+        final apReport = await _apinexClient.analyzeTextReport(
+          cleanText,
+          vin: extracted.vin,
+          make: extracted.make,
+          model: extracted.model,
+          year: extracted.year,
+        );
         await KashifStorage.cacheReportByFingerprint(fp, apReport);
         await KashifStorage.saveReport(apReport);
         state = state.copyWith(
@@ -250,8 +259,17 @@ class ReportNotifier extends StateNotifier<ReportState> {
           state = state.copyWith(
             progressText: 'جاري التحويل التلقائي إلى محرك APInex ($activeModel)...',
           );
-          final rawText = EdiagPdfParser.extractRawTextFromPdf(bytes);
-          final apReport = await _apinexClient.analyzeTextReport(rawText);
+          final extracted = EdiagPdfParser.extractFromPdfBytes(bytes);
+          final cleanText = extracted.faults.isNotEmpty
+              ? EdiagPdfParser.formatToCompactPrompt(extracted)
+              : EdiagPdfParser.sanitizeRawText(extracted.rawText);
+          final apReport = await _apinexClient.analyzeTextReport(
+            cleanText,
+            vin: extracted.vin,
+            make: extracted.make,
+            model: extracted.model,
+            year: extracted.year,
+          );
           await KashifStorage.cacheReportByFingerprint(fp, apReport);
           await KashifStorage.saveReport(apReport);
           state = state.copyWith(

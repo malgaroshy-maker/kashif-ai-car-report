@@ -970,18 +970,31 @@ class KashifHtmlGenerator {
         return;
       }
 
-      // Determine directory to save: Try downloads directory, fallback to documents
+      // Determine directory to save: Try public downloads, fallback to external or app documents
       Directory? dir;
       if (Platform.isAndroid) {
-        dir = Directory('/storage/emulated/0/Download');
-        if (!await dir.exists()) {
-          dir = await getExternalStorageDirectory();
+        try {
+          final publicDownload = Directory('/storage/emulated/0/Download');
+          if (await publicDownload.exists()) {
+            final testFile = File('${publicDownload.path}/.test_probe');
+            await testFile.writeAsString('probe');
+            await testFile.delete();
+            dir = publicDownload;
+          }
+        } catch (_) {
+          dir = null;
         }
-      } else {
-        dir = await getApplicationDocumentsDirectory();
+
+        if (dir == null) {
+          try {
+            dir = await getExternalStorageDirectory();
+          } catch (_) {}
+        }
       }
 
-      final file = File('${dir!.path}/$filename');
+      dir ??= await getApplicationDocumentsDirectory();
+
+      final file = File('${dir.path}/$filename');
       await file.writeAsString(htmlContent);
 
       if (!context.mounted) return;
