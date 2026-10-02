@@ -16,6 +16,7 @@ import '../../data/models/diagnostic_report.dart';
 import '../../data/models/fault_code.dart';
 import '../../data/storage/hive_storage.dart';
 import '../../data/models/report_sections_config.dart';
+import '../../data/repositories/part_number_resolver.dart';
 import 'report_sanitizer.dart';
 import 'report_qr_helper.dart';
 import 'html_generator.dart';
@@ -821,7 +822,10 @@ class KashifPdfGenerator {
                   2: pw.Alignment.center,
                   3: pw.Alignment.center,
                 },
-                data: report.spareParts.map((p) {
+                data: PartNumberResolver.enrichList(
+                  report.spareParts,
+                  vehicle: report.vehicle,
+                ).map((p) {
                   final price = p.estimatedPriceRangeLYD;
                   final priceStr = price != null
                       ? '${price.min.toInt()} - ${price.max.toInt()} د.ل'
@@ -832,10 +836,14 @@ class KashifPdfGenerator {
                   final replacementsStr = p.aftermarketReplacements.isNotEmpty
                       ? p.aftermarketReplacements.join(' • ')
                       : 'أصلي أو حسب المتوفر';
+                  final rawOem = p.oemPartNumber?.trim() ?? '';
+                  final oemDisplay = (rawOem.isEmpty || rawOem.toUpperCase() == 'N/A' || rawOem == 'null')
+                      ? 'أصلي وكالة'
+                      : rawOem;
                   return [
                     priceStr,
                     replacementsStr,
-                    p.oemPartNumber ?? 'غير محدد',
+                    oemDisplay,
                     cleanPartName,
                   ];
                 }).toList(),
@@ -907,8 +915,8 @@ class KashifPdfGenerator {
                     final cleanCause = ReportSanitizer.clean(entry.value)
                         .replaceAll('السلندر', 'البسطوني')
                         .replaceAll('سلندر', 'بسطوني');
-                    return '${entry.key + 1}. $cleanCause';
-                  }).join(' ← ');
+                    return '[  ] ${entry.key + 1}. $cleanCause';
+                  }).join('      ');
                   return [
                     causesChain,
                     cleanLibyanTerm,

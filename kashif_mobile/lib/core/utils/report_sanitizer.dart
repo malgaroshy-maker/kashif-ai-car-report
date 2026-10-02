@@ -176,6 +176,18 @@ class ReportSanitizer {
         .replaceAll(RegExp(r'كبوت\s+السيارة|غطاء\s+المحرك'), 'كوفنو السيارة')
         .replaceAll(RegExp(r'شنطة\s+السيارة'), 'باقاج السيارة');
 
+    // 19. Electrical Grounding: أرضية سيئة -> ضعف خط الماس/الأرضي
+    text = text
+        .replaceAll(
+          RegExp(r'وصلات\s+أرضية\s+سيئة|توصيل\s+أرضي\s+سيئ|تأريض\s+سيئ|أرضية\s+سيئة'),
+          'ضعف خط الماس/الأرضي (صدأ أو رخاوة برغي تأريض الشاسي)',
+        )
+        // 20. Bad/Loose Connection: اتصال سيئ -> رخاوة أو تمليح سنون الفيشة
+        .replaceAll(
+          RegExp(r'اتصال\s+سي[ئء]|توصيل\s+سي[ئء]'),
+          'رخاوة أو تمليح سنون الفيشة (ضعف تلامس كهربائي)',
+        );
+
     return text.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
   }
 }

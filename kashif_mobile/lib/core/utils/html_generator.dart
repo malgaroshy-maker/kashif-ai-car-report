@@ -9,6 +9,7 @@ import 'package:open_filex/open_filex.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/storage/hive_storage.dart';
 import '../../data/models/report_sections_config.dart';
+import '../../data/repositories/part_number_resolver.dart';
 import '../theme/colors.dart';
 import '../theme/typography.dart';
 import 'web_downloader.dart';
@@ -73,7 +74,7 @@ class KashifHtmlGenerator {
     final allFaults = [...critFaults, ...modFaults, ...histFaults];
     final multiCauseFaults = allFaults.where((f) => f.rootCauses.length > 1).toList();
     final passedSystems = report.soundSystems;
-    final spareParts = report.spareParts;
+    final spareParts = PartNumberResolver.enrichList(report.spareParts, vehicle: report.vehicle);
     final checklist = report.checklist;
 
     return '''<!DOCTYPE html>
@@ -752,15 +753,19 @@ class KashifHtmlGenerator {
           </tr>
         </thead>
         <tbody>
-          ${spareParts.map((p) => '''
+          ${spareParts.map((p) {
+            final rawOem = p.oemPartNumber?.trim() ?? '';
+            final oemDisplay = (rawOem.isEmpty || rawOem.toUpperCase() == 'N/A' || rawOem == 'null') ? 'أصلي وكالة' : rawOem;
+            return '''
           <tr>
             <td><strong>${esc(ReportSanitizer.clean(p.partNameLibyan))}</strong></td>
             <td>${esc(p.partNameEnglish)}</td>
-            <td style="font-family: monospace; font-weight: bold;">${esc(p.oemPartNumber ?? 'غير متوفر')}</td>
+            <td style="font-family: monospace; font-weight: bold;">${esc(oemDisplay)}</td>
             <td style="font-weight: bold; color: var(--amp-30);">${p.estimatedPriceRangeLYD != null ? '${p.estimatedPriceRangeLYD!.min.toInt()} - ${p.estimatedPriceRangeLYD!.max.toInt()} د.ل' : 'غير مسعر'}</td>
             <td>${esc(p.aftermarketReplacements.join(', '))}</td>
           </tr>
-          ''').join('')}
+          ''';
+          }).join('')}
         </tbody>
       </table>
     </div>
@@ -781,12 +786,15 @@ class KashifHtmlGenerator {
         </thead>
         <tbody>
           ${multiCauseFaults.map((f) {
-            final causesChain = f.rootCauses.asMap().entries.map((e) => '<span style="font-weight: 600;">${e.key + 1}.</span> ${esc(ReportSanitizer.clean(e.value).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}').join(' <span style="color: var(--gold); font-weight: bold; margin: 0 4px;">&larr;</span> ');
+            final causesChain = f.rootCauses.asMap().entries.map((e) {
+              final cleanCause = esc(ReportSanitizer.clean(e.value).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'));
+              return '<label style="display: inline-flex; align-items: center; gap: 6px; margin: 2px 14px 2px 0; cursor: pointer;"><input type="checkbox" style="accent-color: var(--amp-30); width: 14px; height: 14px; cursor: pointer; margin: 0;" /> <span><strong>${e.key + 1}.</strong> $cleanCause</span></label>';
+            }).join('');
             return '''
             <tr>
-              <td style="font-family: monospace; font-weight: bold; text-align: center; color: var(--text);">${esc(f.code)}</td>
-              <td><strong>${esc(ReportSanitizer.clean(f.libyanTerm).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</strong></td>
-              <td style="color: var(--text); line-height: 1.6;">$causesChain</td>
+              <td style="font-family: monospace; font-weight: bold; text-align: center; color: var(--text); vertical-align: middle;">${esc(f.code)}</td>
+              <td style="vertical-align: middle;"><strong>${esc(ReportSanitizer.clean(f.libyanTerm).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</strong></td>
+              <td style="color: var(--text); line-height: 1.6; vertical-align: middle;"><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;">$causesChain</div></td>
             </tr>
             ''';
           }).join('')}

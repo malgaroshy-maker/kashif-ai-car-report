@@ -2,6 +2,7 @@ import 'vehicle_info.dart';
 import 'fault_code.dart';
 import 'spare_part.dart';
 import 'checklist_step.dart';
+import '../repositories/part_number_resolver.dart';
 import '../../core/utils/report_sanitizer.dart';
 
 class ScannerInfo {
@@ -172,15 +173,17 @@ class DiagnosticReport {
         }).toList() ??
         [];
 
+    final vehicleObj = VehicleInfo.fromJson(vehicleJson);
     final rawParts =
         json['sparePartsRequired'] ??
         json['sparePartsGuide'] ??
         json['spareParts'];
-    final partsList =
+    final rawPartsList =
         (rawParts as List<dynamic>?)
             ?.map((e) => SparePartItem.fromJson(_asMap(e)))
             .toList() ??
         [];
+    final partsList = PartNumberResolver.enrichList(rawPartsList, vehicle: vehicleObj);
 
     final rawChecklist =
         json['workshopChecklist'] ??
@@ -206,7 +209,7 @@ class DiagnosticReport {
       generatedAt:
           json['generatedAt'] as String? ?? DateTime.now().toIso8601String(),
       scannerInfo: ScannerInfo.fromJson(scannerJson),
-      vehicle: VehicleInfo.fromJson(vehicleJson),
+      vehicle: vehicleObj,
       summary: ReportSummary.fromJson(summaryJson),
       criticalFaults: critList,
       moderateFaults: modList,

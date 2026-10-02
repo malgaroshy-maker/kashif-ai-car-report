@@ -5,7 +5,7 @@ class PriceRangeLYD {
   final double max;
   final String marketNote;
 
-  PriceRangeLYD({required this.min, required this.max, this.marketNote = ''});
+  const PriceRangeLYD({required this.min, required this.max, this.marketNote = ''});
 
   factory PriceRangeLYD.fromJson(Map<String, dynamic> json) {
     return PriceRangeLYD(

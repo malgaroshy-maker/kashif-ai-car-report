@@ -8,6 +8,8 @@ import 'package:kashif_mobile/core/utils/html_generator.dart';
 import 'package:kashif_mobile/data/repositories/offline_report_service.dart';
 import 'package:kashif_mobile/data/storage/hive_storage.dart';
 import 'package:kashif_mobile/data/models/report_sections_config.dart';
+import 'package:kashif_mobile/data/models/spare_part.dart';
+import 'package:kashif_mobile/data/repositories/part_number_resolver.dart';
 import 'dart:typed_data';
 
 void main() {
@@ -388,6 +390,61 @@ void main() {
       expect(filteredHtml, isNot(contains('أعطال حرجة')));
       expect(filteredHtml, isNot(contains('جدول احتمالات ومسببات الأعطال')));
       expect(filteredHtml, isNot(contains('قائمة خطوات الفحص الفني')));
+    });
+
+    test('PartNumberResolver enriches N/A OEM numbers and bare brand names with authentic codes', () {
+      final rawParts = [
+        SparePartItem(
+          id: 'p1',
+          relatedCode: '02',
+          partNameLibyan: 'بوبينة إشعال بسطون 4 أصلية',
+          partNameStandardArabic: 'ملف إشعال الأسطوانة 4',
+          partNameEnglish: 'Ignition Coil Cyl 4',
+          oemPartNumber: 'N/A',
+          aftermarketReplacements: ['Bosch', 'Denso', 'Bremi'],
+        ),
+        SparePartItem(
+          id: 'p2',
+          relatedCode: '29',
+          partNameLibyan: 'حساس سرعة العجلة الخلفي يمين',
+          partNameStandardArabic: 'مستشعر سرعة العجلة الخلفية اليمنى',
+          partNameEnglish: 'Rear Right ABS Wheel Speed Sensor',
+          oemPartNumber: 'N/A',
+          aftermarketReplacements: ['Bosch', 'TRW'],
+        ),
+        SparePartItem(
+          id: 'p3',
+          relatedCode: 'C7',
+          partNameLibyan: 'عوامة بنزين 1 (حساس مستوى الوقود)',
+          partNameStandardArabic: 'مستشعر مستوى الوقود الأيمن',
+          partNameEnglish: 'Fuel Level Sensor 1',
+          oemPartNumber: 'N/A',
+          aftermarketReplacements: ['Bosch', 'VDO'],
+        ),
+      ];
+
+      final enriched = PartNumberResolver.enrichList(rawParts);
+
+      // Verify BMW Coil #4 OEM & Aftermarket codes
+      expect(enriched[0].oemPartNumber, '12131748017');
+      expect(enriched[0].aftermarketReplacements, contains('Bosch 0221504029'));
+      expect(enriched[0].aftermarketReplacements, contains('Bremi 11860T'));
+
+      // Verify BMW ABS Rear Right OEM & Aftermarket codes
+      expect(enriched[1].oemPartNumber, '34521182160');
+      expect(enriched[1].aftermarketReplacements, contains('Bosch 0265007412'));
+      expect(enriched[1].aftermarketReplacements, contains('TRW GBS1304'));
+
+      // Verify BMW Fuel Sender OEM & Aftermarket codes
+      expect(enriched[2].oemPartNumber, '16141183955');
+      expect(enriched[2].aftermarketReplacements, contains('Bosch 0986580131'));
+
+      // Verify that no item contains "N/A"
+      for (final p in enriched) {
+        expect(p.oemPartNumber, isNot('N/A'));
+        expect(p.oemPartNumber, isNot('غير محدد'));
+        expect(p.aftermarketReplacements.any((r) => RegExp(r'\d').hasMatch(r)), isTrue);
+      }
     });
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/spare_part.dart';
+import '../../data/repositories/part_number_resolver.dart';
 import 'fuse_cell.dart';
 
 class SparePartCard extends StatelessWidget {
@@ -77,7 +78,8 @@ class SparePartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hasImage = part.partImageUrl != null && part.partImageUrl!.isNotEmpty;
+    final p = PartNumberResolver.enrich(part);
+    final hasImage = p.partImageUrl != null && p.partImageUrl!.isNotEmpty;
 
     return FuseCell(
       margin: const EdgeInsets.only(bottom: 10),
@@ -91,7 +93,7 @@ class SparePartCard extends StatelessWidget {
               // Photo Thumbnail or Visual Schematic Icon
               GestureDetector(
                 onTap: hasImage
-                    ? () => _showImageDialog(context, part.partImageUrl!)
+                    ? () => _showImageDialog(context, p.partImageUrl!)
                     : null,
                 child: Container(
                   width: 64,
@@ -113,8 +115,8 @@ class SparePartCard extends StatelessWidget {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.network(
-                                part.partImageUrl!,
+                                Image.network(
+                                p.partImageUrl!,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Icon(
@@ -164,7 +166,7 @@ class SparePartCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            part.partNameLibyan,
+                            p.partNameLibyan,
                             style: KashifTypography.arabic(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -174,7 +176,7 @@ class SparePartCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (part.estimatedPriceRangeLYD != null) ...[
+                        if (p.estimatedPriceRangeLYD != null) ...[
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -193,7 +195,7 @@ class SparePartCard extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              '${part.estimatedPriceRangeLYD!.min.toInt()} - ${part.estimatedPriceRangeLYD!.max.toInt()} د.ل',
+                              '${p.estimatedPriceRangeLYD!.min.toInt()} - ${p.estimatedPriceRangeLYD!.max.toInt()} د.ل',
                               style: KashifTypography.mono(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w900,
@@ -208,7 +210,7 @@ class SparePartCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      part.partNameEnglish,
+                      p.partNameEnglish,
                       style: KashifTypography.mono(
                         fontSize: 11,
                         color: isDark
@@ -221,7 +223,7 @@ class SparePartCard extends StatelessWidget {
                     // Category & Urgency Badges
                     Row(
                       children: [
-                        if (part.diagramCategory.isNotEmpty)
+                        if (p.diagramCategory.isNotEmpty)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -234,7 +236,7 @@ class SparePartCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(2),
                             ),
                             child: Text(
-                              part.diagramCategory,
+                              p.diagramCategory,
                               style: KashifTypography.arabic(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -244,7 +246,7 @@ class SparePartCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                        if (part.relatedCode.isNotEmpty) ...[
+                        if (p.relatedCode.isNotEmpty) ...[
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -256,7 +258,7 @@ class SparePartCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(2),
                             ),
                             child: Text(
-                              part.relatedCode,
+                              p.relatedCode,
                               style: KashifTypography.mono(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -264,17 +266,17 @@ class SparePartCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                        if (part.replacementUrgency != null &&
-                            part.replacementUrgency!.isNotEmpty) ...[
+                        if (p.replacementUrgency != null &&
+                            p.replacementUrgency!.isNotEmpty) ...[
                           const SizedBox(width: 6),
                           Text(
-                            part.replacementUrgency!,
+                            p.replacementUrgency!,
                             style: KashifTypography.arabic(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color:
-                                  part.replacementUrgency!.contains('حرج') ||
-                                      part.replacementUrgency!.contains('عاجل')
+                                  p.replacementUrgency!.contains('حرج') ||
+                                      p.replacementUrgency!.contains('عاجل')
                                   ? (isDark
                                         ? KashifColors.fuse10AInkDark
                                         : KashifColors.fuse10AInkLight)
@@ -293,7 +295,10 @@ class SparePartCard extends StatelessWidget {
           ),
 
           // OEM Part Number Row
-          if (part.oemPartNumber != null && part.oemPartNumber!.isNotEmpty) ...[
+          if (p.oemPartNumber != null &&
+              p.oemPartNumber!.trim().isNotEmpty &&
+              p.oemPartNumber!.toUpperCase() != 'N/A' &&
+              p.oemPartNumber != 'null') ...[
             const SizedBox(height: 8),
             Row(
               children: [
@@ -324,7 +329,7 @@ class SparePartCard extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    part.oemPartNumber!,
+                    p.oemPartNumber!,
                     style: KashifTypography.mono(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -340,11 +345,11 @@ class SparePartCard extends StatelessWidget {
                   constraints: const BoxConstraints(),
                   tooltip: 'نسخ رقم القطعة',
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: part.oemPartNumber!));
+                    Clipboard.setData(ClipboardData(text: p.oemPartNumber!));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'تم نسخ رقم القطعة OEM: ${part.oemPartNumber}',
+                          'تم نسخ رقم القطعة OEM: ${p.oemPartNumber}',
                         ),
                         duration: const Duration(seconds: 1),
                       ),
@@ -356,10 +361,10 @@ class SparePartCard extends StatelessWidget {
           ],
 
           // Aftermarket Alternatives
-          if (part.aftermarketReplacements.isNotEmpty) ...[
+          if (p.aftermarketReplacements.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              'الشركات البديلة (تجارية): ${part.aftermarketReplacements.join(", ")}',
+              'الشركات البديلة (المعتمدة): ${p.aftermarketReplacements.join(", ")}',
               style: KashifTypography.arabic(
                 fontSize: 11,
                 color: isDark

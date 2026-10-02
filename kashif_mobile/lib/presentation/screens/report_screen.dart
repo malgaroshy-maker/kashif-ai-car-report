@@ -425,8 +425,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildVehicleHeader(
     DiagnosticReport report,
@@ -1034,12 +1035,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       itemBuilder: (context, index) {
         final f = faults[index];
         final causes = f.rootCauses;
-        final causesChain = causes.asMap().entries.map((entry) {
-          final cleanCause = ReportSanitizer.clean(entry.value)
-              .replaceAll('السلندر', 'البسطوني')
-              .replaceAll('سلندر', 'بسطوني');
-          return '${entry.key + 1}. $cleanCause';
-        }).join('  ←  ');
+
 
         return FuseCell(
           margin: const EdgeInsets.only(bottom: 12),
@@ -1140,15 +1136,15 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     Row(
                       children: [
                         Icon(
-                          Icons.alt_route_rounded,
-                          size: 15,
+                          Icons.checklist_rtl_rounded,
+                          size: 16,
                           color: isDark
                               ? KashifColors.goldLight
                               : KashifColors.royalBlue,
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'سلسلة احتمالات ومسببات العطل:',
+                          'سلسلة احتمالات ومسببات العطل (مربعات تأشير الفحص):',
                           style: KashifTypography.arabic(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
@@ -1159,16 +1155,44 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      causesChain,
-                      style: KashifTypography.arabic(
-                        fontSize: 12,
-                        height: 1.6,
-                        color: isDark
-                            ? KashifColors.darkTextPrimary
-                            : KashifColors.lightTextPrimary,
-                      ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 6,
+                      children: causes.asMap().entries.map((entry) {
+                        final cleanCause = ReportSanitizer.clean(entry.value)
+                            .replaceAll('السلندر', 'البسطوني')
+                            .replaceAll('سلندر', 'بسطوني');
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 15,
+                              height: 15,
+                              margin: const EdgeInsets.only(left: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isDark
+                                      ? KashifColors.goldLight
+                                      : KashifColors.royalBlue,
+                                  width: 1.4,
+                                ),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                            Text(
+                              '${entry.key + 1}. $cleanCause',
+                              style: KashifTypography.arabic(
+                                fontSize: 12,
+                                color: isDark
+                                    ? KashifColors.darkTextPrimary
+                                    : KashifColors.lightTextPrimary,
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
