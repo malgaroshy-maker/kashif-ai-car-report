@@ -89,7 +89,7 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
                   ),
                   decoration: InputDecoration(
                     hintText:
-                        'ابحث بالاسم، الدائرة، العطل (طرمبة، OBD، P0135)...',
+                        'ابحث بالاسم، الدائرة، العطل (بومبة، OBD، P0135)...',
                     hintStyle: KashifTypography.arabic(
                       fontSize: 12,
                       color: isDark

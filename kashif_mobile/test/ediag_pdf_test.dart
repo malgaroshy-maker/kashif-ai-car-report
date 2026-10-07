@@ -212,6 +212,12 @@ SRS-Supplemental Inflatable Restraint System 8 problems exist
     expect(report.scannerInfo.toolName.contains('Ediag'), isFalse);
     expect(report.criticalFaults.isNotEmpty, isTrue);
     expect(report.spareParts.isNotEmpty, isTrue);
+    for (final p in report.spareParts) {
+      expect(p.oemPartNumber, isNotNull);
+      expect(p.oemPartNumber!.contains('حسب رقم الهيكل'), isFalse);
+      expect(p.oemPartNumber, isNot('N/A'));
+      expect(p.aftermarketReplacements.any((r) => RegExp(r'\d').hasMatch(r)), isTrue);
+    }
     expect(report.checklist.isNotEmpty, isTrue);
     expect(report.passedSystems.isNotEmpty, isTrue);
     expect(report.summary.faultsFoundCount, 8);

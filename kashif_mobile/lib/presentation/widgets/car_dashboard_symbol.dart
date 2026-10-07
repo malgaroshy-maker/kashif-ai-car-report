@@ -506,7 +506,7 @@ class _DashboardSymbolPainter extends CustomPainter {
     canvas.drawCircle(Offset(w * 0.72, h * 0.46), w * 0.08, fill);
   }
 
-  /// 10. Authentic ISO Electric Power Steering EPS (مقود دركسيون ومعه علامة تعجب)
+  /// 10. Authentic ISO Electric Power Steering EPS (مقود ستيرسو / دومان ومعه علامة تعجب)
   void _drawSteeringEps(Canvas canvas, Size size, Paint fill, Paint stroke) {
     final w = size.width;
     final h = size.height;
@@ -543,7 +543,7 @@ class _DashboardSymbolPainter extends CustomPainter {
     canvas.drawCircle(Offset(w * 0.90, h * 0.72), w * 0.045, fill);
   }
 
-  /// 11. Authentic ISO Automatic Transmission Temp (ترس القير مع ميزان الحرارة الداخلي)
+  /// 11. Authentic ISO Automatic Transmission Temp (ترس الكمبيو مع ميزان الحرارة الداخلي)
   void _drawTransTemp(Canvas canvas, Size size, Paint fill, Paint stroke) {
     final w = size.width;
     final h = size.height;
@@ -608,7 +608,7 @@ class _DashboardSymbolPainter extends CustomPainter {
     canvas.drawPath(path, stroke);
   }
 
-  /// 13. Authentic ISO Brake Pad Wear (حلقات السفايف المتكسرة)
+  /// 13. Authentic ISO Brake Pad Wear (حلقات باطنيات الفرامل)
   void _drawBrakePads(Canvas canvas, Size size, Paint stroke) {
     final w = size.width;
     final h = size.height;
@@ -654,7 +654,7 @@ class _DashboardSymbolPainter extends CustomPainter {
     canvas.drawPath(arc3, stroke);
   }
 
-  /// 14. Authentic ISO Fuel Cap (طرمبة الوقود مع الغطاء)
+  /// 14. Authentic ISO Fuel Cap (بومبة الوقود مع الغطاء)
   void _drawFuelCap(Canvas canvas, Size size, Paint fill, Paint stroke) {
     final w = size.width;
     final h = size.height;

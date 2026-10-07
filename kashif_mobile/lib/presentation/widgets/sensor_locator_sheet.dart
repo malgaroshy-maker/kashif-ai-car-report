@@ -548,7 +548,7 @@ class _SensorLocatorSheetState extends State<SensorLocatorSheet>
             mono: true,
           ),
           if (fuse.relayName != null)
-            _buildInfoRow('الكتاوت المرتبط:', fuse.relayName!, isDark),
+            _buildInfoRow('الريليه المرتبط:', fuse.relayName!, isDark),
           _buildInfoRow('الدائرة الكهربائية:', fuse.circuitDescription, isDark),
         ],
       ),

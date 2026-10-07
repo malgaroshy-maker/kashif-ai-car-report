@@ -856,7 +856,175 @@ class OfflineReportService {
         ),
       ]);
     } else if (isToyota) {
-      summaryText = 'تم إجراء فحص وتشخيص شامل لسيارة تويوتا كامري. الأعطال متمركزة في منظومة الإيرباق (SRS) بإجمالي ${extracted.faults.length} ملاحظات تشمل شريط الستيرسو الداخلي، حساس وزن المقعد، وقفل الحزام.';
+      summaryText =
+          'تم إجراء فحص وتشخيص شامل لسيارة تويوتا كامري (XV40). الأعطال متمركزة في منظومة الوسائد الهوائية (SRS) بإجمالي ${extracted.faults.length} ملاحظات تشمل كيس هوائي الدومان، حساس وزن وقعدة الراكب، حساس موضع الكرسي، قفل الحزام، والوسائد الجانبية.';
+      healthScore = 55;
+      severityStatus = 'حرج / خطر';
+
+      parts.clear();
+      parts.addAll([
+        SparePartItem(
+          id: 'part_camry_driver_airbag',
+          relatedCode: 'B1811',
+          partNameLibyan: 'كيس هوائي الدومان (إيرباق السائق)',
+          partNameStandardArabic: 'وسادة هوائية لعجلة القيادة (مرحلة مزدوجة)',
+          partNameEnglish: 'Driver Airbag Steering Wheel Module',
+          oemPartNumber: '73970-06010-B0',
+          aftermarketReplacements: [
+            'Toyota Genuine 73970-06010',
+            'TRW Airbag Module 73970',
+            'Autoliv 6205801'
+          ],
+          estimatedPriceRangeLYD: PriceRangeLYD(
+            min: 350,
+            max: 700,
+            marketNote: 'سعر سوق قطع الغيار في ليبيا',
+          ),
+        ),
+        SparePartItem(
+          id: 'part_camry_occupant_ecu',
+          relatedCode: 'B1650',
+          partNameLibyan: 'حساس وزن وقعدة الراكب (بساط الكرسي)',
+          partNameStandardArabic: 'مستشعر إشغال ووزن مقعد الراكب مع الكمبيوتر',
+          partNameEnglish: 'Occupant Classification Sensor & ECU',
+          oemPartNumber: '89952-33010',
+          aftermarketReplacements: [
+            'Toyota Genuine 89952-33010',
+            'Aisin 89952',
+            'محاكي بساط الكرسي SRS-Bypass'
+          ],
+          estimatedPriceRangeLYD: PriceRangeLYD(
+            min: 250,
+            max: 500,
+            marketNote: 'سعر سوق قطع الغيار في ليبيا',
+          ),
+        ),
+        SparePartItem(
+          id: 'part_camry_seat_pos',
+          relatedCode: 'B1653',
+          partNameLibyan: 'حساس مسافة وسكة كرسي السائق',
+          partNameStandardArabic: 'مستشعر موضع مقعد السائق المغناطيسي',
+          partNameEnglish: 'Driver Seat Position Sensor',
+          oemPartNumber: '89178-33010',
+          aftermarketReplacements: [
+            'Toyota Genuine 89178-33010',
+            'Denso 89178-33010'
+          ],
+          estimatedPriceRangeLYD: PriceRangeLYD(
+            min: 150,
+            max: 320,
+            marketNote: 'سعر سوق قطع الغيار في ليبيا',
+          ),
+        ),
+        SparePartItem(
+          id: 'part_camry_seat_buckle',
+          relatedCode: 'B1655',
+          partNameLibyan: 'قفل حزام الأمان لكرسي السائق (سويتش الحزام)',
+          partNameStandardArabic: 'مفتاح إبزيم قفل حزام أمان السائق',
+          partNameEnglish: 'Driver Seat Belt Buckle Switch',
+          oemPartNumber: '73230-06130-B0',
+          aftermarketReplacements: [
+            'Toyota Genuine 73230-06130',
+            'Tokai Rika TR-73230'
+          ],
+          estimatedPriceRangeLYD: PriceRangeLYD(
+            min: 120,
+            max: 250,
+            marketNote: 'سعر سوق قطع الغيار في ليبيا',
+          ),
+        ),
+        SparePartItem(
+          id: 'part_camry_indicator',
+          relatedCode: 'B1660',
+          partNameLibyan: 'لمبة ومؤشر تشغيل إيرباق الراكب في التابلو',
+          partNameStandardArabic: 'مؤشر تنبيه تشغيل وسادة الراكب (ساعة التابلو)',
+          partNameEnglish: 'Passenger Airbag ON/OFF Indicator Module',
+          oemPartNumber: '83950-06010',
+          aftermarketReplacements: [
+            'Toyota Genuine 83950-06010',
+            'Denso 83950-06010'
+          ],
+          estimatedPriceRangeLYD: PriceRangeLYD(
+            min: 80,
+            max: 180,
+            marketNote: 'سعر سوق قطع الغيار في ليبيا',
+          ),
+        ),
+        SparePartItem(
+          id: 'part_camry_side_driver',
+          relatedCode: 'B1821',
+          partNameLibyan: 'وسادة / فيشة إيرباق كرسي السائق الجانبي',
+          partNameStandardArabic: 'وسادة هوائية جانبية لمقعد السائق (Side Squib)',
+          partNameEnglish: 'Side Airbag Squib (Driver Seat)',
+          oemPartNumber: '73910-06010',
+          aftermarketReplacements: [
+            'Toyota Genuine 73910-06010',
+            'Autoliv 620580900'
+          ],
+          estimatedPriceRangeLYD: PriceRangeLYD(
+            min: 300,
+            max: 600,
+            marketNote: 'سعر سوق قطع الغيار في ليبيا',
+          ),
+        ),
+        SparePartItem(
+          id: 'part_camry_side_pass',
+          relatedCode: 'B1826',
+          partNameLibyan: 'وسادة / فيشة إيرباق كرسي الراكب الجانبي',
+          partNameStandardArabic: 'وسادة هوائية جانبية لمقعد الراكب (Side Squib)',
+          partNameEnglish: 'Side Airbag Squib (Passenger Seat)',
+          oemPartNumber: '73920-06010',
+          aftermarketReplacements: [
+            'Toyota Genuine 73920-06010',
+            'Autoliv 620580901'
+          ],
+          estimatedPriceRangeLYD: PriceRangeLYD(
+            min: 300,
+            max: 600,
+            marketNote: 'سعر سوق قطع الغيار في ليبيا',
+          ),
+        ),
+      ]);
+
+      checklist.clear();
+      checklist.addAll([
+        DiagnosticChecklistStep(
+          stepNumber: 1,
+          actionTitle: 'فحص وتثبيت الفيش الصفراء أسفل مقاعد السيارة',
+          actionDescriptionLibyan:
+              'افصل أصبع البطارية لمدة 10 دقائق، وتفقد الفيش الصفراء الخاصة بالإيرباق الجانبي وحساس الوزن وسويتش الحزام تحت كرسي السائق والراكب، ورش سبراي إلكترونيات وثبتها بقفيز.',
+          purpose: 'عزل سبب أكواد المقاعد (B1821, B1826, B1650, B1655) واستبعاد الرخاوة السطحية',
+          estimatedTime: '20 دقيقة',
+          toolingNeeded: 'مفك + سبراي تنظيف إلكترونيات جاف + قفيز بلاستيك',
+        ),
+        DiagnosticChecklistStep(
+          stepNumber: 2,
+          actionTitle: 'معايرة وبرمجة تصفير حساس وزن المقعد (Zero Point Calibration)',
+          actionDescriptionLibyan:
+              'تأكد من خلو مقعد الراكب تماماً، وادخل بجهاز الفحص على موديول SRS واعمل معايرة Zero Point لحساس الوزن لإلغاء كود B1650.',
+          purpose: 'إعادة ضبط نقطة الصفر لكمبيوتر وزن الراكب وإطفاء لمبة التحذير',
+          estimatedTime: '10 دقائق',
+          toolingNeeded: 'جهاز فحص كمبيوتر مخصص (Launch / Autel / Thinkdiag)',
+        ),
+        DiagnosticChecklistStep(
+          stepNumber: 3,
+          actionTitle: 'فحص شريط إيرباق الدومان والفيشة الداخلية (B1811)',
+          actionDescriptionLibyan:
+              'افحص فيشة المرحلة الثانية لكيس هواء السائق وتأكد من سلامة مسارات شريط الإيرباق (Clock Spring) في الستيرسو.',
+          purpose: 'استعادة اتصال كيس هواء السائق وتأمين انتفاخه عند الطوارئ',
+          estimatedTime: '15 دقيقة',
+          toolingNeeded: 'مفك براغي T30 + ملتيميتر',
+        ),
+        DiagnosticChecklistStep(
+          stepNumber: 4,
+          actionTitle: 'فحص مؤشر إيرباق الراكب بالتابلو وسويتش الحزام (B1655 / B1660)',
+          actionDescriptionLibyan:
+              'تفقد فيشة لمبة مؤشر تشغيل إيرباق الراكب في الكونسول الأوسط ونظف مجرى قفل الحزام بالسبراي.',
+          purpose: 'التأكد من اكتمال الدائرة الكهربائية لمنظومة SRS ومسح كافة الأعطال',
+          estimatedTime: '15 دقيقة',
+          toolingNeeded: 'عدة فك كونسول يدوية + سبراي تنظيف',
+        ),
+      ]);
     } else {
       summaryText = 'تم فحص وتشخيص مركبة ${extracted.make ?? ''} ${extracted.model ?? ''} وحصر ${extracted.faults.length} عطل بنجاح.';
     }
@@ -944,13 +1112,13 @@ class OfflineReportService {
   static String _libyanizeEnglishFault(String desc) {
     final d = desc.toLowerCase();
     const parts = <List<String>>[
-      ['pre-tensioner', 'مشدّ الشنتورة (حزام الأمان)'],
-      ['pretensioner', 'مشدّ الشنتورة (حزام الأمان)'],
-      ['seat belt', 'الشنتورة (حزام الأمان)'],
+      ['pre-tensioner', 'مشدّ حزام الأمان'],
+      ['pretensioner', 'مشدّ حزام الأمان'],
+      ['seat belt', 'حزام الأمان'],
       ['squib', 'كيس الهواء (سكويب الإيرباق)'],
       ['airbag', 'الإيرباق'],
       ['coolant temp', 'حساس حرارة الميه'],
-      ['knock', 'حساس الصرقعة (النوك)'],
+      ['knock', 'حساس النوك (دق وتصفيق المحرك)'],
       ['camshaft', 'حساس الامبروكم'],
       ['crankshaft', 'حساس الكولوا'],
       ['rpm', 'إشارة دوران المحرك'],

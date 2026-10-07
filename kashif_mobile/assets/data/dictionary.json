@@ -69,7 +69,7 @@
     "category": "الهيكل والمقصورة"
   },
   {
-    "libyanTerm": "كوفنو / كبوت",
+    "libyanTerm": "كوفنو",
     "standardArabic": "غطاء المحرك الأمامي",
     "english": "Hood / bonnet (cofano)",
     "category": "الهيكل والمقصورة"
@@ -111,7 +111,7 @@
     "category": "الهيكل والمقصورة"
   },
   {
-    "libyanTerm": "سطب / اسطب",
+    "libyanTerm": "فانو خلفي / إشارة خلفية (ستوب)",
     "standardArabic": "إشارة التوقف الخلفية",
     "english": "Rear stop/tail light",
     "category": "الهيكل والمقصورة"
@@ -171,7 +171,7 @@
     "category": "المحرك ونقل الحركة"
   },
   {
-    "libyanTerm": "كونفيرتا / طنجرة الكمبيو",
+    "libyanTerm": "كونفيرتا (طنجرة الكمبيو)",
     "standardArabic": "محول العزم الهيدروليكي للقير",
     "english": "Torque converter (convertitore)",
     "category": "المحرك ونقل الحركة"
@@ -250,7 +250,7 @@
     "category": "المحرك ونقل الحركة"
   },
   {
-    "libyanTerm": "طاقم فاصل / فرسيوني",
+    "libyanTerm": "فرسيوني (ديسكو وبلاطو وكوشينتي)",
     "standardArabic": "طقم القابض (الدبرياج)",
     "english": "Clutch kit (frizione)",
     "category": "المحرك ونقل الحركة"
@@ -354,19 +354,19 @@
     "category": "الكهرباء والحساسات"
   },
   {
-    "libyanTerm": "حساس هواء العجلات (سنسور التواير)",
+    "libyanTerm": "حساس هواء القومات / العجلات (TPMS)",
     "standardArabic": "مستشعر ضغط هواء الإطارات (TPMS)",
     "english": "Tire Pressure Sensor (TPMS)",
     "category": "الكهرباء والحساسات"
   },
   {
-    "libyanTerm": "حساس النوك / سنسور الصرقعة",
+    "libyanTerm": "حساس النوك / حساس دق وتصفيق المحرك (Knock Sensor)",
     "standardArabic": "مستشعر صفع واهتزاز المحرك",
     "english": "Knock Sensor",
     "category": "الكهرباء والحساسات"
   },
   {
-    "libyanTerm": "حساس حرارة الميه / سنسور السخونة",
+    "libyanTerm": "حساس حرارة الميه (سنسور الحرارة)",
     "standardArabic": "مستشعر حرارة سائل التبريد",
     "english": "Coolant Temperature Sensor (ECT)",
     "category": "الكهرباء والحساسات"
@@ -428,7 +428,7 @@
     "partSearchTerm": "Air conditioning compressor"
   },
   {
-    "libyanTerm": "رداتوري المكيف / رادياتير المكيف",
+    "libyanTerm": "رداتوري المكيف",
     "standardArabic": "مكثف التكييف (رادياتير المكيف)",
     "english": "A/C Condenser (condensatore)",
     "category": "التبريد والتكييف",
@@ -521,7 +521,7 @@
     "category": "الفرامل والعادم"
   },
   {
-    "libyanTerm": "دبة الديزل / فيلترو DPF",
+    "libyanTerm": "فيلترو عادم الديزل (DPF)",
     "standardArabic": "مرشح جسيمات عادم الديزل",
     "english": "Diesel particulate filter (DPF)",
     "category": "الفرامل والعادم"
@@ -539,7 +539,7 @@
     "category": "الفرامل والعادم"
   },
   {
-    "libyanTerm": "كاتم المرميطة / دبة الرنين",
+    "libyanTerm": "كاتم المرميطة",
     "standardArabic": "كاتم صوت العادم الأوسط أو الخلفي",
     "english": "Exhaust muffler / resonator",
     "category": "الفرامل والعادم"
@@ -594,7 +594,7 @@
     "category": "التعليق والصالة"
   },
   {
-    "libyanTerm": "براتشو / دراع",
+    "libyanTerm": "براتشو",
     "standardArabic": "ذراع التعليق (المقص)",
     "english": "Control arm (braccio)",
     "category": "التعليق والصالة"
@@ -654,14 +654,14 @@
     "category": "التبريد والتكييف"
   },
   {
-    "libyanTerm": "تصفية محرك / تصفية شماعي وبخاخات",
+    "libyanTerm": "سيرفز محرك / تغيير شمعات وتنظيف رشاشات",
     "standardArabic": "صيانة وضبط أداء المحرك الشاملة",
     "english": "Engine Tune-up",
     "category": "عام وإداري",
     "partSearchTerm": null
   },
   {
-    "libyanTerm": "تسييخ رداتوري",
+    "libyanTerm": "تسليك وغسيل رداتوري",
     "standardArabic": "تنظيف وتسليك مجاري الرادياتير",
     "english": "Radiator Rodding / Descaling",
     "category": "التبريد والتكييف"

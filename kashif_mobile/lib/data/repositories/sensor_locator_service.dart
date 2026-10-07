@@ -74,12 +74,12 @@ class SensorLocatorService {
         boxLocation: 'علبة فيوزات حوض المحرك (بجانب البطارية / الفيلترو)',
         fuseNumber: 'F14 / EFI-15A',
         rating: '15A (أزرق)',
-        relayName: 'كتاوت تغذية المحرك الرئيسية (EFI Relay)',
+        relayName: 'ريليه تغذية المحرك الرئيسية (EFI Relay)',
         circuitDescription:
             'دائرة تغذية حساس كتلة تدفق الهواء (MAF) والكمبيوتر',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'خرطوم مدخل الهواء بين علبة الفيلترو وبوابة راس الإنجكشن',
+        areaName: 'توبو مدخل الهواء بين علبة الفيلترو وبوابة راس الإنجكشن',
         engineZone: 'front-air',
         accessTip:
             'مكانه واضح ومباشر في حوض المحرك، يُفك ببرغيين Torx بعد فصل الفيشة.',
@@ -131,7 +131,7 @@ class SensorLocatorService {
         circuitDescription: 'تغذية دائرة حساس الماف وبوابة الهواء',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'خرطوم مدخل الهواء بعد علبة الفيلترو مباشرة',
+        areaName: 'توبو مدخل الهواء بعد علبة الفيلترو مباشرة',
         engineZone: 'front-air',
         accessTip:
             'تأكد من إحكام فيشة الحساس (البيانتو) وعدم تآكل الكلبس البلاستيكي.',
@@ -211,7 +211,7 @@ class SensorLocatorService {
         boxLocation: 'علبة فيوزات حوض المحرك',
         fuseNumber: 'F06 / O2-HTR-15A',
         rating: '15A (أزرق)',
-        relayName: 'كتاوت سخانات الحساسات',
+        relayName: 'ريليه سخانات الحساسات',
         circuitDescription: 'تغذية سخان حساس الأكسجين (اللامبدا)',
       ),
       sensorLocation: SensorLocationData(
@@ -271,7 +271,7 @@ class SensorLocatorService {
         areaName: 'علبة كربون المرميطة (الكاتالايزر) أسفل السيارة بمجرى العادم',
         engineZone: 'exhaust-downpipe',
         accessTip:
-            'افحص قراءة الحساس الخلفي (Sensor 2) بعد الكاتالايزر للتأكد من كفاءة الدبة.',
+            'افحص قراءة الحساس الخلفي (Sensor 2) بعد الكاتالايزر للتأكد من كفاءة علبة كربون المرميطة.',
         coordinateX: 68,
         coordinateY: 65,
       ),
@@ -292,7 +292,7 @@ class SensorLocatorService {
         boxLocation: 'علبة فيوزات المحرك (أو علبة كمبيوتر المحرك E-Box)',
         fuseNumber: 'F02 / IGN-20A',
         rating: '20A (أصفر) أو 30A (أخضر)',
-        relayName: 'كتاوت الإشعال الرئيسي (Ignition Main Relay)',
+        relayName: 'ريليه الإشعال الرئيسي (Ignition Main Relay)',
         circuitDescription: 'تغذية بوبينات الإشعال (البوبينات) والشمعات',
       ),
       sensorLocation: SensorLocationData(
@@ -412,7 +412,7 @@ class SensorLocatorService {
         signalPin: 'نبضات جهد رقمية مربعة بين 0V و 5V مع دوران المحرك (Pin 3)',
         referenceVoltage: '5.0V',
         testingTipLibyan:
-            'قيس الفولت على سلك الإشارة مع تدوير المحرك بالمارش ببطء: لازم تلاحظ الفولت ينبض بين 5V و 0V بانتظام.',
+            'قيس الفولت على سلك الإشارة مع تدوير المحرك بالموتورينو ببطء: لازم تلاحظ الفولت ينبض بين 5V و 0V بانتظام.',
       ),
     ),
 
@@ -429,7 +429,7 @@ class SensorLocatorService {
         areaName: 'خلف ديسك الفرامل بالعجلة الأمامية اليسرى (على الفوزيلي)',
         engineZone: 'wheel-hub',
         accessTip:
-            'ارفع السيارة وافحص مسار السلك الممتد من جسم السيارة حتى العجلة خشية انقطاعه أو احتكاكه بالجنط.',
+            'ارفع السيارة وافحص مسار السلك الممتد من جسم السيارة حتى العجلة خشية انقطاعه أو احتكاكه بالديسكو.',
         coordinateX: 18,
         coordinateY: 55,
       ),
@@ -439,7 +439,7 @@ class SensorLocatorService {
         signalPin:
             'تيار متغير أو تردد تيار متناوب AC عند تدوير العجلة باليد (حوالي 0.2V - 1.0V AC)',
         testingTipLibyan:
-            'افحص سنون طاسة الكوشينة أو الحلقة المغناطيسية من الصدى والرايش، ونظف فيشة الحساس بسبراي تلامس جاف.',
+            'افحص سنون الكوشينتي أو الحلقة المغناطيسية من الصدى والرايش، ونظف فيشة الحساس بسبراي تلامس جاف.',
       ),
     ),
     // EPS Steering Codes (Hyundai / Kia / General)
