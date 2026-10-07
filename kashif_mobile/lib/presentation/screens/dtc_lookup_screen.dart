@@ -26,7 +26,7 @@ class _DtcLookupScreenState extends ConsumerState<DtcLookupScreen> {
   final List<String> _categories = [
     'الكل',
     'المحرك (P)',
-    'الشاسيه والفرامل (C)',
+    'الهيكل والفرامل (C)',
     'الهيكل والوسائد (B)',
     'الشبكة والاتصال (U)',
   ];
@@ -83,7 +83,7 @@ class _DtcLookupScreenState extends ConsumerState<DtcLookupScreen> {
       if (_selectedCategory == 'المحرك (P)' && !item.code.startsWith('P')) {
         return false;
       }
-      if (_selectedCategory == 'الشاسيه والفرامل (C)' && !item.code.startsWith('C')) {
+      if (_selectedCategory == 'الهيكل والفرامل (C)' && !item.code.startsWith('C')) {
         return false;
       }
       if (_selectedCategory == 'الهيكل والوسائد (B)' && !item.code.startsWith('B')) {
@@ -213,7 +213,7 @@ class _DtcLookupScreenState extends ConsumerState<DtcLookupScreen> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: _categories.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    separatorBuilder: (_, _) => const SizedBox(width: 6),
                     itemBuilder: (context, idx) {
                       final cat = _categories[idx];
                       final isSelected = cat == _selectedCategory;
@@ -882,10 +882,8 @@ class _DtcLookupScreenState extends ConsumerState<DtcLookupScreen> {
                                         const SizedBox(width: 6),
                                         Expanded(
                                           child: Text(
-                                            'القطعة المطلوبة: ${item.partNameLibyan} ' +
-                                                (item.partPriceMin != null
-                                                    ? '(${item.partPriceMin?.toInt()} - ${item.partPriceMax?.toInt()} د.ل تقريباً)'
-                                                    : ''),
+                                            'القطعة المطلوبة: ${item.partNameLibyan} '
+                                            '${item.partPriceMin != null ? '(${item.partPriceMin?.toInt()} - ${item.partPriceMax?.toInt()} د.ل تقريباً)' : ''}',
                                             style: KashifTypography.arabic(
                                               fontSize: 10.5,
                                               fontWeight: FontWeight.w600,

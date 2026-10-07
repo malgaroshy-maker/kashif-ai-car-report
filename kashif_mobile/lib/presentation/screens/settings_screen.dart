@@ -10,7 +10,6 @@ import '../../core/theme/typography.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
-import '../../data/models/report_sections_config.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -1664,11 +1663,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             onPressed: () async {
                               final text = _apinexKeyController.text.trim();
                               if (text.isNotEmpty) {
+                                final messenger = ScaffoldMessenger.of(context);
                                 await Clipboard.setData(
                                   ClipboardData(text: text),
                                 );
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text('تم نسخ المفتاح إلى الحافظة ✅'),
                                       duration: Duration(seconds: 1),
@@ -2195,7 +2195,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   Switch.adaptive(
                     value: item.isEnabled,
-                    activeColor:
+                    activeThumbColor:
                         isDark ? KashifColors.goldPrimary : KashifColors.royalBlue,
                     onChanged: (val) {
                       ref

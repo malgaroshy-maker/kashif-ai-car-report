@@ -10,9 +10,15 @@ import 'package:kashif_mobile/data/storage/hive_storage.dart';
 import 'package:kashif_mobile/data/models/report_sections_config.dart';
 import 'package:kashif_mobile/data/models/spare_part.dart';
 import 'package:kashif_mobile/data/repositories/part_number_resolver.dart';
+import 'dart:io';
 import 'dart:typed_data';
 
 void main() {
+  setUpAll(() {
+    OfflineReportService.loadFromJsonString(
+        File('assets/data/offline_dtc.json').readAsStringSync());
+  });
+
   group('Kashif Diagnostic Report Tests', () {
     final sampleDiagnosticReportJson = {
       'reportId': 'kashif-test-001',

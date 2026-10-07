@@ -40,10 +40,10 @@ class PartNumberResolver {
           partNameLibyan: part.partNameLibyan,
           partNameStandardArabic: part.partNameStandardArabic,
           partNameEnglish: part.partNameEnglish,
-          oemPartNumber: part.relatedCode.isNotEmpty ? 'OEM-${part.relatedCode}' : 'وكالة أصلية',
+          oemPartNumber: 'حسب رقم الهيكل (VIN)',
           aftermarketReplacements: part.aftermarketReplacements.isNotEmpty
               ? part.aftermarketReplacements
-              : ['أصلي وكالة', 'بديل معتمد'],
+              : ['أصلي (وكالة)'],
           estimatedPriceRangeLYD: part.estimatedPriceRangeLYD,
           systemCategory: part.systemCategory,
           partImageUrl: part.partImageUrl,

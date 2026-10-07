@@ -221,6 +221,10 @@ class DiagnosticReport {
     );
   }
 
+  /// Re-parses the report so every text field passes through the Libyan
+  /// terminology sanitizer (used for locally built offline reports).
+  DiagnosticReport libyanized() => DiagnosticReport.fromJson(toJson());
+
   Map<String, dynamic> toJson() => {
     'reportId': reportId,
     'generatedAt': generatedAt,

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
@@ -7,6 +8,11 @@ import 'package:kashif_mobile/core/utils/ediag_pdf_parser.dart';
 import 'package:kashif_mobile/data/repositories/offline_report_service.dart';
 
 void main() {
+  setUpAll(() {
+    OfflineReportService.loadFromJsonString(
+        File('assets/data/offline_dtc.json').readAsStringSync());
+  });
+
   test('ZLibDecoder decompresses compressed text stream', () {
     const text = 'Make:TOYOTA\nModel:Camry\nYear:2007\nVIN:4T1BE46K17U046638\n';
     final compressed = ZLibEncoder().encode(utf8.encode(text));

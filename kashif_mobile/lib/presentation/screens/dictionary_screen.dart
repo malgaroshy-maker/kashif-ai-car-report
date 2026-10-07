@@ -32,7 +32,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
       'عام',
       'المحرك',
       'الكهرباء والإلكترونيات',
-      'الشاسيه والتعليق',
+      'الهيكل والتعليق',
       'ناقل الحركة (الكمبيو)',
       'الفرامل (المكابح)',
       'التبريد والتكييف',
@@ -217,7 +217,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                     ),
                     const SizedBox(height: 5),
                     DropdownButtonFormField<String>(
-                      value: selectedCategory,
+                      initialValue: selectedCategory,
                       dropdownColor: isDark
                           ? const Color(0xFF0F1E38)
                           : Colors.white,

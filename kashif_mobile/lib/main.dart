@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/theme.dart';
+import 'data/repositories/offline_report_service.dart';
 import 'data/storage/hive_storage.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/screens/home_screen.dart';
@@ -9,6 +10,7 @@ import 'presentation/screens/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await KashifStorage.init();
+  await OfflineReportService.load();
   runApp(const ProviderScope(child: KashifApp()));
 }
 

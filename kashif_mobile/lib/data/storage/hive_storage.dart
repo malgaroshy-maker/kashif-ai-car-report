@@ -299,7 +299,7 @@ class KashifStorage {
 
   // Ultra Token Saver Mode
   static bool get isTokenSaverEnabled =>
-      settingsBox.get('isTokenSaverEnabled', defaultValue: false) as bool;
+      settingsBox.get('isTokenSaverEnabled', defaultValue: true) as bool;
 
   static Future<void> setTokenSaverEnabled(bool val) async =>
       await settingsBox.put('isTokenSaverEnabled', val);

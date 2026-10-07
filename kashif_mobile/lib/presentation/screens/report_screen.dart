@@ -550,9 +550,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 padding: const EdgeInsets.all(4),
                 constraints: const BoxConstraints(),
                 onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
                   await ref.read(historyProvider.notifier).saveReport(report);
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Row(
                           children: [

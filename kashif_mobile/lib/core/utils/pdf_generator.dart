@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +18,6 @@ import '../../data/models/report_sections_config.dart';
 import '../../data/repositories/part_number_resolver.dart';
 import 'report_sanitizer.dart';
 import 'report_qr_helper.dart';
-import 'html_generator.dart';
 
 class KashifPdfGenerator {
   static Future<pw.Font> _loadArabicFont({bool bold = false}) async {
@@ -965,7 +963,7 @@ class KashifPdfGenerator {
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
                             pw.Text(
-                              'خطوة ${step.stepNumber}: ${ReportSanitizer.clean(step.actionTitle).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني')}',
+                              'خطوة ${step.stepNumber}: ${ReportSanitizer.clean(step.actionTitle)}',
                               style: pw.TextStyle(
                                 font: arabicBoldFont,
                                 fontSize: 9,
@@ -985,7 +983,7 @@ class KashifPdfGenerator {
                       ),
                       if (step.toolingNeeded.isNotEmpty)
                         pw.Text(
-                          'العدة: ${ReportSanitizer.clean(step.toolingNeeded).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني')}',
+                          'العدة: ${ReportSanitizer.clean(step.toolingNeeded)}',
                           style: pw.TextStyle(
                             font: arabicFont,
                             fontSize: 8,

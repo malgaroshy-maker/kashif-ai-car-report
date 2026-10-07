@@ -88,12 +88,12 @@ class SensorLocatorService {
       ),
       multimeterTest: MultimeterTestData(
         powerPin: '12V تغذية رئيسية مع فتح السويتش (Pin 1 أو B+)',
-        groundPin: 'أقل من 0.05V خط الأرضي الشاسي والكمبيوتر (Pin 2)',
+        groundPin: 'أقل من 0.05V خط الأرضي الهيكل والكمبيوتر (Pin 2)',
         signalPin:
             '0.8V إلى 1.2V عند السكون، يرتفع تدريجياً إلى 3.8V - 4.5V مع الدعسة (Pin 3)',
         referenceVoltage: '5.0V جهد مرجعي ثابت من كمبيوتر المحرك (Pin 4)',
         testingTipLibyan:
-            'حط الأفوميتر على V DC واشبك الأسود بالشاسي. قيس السلك الموجب مع فتح السويتش لازم 12V، وقيس سلك الإشارة مع الدعسة لازم يزيد تدريجياً وما يقطعش.',
+            'حط الأفوميتر على V DC واشبك الأسود بالهيكل. قيس السلك الموجب مع فتح السويتش لازم 12V، وقيس سلك الإشارة مع الدعسة لازم يزيد تدريجياً وما يقطعش.',
       ),
     ),
     'P0101': const ElectricalDiagnosticsResult(
@@ -186,7 +186,7 @@ class SensorLocatorService {
         circuitDescription: 'تغذية حساسات حرارة وضغط سائل التبريد',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'على كوع المية (Thermostat Housing) بالقرب من رأس المحرك',
+        areaName: 'على كوع المية (Thermostat Housing) بالقرب من التستاتا',
         engineZone: 'front-air',
         accessTip:
             'لا تفك الحساس والمحرك ساخن أبداً لتجنب اندفاع مياه التبريد المغلية. استخدم حبة 19mm عميقة.',
@@ -216,16 +216,16 @@ class SensorLocatorService {
       ),
       sensorLocation: SensorLocationData(
         areaName:
-            'على مجمع العادم (مانيفولد الشكمان) قبل دبة التلوث (الكاتالايزر)',
+            'على مجمع العادم (مانيفولد المرميطة) قبل علبة كربون المرميطة (الكاتالايزر)',
         engineZone: 'exhaust-downpipe',
         accessTip:
-            'الحساس في منطقة شديدة الحرارة، رشه بـ WD-40 وهو بارد واستخدم لقمة حساس شكمان مشقوقة 22mm.',
+            'الحساس في منطقة شديدة الحرارة، رشه بـ WD-40 وهو بارد واستخدم لقمة حساس مرميطة مشقوقة 22mm.',
         coordinateX: 62,
         coordinateY: 52,
       ),
       multimeterTest: MultimeterTestData(
         powerPin: '12V لسخان الحساس (سلكين بلون واحد عادة أسود أو أبيض)',
-        groundPin: 'أرضي الشاسي أو نبضات تأريض من الكمبيوتر',
+        groundPin: 'أرضي الهيكل أو نبضات تأريض من الكمبيوتر',
         signalPin:
             'يتأرجح بسرعة بين 0.1V (خليط فقير) و 0.9V (خليط غني) بمعدل مرتين على الأقل بالثانية',
         referenceVoltage: '0.45V مرجعي عند فصل الفيشة',
@@ -265,10 +265,10 @@ class SensorLocatorService {
         boxLocation: 'علبة فيوزات حوض المحرك',
         fuseNumber: 'F06 / O2-15A',
         rating: '15A (أزرق)',
-        circuitDescription: 'حساسات الشكمان الأمامية والخلفية',
+        circuitDescription: 'حساسات المرميطة الأمامية والخلفية',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'دبة التلوث (الكاتالايزر) أسفل السيارة بمجرى العادم',
+        areaName: 'علبة كربون المرميطة (الكاتالايزر) أسفل السيارة بمجرى العادم',
         engineZone: 'exhaust-downpipe',
         accessTip:
             'افحص قراءة الحساس الخلفي (Sensor 2) بعد الكاتالايزر للتأكد من كفاءة الدبة.',
@@ -281,7 +281,7 @@ class SensorLocatorService {
         signalPin:
             'الحساس الخلفي السليم يجب أن تكون إشارته هادئة ومستقرة حول 0.6V إلى 0.7V',
         testingTipLibyan:
-            'إذا كانت إشارة الحساس الخلفي تتأرجح وتتحرك مثل الحساس الأمامي تماماً، فهذا يعني أن دبة التلوث فرغت أو مكسورة ولا تصفي الغازات.',
+            'إذا كانت إشارة الحساس الخلفي تتأرجح وتتحرك مثل الحساس الأمامي تماماً، فهذا يعني أن علبة كربون المرميطة فرغت أو مكسورة ولا تصفي الغازات.',
       ),
     ),
 
@@ -293,13 +293,13 @@ class SensorLocatorService {
         fuseNumber: 'F02 / IGN-20A',
         rating: '20A (أصفر) أو 30A (أخضر)',
         relayName: 'كتاوت الإشعال الرئيسي (Ignition Main Relay)',
-        circuitDescription: 'تغذية كويلات الإشعال (البوبينات) والشمعات',
+        circuitDescription: 'تغذية بوبينات الإشعال (البوبينات) والشمعات',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'أعلى غطاء بلوك المحرك (فوق الشمعات مباشرة)',
+        areaName: 'أعلى غطاء المونوبلوكو (فوق الشمعات مباشرة)',
         engineZone: 'top-manifold',
         accessTip:
-            'تُفك براغي غطاء المحرك البلاستيكي للوصول لجميع البوبينات (Coils) والفيش.',
+            'تُفك براغي كوفنو السيارة البلاستيكي للوصول لجميع البوبينات (Coils) والفيش.',
         coordinateX: 50,
         coordinateY: 45,
       ),
@@ -321,10 +321,10 @@ class SensorLocatorService {
         circuitDescription: 'تغذية دائرة الإشعال والبوبينة رقم 1',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'البسطوني رقم 1 (الأقرب لسير الكاتينة / صدر المحرك)',
+        areaName: 'البسطوني رقم 1 (الأقرب لكاتينة / صدر المحرك)',
         engineZone: 'top-manifold',
         accessTip:
-            'افصل فيشة البوبينة رقم 1 وتأكد من عدم وجود زيت متسرب داخل تجويف الشمعة من جوان غطا التاكيهات.',
+            'افصل فيشة البوبينة رقم 1 وتأكد من عدم وجود زيت متسرب داخل تجويف الشمعة من قرسيوني غطا التاكيهات.',
         coordinateX: 42,
         coordinateY: 42,
       ),
@@ -333,7 +333,7 @@ class SensorLocatorService {
         groundPin: 'أقل من 0.05V للأرضي',
         signalPin: 'نبضات إشعال منتظمة من الـ ECU',
         testingTipLibyan:
-            'فك شمعة بسطوني 1 وافحص سنها: إذا مسودة كربون أو مبلولة بنزين المشكلة في شعلة البوبينة أو البخاخ.',
+            'فك شمعة بسطوني 1 وافحص سنها: إذا مسودة كربون أو مبلولة بنزين المشكلة في شعلة البوبينة أو الرشاش.',
       ),
     ),
     'P0304': const ElectricalDiagnosticsResult(
@@ -357,7 +357,7 @@ class SensorLocatorService {
         groundPin: 'أقل من 0.05V أرضي',
         signalPin: 'إشارة قدح البوبينة',
         testingTipLibyan:
-            'بدل بوبينة 4 مع بوبينة 2، لو انتقل العطل إلى P0302 فالبوبينة تالفة، لو بقي على P0304 فالمشكلة في الشمعة أو البخاخ أو ضغط البسطوني.',
+            'بدل بوبينة 4 مع بوبينة 2، لو انتقل العطل إلى P0302 فالبوبينة تالفة، لو بقي على P0304 فالمشكلة في الشمعة أو الرشاش أو ضغط البسطوني.',
       ),
     ),
 
@@ -372,7 +372,7 @@ class SensorLocatorService {
       ),
       sensorLocation: SensorLocationData(
         areaName:
-            'أسفل بلوك المحرك بالقرب من طنبورة الكرنك أو بجانب الفولان والكمبيو',
+            'أسفل المونوبلوكو بالقرب من طنبورة الكرنك أو بجانب الفولان والكمبيو',
         engineZone: 'front-air',
         accessTip:
             'يتطلب فكه مفتاح حبة 10mm، وعادةً الوصول له من أسفل السيارة بعد فك صاجة الحماية.',
@@ -396,10 +396,10 @@ class SensorLocatorService {
         boxLocation: 'علبة فيوزات حوض المحرك',
         fuseNumber: 'F10 / SENS-10A',
         rating: '10A (أحمر)',
-        circuitDescription: 'تغذية حساس موضع عمود الكامات (الكامة)',
+        circuitDescription: 'تغذية حساس موضع الامبروكم (الكامة)',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'أعلى رأس المحرك في الخلف أو الأمام بجانب تروس الكامات',
+        areaName: 'أعلى التستاتا في الخلف أو الأمام بجانب تروس الكامات',
         engineZone: 'top-manifold',
         accessTip:
             'واضح ومثبت ببرغي 10mm، تأكد من الأورينج (O-ring) المطاطي لمنع تسريب الزيت بعد التركيب.',
@@ -423,7 +423,7 @@ class SensorLocatorService {
         boxLocation: 'علبة فيوزات حوض المحرك الرئيسية',
         fuseNumber: 'ABS-MTR-40A / ABS-VALVE-25A',
         rating: '40A ماكسي فيوز + 25A',
-        circuitDescription: 'طلمبة وموديول مانع الانزلاق والانغلاق (ABS/ESP)',
+        circuitDescription: 'بومبة وموديول مانع الانزلاق والانغلاق (ABS/ESP)',
       ),
       sensorLocation: SensorLocationData(
         areaName: 'خلف ديسك الفرامل بالعجلة الأمامية اليسرى (على الفوزيلي)',
@@ -479,7 +479,7 @@ class SensorLocatorService {
       sensorLocation: SensorLocationData(
         areaName: 'داخل جسم عمود التوجيه EPS (كولونة الستيرنج الكهربائية)',
         engineZone: 'cabin',
-        accessTip: 'الحساس مدمج مع عمود الدركسيون، افحص الفيشة السوداء الصغيرة المتصلة به.',
+        accessTip: 'الحساس مدمج مع عمود الستيرسو، افحص الفيشة السوداء الصغيرة المتصلة به.',
         coordinateX: 45,
         coordinateY: 72,
       ),
@@ -500,7 +500,7 @@ class SensorLocatorService {
         circuitDescription: 'معايرة نقطة الصفر لحساس زاوية التوجيه',
       ),
       sensorLocation: SensorLocationData(
-        areaName: 'عمود التوجيه خلف الدركسيون مباشرة',
+        areaName: 'عمود التوجيه خلف الستيرسو مباشرة',
         engineZone: 'cabin',
         accessTip: 'هذا العطل لا يحتاج أي تفكيك يدوي، المعالجة تتم حصراً عبر جهاز الكشف.',
         coordinateX: 45,
@@ -563,7 +563,7 @@ class SensorLocatorService {
           areaName: 'مسار سحب الهواء أو مجمع العادم',
           engineZone: 'front-air',
           accessTip:
-              'افحص فيش وحساسات دخول الهواء وفلتر الهواء قبل تغيير القطعة.',
+              'افحص فيش وحساسات دخول الهواء وفيلترو الهواء قبل تغيير القطعة.',
           coordinateX: 35,
           coordinateY: 35,
         ),
@@ -585,10 +585,10 @@ class SensorLocatorService {
           boxLocation: 'علبة فيوزات المحرك',
           fuseNumber: 'IGN-20A',
           rating: '20A (أصفر)',
-          circuitDescription: 'منظومة الإشعال والكويلات والشمعات',
+          circuitDescription: 'منظومة الإشعال والبوبينات والشمعات',
         ),
         sensorLocation: SensorLocationData(
-          areaName: 'أعلى غطاء المحرك (البوبينات والشمعات)',
+          areaName: 'أعلى كوفنو السيارة (البوبينات والشمعات)',
           engineZone: 'top-manifold',
           accessTip:
               'تأكد من سلامة أسلاك البوبينات وعدم وجود زيت في حفر الشمعات.',
@@ -596,11 +596,11 @@ class SensorLocatorService {
           coordinateY: 45,
         ),
         multimeterTest: MultimeterTestData(
-          powerPin: '12V مع السويتش على أطراف الكويلات',
-          groundPin: 'خط أرضي متصل بالشاسي أو البلوك',
+          powerPin: '12V مع السويتش على أطراف البوبينات',
+          groundPin: 'خط أرضي متصل بالهيكل أو البلوك',
           signalPin: 'نبضات إشارة إشعال من الـ ECU',
           testingTipLibyan:
-              'بدل الكويل أو الشمعة المشكوك فيها مع بسطوني ثاني سليم ولاحظ هل ينتقل كود العطل.',
+              'بدل البوبينة أو الشمعة المشكوك فيها مع بسطوني ثاني سليم ولاحظ هل ينتقل كود العطل.',
         ),
       );
     }
@@ -619,12 +619,12 @@ class SensorLocatorService {
           areaName: 'على جسم علبة السرعات (الكمبيو) أسفل السيارة',
           engineZone: 'underbody-transmission',
           accessTip:
-              'افحص فيشة الكمبيو الدائرية الكبيرة وتأكد من عدم تسرب زيت الفتيس داخل الفيشة.',
+              'افحص فيشة الكمبيو الدائرية الكبيرة وتأكد من عدم تسرب زيت الكمبيو داخل الفيشة.',
           coordinateX: 55,
           coordinateY: 65,
         ),
         multimeterTest: MultimeterTestData(
-          powerPin: '12V تغذية موديول ناقل الحركة',
+          powerPin: '12V تغذية موديول الكمبيو',
           groundPin: 'أقل من 0.1V للأرضي',
           signalPin: 'مقاومة صمامات السولينويد بين 10 إلى 25 أوم',
           testingTipLibyan:
@@ -643,7 +643,7 @@ class SensorLocatorService {
           circuitDescription: 'موديول الفرامل والاتزان ABS وحساسات العجلات',
         ),
         sensorLocation: SensorLocationData(
-          areaName: 'خلف ديسك الفرامل عند العجلات أو عمود الدركسيون',
+          areaName: 'خلف ديسك الفرامل عند العجلات أو عمود الستيرسو',
           engineZone: 'wheel-hub',
           accessTip:
               'ارفع السيارة وافحص سلك الحساس عند الكوشينة، أغلب الأعطال سلك مقروض أو فيشة مملحة.',

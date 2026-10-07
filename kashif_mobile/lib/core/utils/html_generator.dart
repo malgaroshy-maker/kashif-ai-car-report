@@ -664,7 +664,7 @@ class KashifHtmlGenerator {
           <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px;">الحالة: ${esc(summary.severityStatus)}</div>
           ${config.includeTechnicalAssessment ? '''
           <div class="summary-heading">خلاصة تقييم السيارة:</div>
-          <div class="summary-text">${esc(ReportSanitizer.clean(summary.briefSummaryArabic).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</div>
+          <div class="summary-text">${esc(ReportSanitizer.clean(summary.briefSummaryArabic))}</div>
           ''' : ''}
         </div>
       </div>
@@ -787,13 +787,13 @@ class KashifHtmlGenerator {
         <tbody>
           ${multiCauseFaults.map((f) {
             final causesChain = f.rootCauses.asMap().entries.map((e) {
-              final cleanCause = esc(ReportSanitizer.clean(e.value).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'));
+              final cleanCause = esc(ReportSanitizer.clean(e.value));
               return '<label style="display: inline-flex; align-items: center; gap: 6px; margin: 2px 14px 2px 0; cursor: pointer;"><input type="checkbox" style="accent-color: var(--amp-30); width: 14px; height: 14px; cursor: pointer; margin: 0;" /> <span><strong>${e.key + 1}.</strong> $cleanCause</span></label>';
             }).join('');
             return '''
             <tr>
               <td style="font-family: monospace; font-weight: bold; text-align: center; color: var(--text); vertical-align: middle;">${esc(f.code)}</td>
-              <td style="vertical-align: middle;"><strong>${esc(ReportSanitizer.clean(f.libyanTerm).replaceAll('السلندر', 'البسطوني').replaceAll('سلندر', 'بسطوني'))}</strong></td>
+              <td style="vertical-align: middle;"><strong>${esc(ReportSanitizer.clean(f.libyanTerm))}</strong></td>
               <td style="color: var(--text); line-height: 1.6; vertical-align: middle;"><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;">$causesChain</div></td>
             </tr>
             ''';

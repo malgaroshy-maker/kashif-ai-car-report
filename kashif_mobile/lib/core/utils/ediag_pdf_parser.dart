@@ -186,7 +186,7 @@ class EdiagPdfParser {
         decompressed = streamBytes;
       }
 
-      if (decompressed != null && decompressed.isNotEmpty) {
+      if (decompressed.isNotEmpty) {
         if (cMap.isNotEmpty) {
           final parsed = _parseCMapStreamBytes(Uint8List.fromList(decompressed), cMap);
           if (parsed.trim().isNotEmpty) {
@@ -387,8 +387,8 @@ class EdiagPdfParser {
             endPos += 2;
             continue;
           }
-          if (rawBytes[endPos] == 40) depth++;
-          else if (rawBytes[endPos] == 41) depth--;
+          if (rawBytes[endPos] == 40) { depth++; }
+          else if (rawBytes[endPos] == 41) { depth--; }
           endPos++;
         }
         if (depth == 0) {
@@ -544,7 +544,7 @@ class EdiagPdfParser {
     final rawYear = yearMatch?.group(1)?.trim();
 
     final vinMatch = RegExp(r'VIN[:\s]*([A-HJ-NPR-Z0-9]{17})', caseSensitive: false).firstMatch(rawText);
-    final rawVin = vinMatch?.group(1)?.trim()?.toUpperCase();
+    final rawVin = vinMatch?.group(1)?.trim().toUpperCase();
 
     final mileageMatch = RegExp(r'Mileage[:\s]*([^\r\n]+)', caseSensitive: false).firstMatch(rawText);
     final rawMileage = mileageMatch?.group(1)?.trim();
@@ -570,7 +570,7 @@ class EdiagPdfParser {
     final moduleHeaderRegex = RegExp(r'^(.+?)\s+(\d+)\s+problems?\s+exist', caseSensitive: false);
 
     // Standard OBD-II fault line: e.g. "1.B1811 Open in Driver's Squib..." or "1.P0102 ..."
-    final standardFaultRegex = RegExp(r'^(\d+)\.([BPCU][0-9A-Fa-f]{4})\s+(.+)$');
+    final standardFaultRegex = RegExp(r'^(\d+)\.([BPCU][0-9A-Fa-f]{4})(?:-[0-9A-Fa-f]{1,2})?\s+(.+)$');
 
     // Proprietary Hex fault line: e.g. "1.D6 Road - Speed Signal" or "2.02 Ignition, Cylinder 4" or "1.29 Wheel Speed"
     final hexFaultRegex = RegExp(r'^(\d+)\.([A-Fa-f0-9]{2,4})\s+(.+)$');
@@ -611,7 +611,7 @@ class EdiagPdfParser {
       // Check if line is a status line for the preceding fault
       // e.g. "Present", "Active", "Stored", "Pending", "History", "Current", "Fault currently present"
       final isStatusLine = RegExp(
-        r'^(Present|Active|Stored|Pending|History|Current|Permanent|Intermittent|Fault\s+.*)$',
+        r'^(Not\s+Present|Present|Active|Stored|Pending|History|Current|Permanent|Intermittent|Invalid|Fault\s+.*)$',
         caseSensitive: false,
       ).hasMatch(line);
 
@@ -630,7 +630,7 @@ class EdiagPdfParser {
 
         // Strip trailing status if attached to same line (e.g. "1.C1259 Sensor-Electrical Present")
         final statusSuffixMatch = RegExp(
-          r'\s+(Present|Active|Stored|Pending|History|Current|Permanent)$',
+          r'\s+(Not\s+Present|Present|Active|Stored|Pending|History|Current|Permanent|Invalid)$',
           caseSensitive: false,
         ).firstMatch(rawDesc);
         if (statusSuffixMatch != null) {
@@ -660,7 +660,7 @@ class EdiagPdfParser {
         String? inlineStatus;
 
         final statusSuffixMatch = RegExp(
-          r'\s+(Present|Active|Stored|Pending|History|Current|Permanent)$',
+          r'\s+(Not\s+Present|Present|Active|Stored|Pending|History|Current|Permanent|Invalid)$',
           caseSensitive: false,
         ).firstMatch(rawDesc);
         if (statusSuffixMatch != null) {

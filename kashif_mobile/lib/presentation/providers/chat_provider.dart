@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../core/network/api_client.dart';
+import '../../core/utils/report_sanitizer.dart';
 import '../../data/models/chat_message.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/repositories/offline_report_service.dart';
@@ -159,7 +160,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       final botMsg = ChatMessage(
         id: 'bot-${DateTime.now().millisecondsSinceEpoch}',
-        text: reply,
+        text: ReportSanitizer.applyTerms(reply),
         isUser: false,
         timestamp: DateTime.now(),
       );

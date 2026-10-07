@@ -44,7 +44,7 @@ class ReportComparisonResult {
       '🚗 *المركبة:* ${afterReport.vehicle.make} ${afterReport.vehicle.model} (${afterReport.vehicle.year})',
     );
     if (afterReport.vehicle.vin.isNotEmpty) {
-      buffer.writeln('🔢 *رقم الشاصي (VIN):* ${afterReport.vehicle.vin}');
+      buffer.writeln('🔢 *رقم الهيكل (VIN):* ${afterReport.vehicle.vin}');
     }
     buffer.writeln('');
     buffer.writeln('📅 *فحص ما قبل الصيانة:* ${beforeReport.generatedAt}');

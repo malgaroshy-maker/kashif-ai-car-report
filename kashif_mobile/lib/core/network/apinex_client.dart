@@ -365,6 +365,7 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
       'model': _activeModel,
       'messages': messages,
       'temperature': 0.1,
+      'max_tokens': 16000,
     });
 
     if (res.statusCode != 200 || res.data == null) {
@@ -378,6 +379,11 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
     }
 
     final content = choices[0]['message']?['content']?.toString() ?? '';
+    if (choices[0]['finish_reason'] == 'length') {
+      throw Exception(
+        'انقطع رد النموذج قبل اكتمال التقرير (تجاوز الحد الأقصى). أعد المحاولة أو قلّل عدد الأكواد.',
+      );
+    }
     return _parseReportContent(content);
   }
 
