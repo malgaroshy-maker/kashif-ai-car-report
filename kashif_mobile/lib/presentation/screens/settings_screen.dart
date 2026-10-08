@@ -2114,7 +2114,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Flow Cars للأندرويد — الإصدار 1.0.0',
+                    'Flow Cars للأندرويد — الإصدار 1.2.0',
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

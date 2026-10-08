@@ -58,22 +58,26 @@ Set-Location -Path $buildDir
 Write-Host "`n[1/3] Fetching dependencies..." -ForegroundColor Gray
 flutter pub get
 
+Write-Host "`nCleaning previous APK build outputs to prevent stale version copying..." -ForegroundColor Gray
+Remove-Item -Path (Join-Path $buildDir "build\app\outputs\flutter-apk\*.apk") -Force -ErrorAction SilentlyContinue
+Remove-Item -Path (Join-Path $projectRoot "build\app\outputs\flutter-apk\*.apk") -Force -ErrorAction SilentlyContinue
+$destDir = Join-Path (Split-Path $projectRoot -Parent) "APK_OUTPUT"
+Remove-Item -Path (Join-Path $destDir "kashif_poco_x7_pro.apk") -Force -ErrorAction SilentlyContinue
+
 Write-Host "`n[2/3] Compiling optimized ARM64 release for Poco X7 Pro..." -ForegroundColor Yellow
 flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons --android-skip-build-dependency-validation
 
-$apkCandidates = @(
-    (Join-Path $buildDir "build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"),
-    (Join-Path $buildDir "build\app\outputs\flutter-apk\app-release.apk"),
-    (Join-Path $projectRoot "build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"),
-    (Join-Path $projectRoot "build\app\outputs\flutter-apk\app-release.apk")
-)
-
 $apkSrc = $null
-foreach ($c in $apkCandidates) {
-    if (Test-Path $c) {
-        $apkSrc = $c
-        break
-    }
+$newestApk = Get-ChildItem -Path @(
+    (Join-Path $buildDir "build\app\outputs\flutter-apk\*.apk"),
+    (Join-Path $projectRoot "build\app\outputs\flutter-apk\*.apk")
+) -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -notmatch "unaligned" } |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+
+if ($newestApk) {
+    $apkSrc = $newestApk.FullName
 }
 
 if ($apkSrc) {

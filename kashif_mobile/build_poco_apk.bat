@@ -68,6 +68,12 @@ call flutter pub get
 if errorlevel 1 goto BUILD_ERROR
 
 echo.
+echo Cleaning previous APK build outputs to prevent stale version copying...
+if exist "%BUILD_DIR%\build\app\outputs\flutter-apk\*.apk" del /q /f "%BUILD_DIR%\build\app\outputs\flutter-apk\*.apk" >nul 2>nul
+if exist "%PROJECT_ROOT%\build\app\outputs\flutter-apk\*.apk" del /q /f "%PROJECT_ROOT%\build\app\outputs\flutter-apk\*.apk" >nul 2>nul
+if exist "%OUTPUT_DIR%\kashif_poco_x7_pro.apk" del /q /f "%OUTPUT_DIR%\kashif_poco_x7_pro.apk" >nul 2>nul
+
+echo.
 echo [4/4] Compiling APK (this may take a few minutes)...
 if "%CHOICE%"=="2" goto BUILD_UNIVERSAL
 if "%CHOICE%"=="3" goto BUILD_INSTALL
@@ -101,10 +107,14 @@ goto BUILD_ARM64
 
 :FIND_APK
 set "APK_FILE="
-if exist "%BUILD_DIR%\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk" set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"
-if not defined APK_FILE if exist "%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk" set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk"
-if not defined APK_FILE if exist "%PROJECT_ROOT%\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk" set "APK_FILE=%PROJECT_ROOT%\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"
-if not defined APK_FILE if exist "%PROJECT_ROOT%\build\app\outputs\flutter-apk\app-release.apk" set "APK_FILE=%PROJECT_ROOT%\build\app\outputs\flutter-apk\app-release.apk"
+for /f "delims=" %%F in ('dir /b /a:-d /o:-d "%BUILD_DIR%\build\app\outputs\flutter-apk\*.apk" 2^>nul') do (
+    if not defined APK_FILE set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\%%F"
+)
+if not defined APK_FILE (
+    for /f "delims=" %%F in ('dir /b /a:-d /o:-d "%PROJECT_ROOT%\build\app\outputs\flutter-apk\*.apk" 2^>nul') do (
+        if not defined APK_FILE set "APK_FILE=%PROJECT_ROOT%\build\app\outputs\flutter-apk\%%F"
+    )
+)
 
 if not defined APK_FILE goto BUILD_ERROR
 if not exist "%APK_FILE%" goto BUILD_ERROR
