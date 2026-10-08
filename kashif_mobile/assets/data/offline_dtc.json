@@ -566,7 +566,7 @@
     "libyanTerm": "صمام الـ EGR (تدوير غازات العادم) / تدفق ضعيف ومسدود",
     "standardArabicDescription": "تدفق غير كافٍ لنظام إعادة تدوير غازات العادم",
     "driverSymptoms": [
-      "صوت خشونة وتكتكة تحت الحمل (طرق المحرك / الصرقعة)",
+      "صوت خشونة وتكتكة تحت الحمل (طرق المحرك / النوك)",
       "فطفطة خفيفة في السرعات المتوسطة"
     ],
     "rootCauses": [
@@ -824,11 +824,14 @@
     "urgencyLevel": "خفيف",
     "recommendedAction": "التأكد من تركيب فيشة مؤشر الإيرباق في الكونسول الأوسط فوق المسجل.",
     "severity": "history",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "قفل حزام الأمان بحساس الإيرباق",
+    "partNameEnglish": "Seat Belt Buckle Sensor",
+    "partPriceMin": 65.0,
+    "partPriceMax": 150.0,
+    "aftermarketBrands": [
+      "Mobis",
+      "Toyota Genuine"
+    ]
   },
   {
     "code": "B1821",
@@ -1016,15 +1019,13 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "فك بوبينة بسطوني 4 والشمعة، التأكد من عدم غرق البوبينة بزيت كوفنو السيارة، واستبدال البوبينة والشمعة فوراً.",
     "severity": "critical",
-    "partNameLibyan": "بوبينة إشعال بسطوني 4 BMW 528i",
-    "partNameEnglish": "Ignition Coil BMW M52",
-    "partPriceMin": 75.0,
-    "partPriceMax": 180.0,
+    "partNameLibyan": "حساس صالوندا (أكسجين)",
+    "partNameEnglish": "Oxygen Sensor (Lambda)",
+    "partPriceMin": 110.0,
+    "partPriceMax": 250.0,
     "aftermarketBrands": [
       "Bosch",
-      "Bremi",
-      "NGK",
-      "Delphi"
+      "Denso"
     ]
   },
   {
@@ -1048,15 +1049,13 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "فك بوبينة بسطوني 4 والشمعة، التأكد من عدم وجود زيت، واستبدال البوبينة والشمعة لحماية المحرك وعلبة الكربون.",
     "severity": "critical",
-    "partNameLibyan": "بوبينة إشعال بسطوني 4 BMW 528i",
-    "partNameEnglish": "Ignition Coil BMW M52",
-    "partPriceMin": 75.0,
-    "partPriceMax": 180.0,
+    "partNameLibyan": "حساس صالوندا (أكسجين)",
+    "partNameEnglish": "Oxygen Sensor (Lambda)",
+    "partPriceMin": 110.0,
+    "partPriceMax": 250.0,
     "aftermarketBrands": [
       "Bosch",
-      "Bremi",
-      "NGK",
-      "Delphi"
+      "Denso"
     ]
   },
   {
@@ -1077,11 +1076,15 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "فحص ومعالجة أعطال حساسات سرعة الـ ABS، حيث تعتمد هذه الإشارة كلياً على وحدة ABS/DSC.",
     "severity": "moderate",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "حساس كامة BMW",
+    "partNameEnglish": "Camshaft Position Sensor",
+    "partPriceMin": 90.0,
+    "partPriceMax": 190.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "VDO",
+      "Meyle"
+    ]
   },
   {
     "code": "ECM D6",
@@ -1101,11 +1104,15 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "إصلاح حساسات الـ ABS أولاً وستختفي إشارة سرعة المحرك تلقائياً.",
     "severity": "moderate",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "حساس كامة BMW",
+    "partNameEnglish": "Camshaft Position Sensor",
+    "partPriceMin": 90.0,
+    "partPriceMax": 190.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "VDO",
+      "Meyle"
+    ]
   },
   {
     "code": "29",
@@ -1125,14 +1132,14 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "فحص الحساس الخلفي يمين وتنظيف مكان تركيبه في موتسو العجلة واستبداله إن كان قاطعاً.",
     "severity": "critical",
-    "partNameLibyan": "حساس ABS سرعة عجلة خلفي يمين BMW",
-    "partNameEnglish": "Rear Right ABS Wheel Speed Sensor",
-    "partPriceMin": 90.0,
-    "partPriceMax": 220.0,
+    "partNameLibyan": "بلف تعشيق كمبيو BMW",
+    "partNameEnglish": "Shift Solenoid Valve",
+    "partPriceMin": 120.0,
+    "partPriceMax": 280.0,
     "aftermarketBrands": [
-      "Bosch",
-      "ATE",
-      "Febi Bilstein"
+      "ZF",
+      "Febi",
+      "Meyle"
     ]
   },
   {
@@ -1152,13 +1159,14 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "فحص الحساس والكوشينتي وتنظيف موتسو العجلة الخلفية يمين.",
     "severity": "critical",
-    "partNameLibyan": "حساس ABS خلفي يمين BMW",
-    "partNameEnglish": "Rear Right Wheel Speed Sensor",
-    "partPriceMin": 90.0,
-    "partPriceMax": 220.0,
+    "partNameLibyan": "بلف تعشيق كمبيو BMW",
+    "partNameEnglish": "Shift Solenoid Valve",
+    "partPriceMin": 120.0,
+    "partPriceMax": 280.0,
     "aftermarketBrands": [
-      "Bosch",
-      "ATE"
+      "ZF",
+      "Febi",
+      "Meyle"
     ]
   },
   {
@@ -1179,14 +1187,14 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "فك موتسو العجلة الخلفية يمين، تنظيف مسار الحساس، وفحص الكوشينتي إذا كان به بوش أو فراغ.",
     "severity": "critical",
-    "partNameLibyan": "كوشينتي / حساس عجلة خلفي يمين BMW",
-    "partNameEnglish": "Wheel Bearing & ABS Sensor Rear Right",
-    "partPriceMin": 90.0,
-    "partPriceMax": 240.0,
+    "partNameLibyan": "حساس ABS أمامي BMW",
+    "partNameEnglish": "Front Wheel Speed Sensor",
+    "partPriceMin": 75.0,
+    "partPriceMax": 160.0,
     "aftermarketBrands": [
-      "FAG",
-      "SKF",
-      "ATE"
+      "Bosch",
+      "ATE",
+      "Textar"
     ]
   },
   {
@@ -1205,11 +1213,15 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "فحص الحساس والكوشينتي في موتسو العجلة الخلفية يمين.",
     "severity": "critical",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "حساس ABS أمامي BMW",
+    "partNameEnglish": "Front Wheel Speed Sensor",
+    "partPriceMin": 75.0,
+    "partPriceMax": 160.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "ATE",
+      "Textar"
+    ]
   },
   {
     "code": "21",
@@ -1229,14 +1241,14 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "افحص كابل الحساس المار بجانب الصالة والمزاطوري الأيسر، واستبدل الحساس إذا كان السلك مقطوعاً.",
     "severity": "critical",
-    "partNameLibyan": "حساس ABS صالة أمامي يسار BMW",
-    "partNameEnglish": "Front Left ABS Sensor BMW E39",
-    "partPriceMin": 95.0,
-    "partPriceMax": 220.0,
+    "partNameLibyan": "حساس ABS خلفي BMW",
+    "partNameEnglish": "Rear Wheel Speed Sensor",
+    "partPriceMin": 75.0,
+    "partPriceMax": 160.0,
     "aftermarketBrands": [
       "Bosch",
       "ATE",
-      "Febi"
+      "Textar"
     ]
   },
   {
@@ -1255,13 +1267,14 @@
     "urgencyLevel": "عالي جداً",
     "recommendedAction": "استبدال حساس سرعة العجلة الأمامية اليسار مع التثبيت الجيد في كليبس المزاطوري.",
     "severity": "critical",
-    "partNameLibyan": "حساس ABS أمامي يسار BMW",
-    "partNameEnglish": "Front Left ABS Sensor",
-    "partPriceMin": 95.0,
-    "partPriceMax": 220.0,
+    "partNameLibyan": "حساس ABS خلفي BMW",
+    "partNameEnglish": "Rear Wheel Speed Sensor",
+    "partPriceMin": 75.0,
+    "partPriceMax": 160.0,
     "aftermarketBrands": [
       "Bosch",
-      "ATE"
+      "ATE",
+      "Textar"
     ]
   },
   {
@@ -1308,11 +1321,15 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "فحص عوامة البنزين اليمين وتنظيفها أو استبدالها.",
     "severity": "moderate",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "عوامة بنزين BMW جهة البومبة",
+    "partNameEnglish": "Fuel Level Sensor 1 (Pump Side)",
+    "partPriceMin": 80.0,
+    "partPriceMax": 180.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "VDO",
+      "Pierburg"
+    ]
   },
   {
     "code": "D7",
@@ -1330,13 +1347,14 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "فحص العوامة اليسرى تحت الكرسي الخلفي والتأكد من حركة الذراع والفيشة.",
     "severity": "moderate",
-    "partNameLibyan": "عوامة بنزين يسار BMW E39",
+    "partNameLibyan": "عوامة بنزين BMW يسار",
     "partNameEnglish": "Fuel Level Sensor 2 (Left Side)",
-    "partPriceMin": 70.0,
-    "partPriceMax": 160.0,
+    "partPriceMin": 80.0,
+    "partPriceMax": 180.0,
     "aftermarketBrands": [
+      "Bosch",
       "VDO",
-      "Bosch"
+      "Pierburg"
     ]
   },
   {
@@ -1355,11 +1373,15 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "فحص العوامة اليسرى ومسار السيفون في الخزان.",
     "severity": "moderate",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "عوامة بنزين BMW يسار",
+    "partNameEnglish": "Fuel Level Sensor 2 (Left Side)",
+    "partPriceMin": 80.0,
+    "partPriceMax": 180.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "VDO",
+      "Pierburg"
+    ]
   },
   {
     "code": "IC 164",
@@ -1380,14 +1402,14 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "افحص حساس حرارة مية المحرك (سنسور الحرارة على المحرك) والفيشة الخاصة به، الحساس موجود على المحرك وليس في الطبلون، ولوحة العدادات تعرض الإشارة فقط.",
     "severity": "moderate",
-    "partNameLibyan": "حساس حرارة مية المحرك",
-    "partNameEnglish": "Engine Coolant Temperature Sensor",
-    "partPriceMin": 40.0,
-    "partPriceMax": 120.0,
+    "partNameLibyan": "صباع حرارة مية الرداتوري",
+    "partNameEnglish": "Coolant Temperature Sensor",
+    "partPriceMin": 35.0,
+    "partPriceMax": 90.0,
     "aftermarketBrands": [
-      "Bosch",
-      "Facet",
-      "Hella"
+      "Behr",
+      "Febi",
+      "Meyle"
     ]
   },
   {
@@ -1409,14 +1431,14 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "افحص حساس حرارة مية المحرك (سنسور الحرارة على المحرك) والفيشة الخاصة به، الحساس موجود على المحرك وليس في الطبلون، ولوحة العدادات تعرض الإشارة فقط.",
     "severity": "moderate",
-    "partNameLibyan": "حساس حرارة مية المحرك",
-    "partNameEnglish": "Engine Coolant Temperature Sensor",
-    "partPriceMin": 40.0,
-    "partPriceMax": 120.0,
+    "partNameLibyan": "صباع حرارة مية الرداتوري",
+    "partNameEnglish": "Coolant Temperature Sensor",
+    "partPriceMin": 35.0,
+    "partPriceMax": 90.0,
     "aftermarketBrands": [
-      "Bosch",
-      "Facet",
-      "Hella"
+      "Behr",
+      "Febi",
+      "Meyle"
     ]
   },
   {
@@ -1436,13 +1458,13 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "فحص فيشة الكرسي السفلية، وتركيب جهاز تجاوز معتمد (Emulator) أو استبدال قرسيوني حساس الكرسي.",
     "severity": "moderate",
-    "partNameLibyan": "حساس قعدة كرسي BMW / إيموليتور",
-    "partNameEnglish": "Passenger Seat Occupancy Mat / Bypass",
-    "partPriceMin": 50.0,
-    "partPriceMax": 150.0,
+    "partNameLibyan": "شريط إيرباق BMW",
+    "partNameEnglish": "Airbag Clock Spring",
+    "partPriceMin": 85.0,
+    "partPriceMax": 210.0,
     "aftermarketBrands": [
-      "Bavaria Sensor",
-      "OEM"
+      "BMW Genuine",
+      "Febi"
     ]
   },
   {
@@ -1461,11 +1483,14 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "فحص الفيشة أسفل الكرسي أو تركيب قطعة تجاوز لإطفاء اللمبة.",
     "severity": "moderate",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "شريط إيرباق BMW",
+    "partNameEnglish": "Airbag Clock Spring",
+    "partPriceMin": 85.0,
+    "partPriceMax": 210.0,
+    "aftermarketBrands": [
+      "BMW Genuine",
+      "Febi"
+    ]
   },
   {
     "code": "16",
@@ -1484,11 +1509,14 @@
     "urgencyLevel": "خفيف",
     "recommendedAction": "فحص الذراع الصغير المركب على صالة العجلة والتأكد من سلامة السلك الواصل لكمبيوتر الإضاءة.",
     "severity": "history",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "مفتاح منظومة الإضاءة والأنوار",
+    "partNameEnglish": "Light Switch Control Module",
+    "partPriceMin": 110.0,
+    "partPriceMax": 250.0,
+    "aftermarketBrands": [
+      "Hella",
+      "Bosch"
+    ]
   },
   {
     "code": "LSZ 16",
@@ -1506,11 +1534,14 @@
     "urgencyLevel": "خفيف",
     "recommendedAction": "فحص ذراع الحساس على براتشو الصالة وتوصيل السلك.",
     "severity": "history",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "مفتاح منظومة الإضاءة والأنوار",
+    "partNameEnglish": "Light Switch Control Module",
+    "partPriceMin": 110.0,
+    "partPriceMax": 250.0,
+    "aftermarketBrands": [
+      "Hella",
+      "Bosch"
+    ]
   },
   {
     "code": "1F",
@@ -1528,11 +1559,14 @@
     "urgencyLevel": "خفيف",
     "recommendedAction": "فحص ترانزستورات موديول LCM وتنظيف فيش الكمبيوتر الجانبي بجانب دواسة الراكب.",
     "severity": "history",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "لمبة سطب خلفي",
+    "partNameEnglish": "Tail Stop Bulb",
+    "partPriceMin": 5.0,
+    "partPriceMax": 25.0,
+    "aftermarketBrands": [
+      "Osram",
+      "Philips"
+    ]
   },
   {
     "code": "LSZ 1F",
@@ -1550,11 +1584,14 @@
     "urgencyLevel": "خفيف",
     "recommendedAction": "فحص موديول LCM.",
     "severity": "history",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "لمبة سطب خلفي",
+    "partNameEnglish": "Tail Stop Bulb",
+    "partPriceMin": 5.0,
+    "partPriceMax": 25.0,
+    "aftermarketBrands": [
+      "Osram",
+      "Philips"
+    ]
   },
   {
     "code": "20",
@@ -1572,11 +1609,14 @@
     "urgencyLevel": "خفيف",
     "recommendedAction": "فحص موديول LCM من التسخين والتأكد من سلامة ريليهات الإضاءة.",
     "severity": "history",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "لمبة فنار أمامي H7",
+    "partNameEnglish": "Headlight Bulb",
+    "partPriceMin": 15.0,
+    "partPriceMax": 85.0,
+    "aftermarketBrands": [
+      "Osram",
+      "Philips"
+    ]
   },
   {
     "code": "LSZ 20",
@@ -1594,11 +1634,14 @@
     "urgencyLevel": "خفيف",
     "recommendedAction": "فحص موديول LCM.",
     "severity": "history",
-    "partNameLibyan": null,
-    "partNameEnglish": null,
-    "partPriceMin": null,
-    "partPriceMax": null,
-    "aftermarketBrands": null
+    "partNameLibyan": "لمبة فنار أمامي H7",
+    "partNameEnglish": "Headlight Bulb",
+    "partPriceMin": 15.0,
+    "partPriceMax": 85.0,
+    "aftermarketBrands": [
+      "Osram",
+      "Philips"
+    ]
   },
   {
     "code": "28",
@@ -1618,14 +1661,12 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "استبدال الحساس السفلي عند موعد تغيير زيت المحرك القادم (أثناء تفريغ زيت الستاقوبا).",
     "severity": "moderate",
-    "partNameLibyan": "حساس زيت الستاقوبا BMW E39",
-    "partNameEnglish": "Engine Oil Level Sensor (Hella/BMW)",
-    "partPriceMin": 110.0,
-    "partPriceMax": 260.0,
+    "partNameLibyan": "فيوز إضاءة ومسار ريليه أوتوماتيك",
+    "partNameEnglish": "Lighting Circuit Fuse",
+    "partPriceMin": 5.0,
+    "partPriceMax": 20.0,
     "aftermarketBrands": [
-      "Hella",
-      "Febi Bilstein",
-      "Meyle"
+      "Littelfuse"
     ]
   },
   {
@@ -1644,13 +1685,12 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "استبدال الحساس عند سيرفيس تغيير الزيت القادم.",
     "severity": "moderate",
-    "partNameLibyan": "حساس زيت الستاقوبا BMW E39",
-    "partNameEnglish": "Oil Level Thermal Sensor",
-    "partPriceMin": 110.0,
-    "partPriceMax": 260.0,
+    "partNameLibyan": "فيوز إضاءة ومسار ريليه أوتوماتيك",
+    "partNameEnglish": "Lighting Circuit Fuse",
+    "partPriceMin": 5.0,
+    "partPriceMax": 20.0,
     "aftermarketBrands": [
-      "Hella",
-      "Febi"
+      "Littelfuse"
     ]
   },
   {
@@ -1743,5 +1783,1999 @@
     "urgencyLevel": "متوسط",
     "recommendedAction": "افحص البطارية وأقطابها وخط الماس أولاً، وصفّر الأعطال وشوف هل يرجع الكود. لا تبدل الكمبيوتر إلا بعد استبعاد أسباب الكهرباء.",
     "severity": "moderate"
+  },
+  {
+    "code": "P0010",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Camshaft Position Actuator Circuit / Open (Bank 1)",
+    "libyanTerm": "فالف التايمن VVT / دائرة صمام الكامة مفتوحة (الجهة 1)",
+    "standardArabicDescription": "عطل في الدائرة الكهربائية لصمام التحكم في توقيت عمود الكامات",
+    "driverSymptoms": [
+      "رعشة في السيلانتي (وضع الوقوف)",
+      "ضعف عزم المحرك في التسارع",
+      "ولعة لامبة التشك في الكوادرو"
+    ],
+    "rootCauses": [
+      "فيشة فالف التايمن مرخية أو مأكسدة",
+      "احتراق ملف فالف الـ VVT الداخلي",
+      "انسداد مجرى الزيت الواصل للفالف بالشوائب"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص فيشة فالف التايمن وتنظيفه أو تغييره وتفقد لزوجة زيت المحرك",
+    "severity": "moderate",
+    "partNameLibyan": "فالف تايمن VVT (صمام كامات)",
+    "partNameEnglish": "VVT Oil Control Valve Solenoid",
+    "partPriceMin": 110.0,
+    "partPriceMax": 260.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Mobis",
+      "Bosch",
+      "INA"
+    ]
+  },
+  {
+    "code": "P0011",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Camshaft Position Timing Over-Advanced (Bank 1)",
+    "libyanTerm": "فالف التايمن VVT معلق / توقيت الكامة متقدم (شائع في هيونداي وتويوتا)",
+    "standardArabicDescription": "توقيت عمود الكامات متقدم أكثر من اللازم في المجموعة 1",
+    "driverSymptoms": [
+      "فطفطة ورعشة في المحرك عند الوقوف (السيلانتي)",
+      "صوت تكتكة جهة غطاء التستاتا (رأس المحرك)",
+      "استهلاك وقود زائد وضعف في السيرفيس"
+    ],
+    "rootCauses": [
+      "فالف الـ VVT متسخ أو معلق برواسب الزيت",
+      "تأخر تغيير زيت المحرك وتراكم كربون",
+      "انسداد فيلترو شبكة فالف التايمن الدقيقة"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تغيير زيت المحرك وفيلترو الزيت، فك وتنظيف فالف التايمن ومجرى الزيت بسبراي خاص",
+    "severity": "moderate",
+    "partNameLibyan": "فالف تايمن VVT (بلف كامات)",
+    "partNameEnglish": "Variable Valve Timing Solenoid",
+    "partPriceMin": 110.0,
+    "partPriceMax": 260.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Mobis",
+      "Toyota Genuine",
+      "Pierburg"
+    ]
+  },
+  {
+    "code": "P0012",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Camshaft Position Timing Over-Retarded (Bank 1)",
+    "libyanTerm": "تأخر توقيت الكامة / جنزير الكاتينة مرخي أو فالف التايمن معلق",
+    "standardArabicDescription": "توقيت عمود الكامات متأخر عن الحد المطلوب في المجموعة 1",
+    "driverSymptoms": [
+      "ثقل وخمول في تسارع السيارة",
+      "رعشة واضحة في المحرك على السيلانتي",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "انخفاض ضغط زيت المحرك داخل غطاء التستاتا",
+      "تلف أو تعليق فالف الـ VVT",
+      "ارتخاء في جنزير أو سير الكاتينة (التايمن)"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "قياس ضغط زيت المحرك، فحص فالف التايمن، وتفقد وزنية جنزير الكاتينة والشداد",
+    "severity": "critical",
+    "partNameLibyan": "فالف تايمن أو شداد كاتينة",
+    "partNameEnglish": "Camshaft Phaser / VVT Actuator",
+    "partPriceMin": 130.0,
+    "partPriceMax": 340.0,
+    "aftermarketBrands": [
+      "INA",
+      "Febi",
+      "Mobis",
+      "Denso"
+    ]
+  },
+  {
+    "code": "P0014",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Exhaust Camshaft Position Timing Over-Advanced (Bank 1)",
+    "libyanTerm": "توقيت كامة العادم متقدم / فالف تايمن العادم معلق",
+    "standardArabicDescription": "توقيت عمود كامات العادم متقدم أكثر من القيمة المحددة",
+    "driverSymptoms": [
+      "خشونة في صوت المحرك",
+      "تراجع عزم السيارة عند الصعود",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "اتساخ فالف تايمن العادم برواسب الكربون والزيت المحروق",
+      "انسداد مجرى الزيت الداخلي",
+      "خلل في ترس الكامة الهيدروليكي"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فك فالف تايمن العادم وتنظيفه واختباره وتغيير زيت وفيلترو المحرك",
+    "severity": "moderate",
+    "partNameLibyan": "فالف تايمن كامات العادم",
+    "partNameEnglish": "Exhaust VVT Solenoid",
+    "partPriceMin": 110.0,
+    "partPriceMax": 260.0,
+    "aftermarketBrands": [
+      "Mobis",
+      "Denso",
+      "Bosch",
+      "Febi"
+    ]
+  },
+  {
+    "code": "P0016",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Crankshaft Position - Camshaft Position Correlation (Bank 1 Sensor A)",
+    "libyanTerm": "عدم تطابق إشارة الكرنك والكامة / جنزير الكاتينة مرخي أو ناطط سنّة",
+    "standardArabicDescription": "عدم تطابق التزامن بين حساس الكرنك وحساس عمود الكامات",
+    "driverSymptoms": [
+      "صعوبة أو تأخر في دوران المحرك عند فتح السويتش",
+      "فطفطة وضعف عزم شديد في السيرفيس",
+      "صوت خشخشة في جنزير الكاتينة عند التشغيل"
+    ],
+    "rootCauses": [
+      "ارتخاء أو تمدد في جنزير الكاتينة وشداد الكاتينة",
+      "تآكل زلاجات الكاتينة البلاستيكية",
+      "خلل في حساس الكرنك أو حساس الكامة"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "إيقاف القيادة فوراً وفحص وزنية الكاتينة وشداد الكاتينة لتجنب خبط الصمامات في البسطوني",
+    "severity": "critical",
+    "partNameLibyan": "طقم كاتينة كامل (جنزير وشداد وزلاجات)",
+    "partNameEnglish": "Timing Chain Kit & Tensioner",
+    "partPriceMin": 280.0,
+    "partPriceMax": 650.0,
+    "aftermarketBrands": [
+      "INA",
+      "Dayco",
+      "Gates",
+      "Toyota Genuine",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "P0017",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Crankshaft Position - Camshaft Position Correlation (Bank 1 Sensor B)",
+    "libyanTerm": "عدم تطابق الكرنك مع كامة العادم / وزنية الكاتينة متغيرة",
+    "standardArabicDescription": "عدم تطابق التزامن بين حساس الكرنك وحساس عمود كامات العادم",
+    "driverSymptoms": [
+      "تأخر دوران المحرك عند التشغيل في الصباح",
+      "فطفطة ورعشة واضحة في المحرك",
+      "ضعف تسارع ملحوظ"
+    ],
+    "rootCauses": [
+      "تمدد جنزير الكاتينة أو تلف شداد الكاتينة الهيدروليكي",
+      "تراكم رواسب زيتية تعيق دوران ترس الكامة الهيدروليكي",
+      "فيشة حساس كامة العادم بها ضعف تلامس"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "مراجعة وضبط وزنية الكاتينة وتفقد ترس الكامة وتغيير الزيت",
+    "severity": "critical",
+    "partNameLibyan": "طقم جنزير كاتينة أو حساس كامة",
+    "partNameEnglish": "Timing Chain Kit / Cam Sensor",
+    "partPriceMin": 180.0,
+    "partPriceMax": 550.0,
+    "aftermarketBrands": [
+      "INA",
+      "Mobis",
+      "Febi",
+      "Denso"
+    ]
+  },
+  {
+    "code": "P0087",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Fuel Rail/System Pressure - Too Low",
+    "libyanTerm": "ضغط سكة الوقود ضعيف / ضعف في بومبة البنزين أو بومبة الضغط العالي (HPFP)",
+    "standardArabicDescription": "ضغط الوقود في مسطرة الحقن منخفض جداً عن المستوى المطلوب",
+    "driverSymptoms": [
+      "خنقة في السيرفيس وانقطاع عزم عند الدوس بقوة",
+      "تأخر دوران المحرك في الصباح",
+      "دخول السيارة في وضع الطوارئ (Limp Mode)"
+    ],
+    "rootCauses": [
+      "انسداد فيلترو البنزين بالشوائب",
+      "ضعف قلب بومبة البنزين في التانكي",
+      "تلف بومبة البنزين ذات الضغط العالي (HPFP) على التستاتا"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص ضغط بومبة التانكي أولاً، استبدال فيلترو البنزين، ثم فحص بومبة الضغط العالي ومسطرة الإنجكترات",
+    "severity": "critical",
+    "partNameLibyan": "بومبة بنزين ضغط عالي أو قلب بومبة",
+    "partNameEnglish": "High Pressure Fuel Pump (HPFP)",
+    "partPriceMin": 350.0,
+    "partPriceMax": 950.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Hitachi",
+      "Continental",
+      "Denso"
+    ]
+  },
+  {
+    "code": "P0088",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Fuel Rail/System Pressure - Too High",
+    "libyanTerm": "ضغط سكة الوقود مرتفع جداً / بلف تنظيم الضغط معلق",
+    "standardArabicDescription": "ضغط الوقود في مسطرة الحقن أعلى من الحدود المسموح بها",
+    "driverSymptoms": [
+      "دخان أسود من المرميطة ورائحة بنزين قوية",
+      "فطفطة ورعشة بسبب زيادة كمية الوقود المحقون",
+      "استهلاك بنزين مفرط"
+    ],
+    "rootCauses": [
+      "صمام منظم ضغط الوقود معلق في وضع الإغلاق",
+      "حساس ضغط سكة الوقود يقرأ قراءة خاطئة",
+      "انسداد خط رجوع البنزين للتانكي"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص حساس ومنظم ضغط الوقود في مسطرة الإنجكترات وتفقد خط الرجوع",
+    "severity": "critical",
+    "partNameLibyan": "حساس أو منظم ضغط سكة البنزين",
+    "partNameEnglish": "Fuel Pressure Regulator Sensor",
+    "partPriceMin": 140.0,
+    "partPriceMax": 320.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Denso",
+      "Delphi"
+    ]
+  },
+  {
+    "code": "P0110",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Intake Air Temperature Circuit Malfunction",
+    "libyanTerm": "حساس حرارة هواء السحب (IAT) / خلل في الدائرة الكهربائية",
+    "standardArabicDescription": "عطل في دائرة مستشعر درجة حرارة الهواء الداخل للمحرك",
+    "driverSymptoms": [
+      "زيادة استهلاك الوقود",
+      "تذبذب طفيف في السيلانتي",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "فيشة الحساس مرخية أو أسلاكها مقطوعة",
+      "اتساخ الحساس أو تآكل مقاومته الداخلية",
+      "تلف حساس الماف الذي يحتوي على حساس الحرارة داخله"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "فحص فيشة الحساس وتنظيفه بسبراي الكترونيات وتغييره إذا لزم",
+    "severity": "moderate",
+    "partNameLibyan": "حساس حرارة الهواء (IAT)",
+    "partNameEnglish": "Intake Air Temperature Sensor",
+    "partPriceMin": 45.0,
+    "partPriceMax": 110.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Bosch",
+      "Facet",
+      "Hella"
+    ]
+  },
+  {
+    "code": "P0113",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Intake Air Temperature Circuit High Input",
+    "libyanTerm": "حساس حرارة الهواء / فيشة مفصولة أو جهد مرتفع (دائرة مفتوحة)",
+    "standardArabicDescription": "إشارة جهد مرتفع في دائرة مستشعر حرارة هواء السحب",
+    "driverSymptoms": [
+      "الكمبيوتر يقرأ حرارة هواء شديدة البرودة افتراضياً (-40)",
+      "استهلاك بنزين زائد ودخان خفيف",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "فيشة الحساس مفصولة تماماً بعد تغيير فيلترو الهواء",
+      "قطع في سلك الإشارة الكهربائية",
+      "تلف داخلي في الحساس"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "التأكد من تركيب فيشة حساس الهواء بإحكام وفحص سلامة الأسلاك",
+    "severity": "moderate",
+    "partNameLibyan": "حساس حرارة الهواء أو فيشة حساس ماف",
+    "partNameEnglish": "Intake Air Temp Sensor",
+    "partPriceMin": 45.0,
+    "partPriceMax": 110.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Bosch",
+      "Standard"
+    ]
+  },
+  {
+    "code": "P0117",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Engine Coolant Temperature Circuit Low Input",
+    "libyanTerm": "صباع حرارة المية (ECT) / جهد منخفض (التماس أرضي)",
+    "standardArabicDescription": "إشارة جهد منخفض في دائرة مستشعر حرارة مية التبريد",
+    "driverSymptoms": [
+      "مؤشر حرارة المية في الكوادرو معلق على أقصى سخانة (H)",
+      "اشتغال مروحة الرداتوري (الفنتوري) بأقصى سرعة فور فتح السويتش",
+      "صعوبة تشغيل المحرك وهو بارد"
+    ],
+    "rootCauses": [
+      "التماس كهربائي في سلك الإشارة مع أرضي المحرك",
+      "تلف داخلي في صباع الحرارة (قصر كهربائي)",
+      "تآكل في الفيشة"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص أسلاك صباع الحرارة من التآكل وتغيير صباع الحرارة وتفقد مية الرداتوري",
+    "severity": "critical",
+    "partNameLibyan": "صباع حرارة مية المحرك (حساس حرارة)",
+    "partNameEnglish": "Engine Coolant Temperature Sensor",
+    "partPriceMin": 35.0,
+    "partPriceMax": 85.0,
+    "aftermarketBrands": [
+      "Facet",
+      "Bosch",
+      "Denso",
+      "Febi"
+    ]
+  },
+  {
+    "code": "P0118",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Engine Coolant Temperature Circuit High Input",
+    "libyanTerm": "صباع حرارة المية (ECT) / فيشة مفصولة أو دائرة مفتوحة",
+    "standardArabicDescription": "إشارة جهد مرتفع في دائرة مستشعر حرارة مية التبريد",
+    "driverSymptoms": [
+      "مؤشر الحرارة في الكوادرو نازل للصفر تماماً",
+      "دوران مراوح الرداتوري (الفنتوري) باستمرار كحماية طوارئ",
+      "صعوبة تشغيل المحرك وهو ساخن واستهلاك وقود مرتفع"
+    ],
+    "rootCauses": [
+      "فيشة صباع الحرارة مفصولة أو مكسورة اللسان",
+      "قطع في أسلاك الحساس",
+      "تلف صباع الحرارة"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "تركيب فيشة صباع الحرارة بإحكام أو استبدال الحساس وفحص مية التبريد",
+    "severity": "critical",
+    "partNameLibyan": "صباع حرارة المية",
+    "partNameEnglish": "Coolant Temperature Sensor",
+    "partPriceMin": 35.0,
+    "partPriceMax": 85.0,
+    "aftermarketBrands": [
+      "Facet",
+      "Febi",
+      "Denso",
+      "VDO"
+    ]
+  },
+  {
+    "code": "P0121",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Throttle Position Sensor 1 Circuit Range/Performance",
+    "libyanTerm": "حساس بوابة الهواء (الكوربو) / قراءة غير منطقية لحساس TPS 1",
+    "standardArabicDescription": "أداء غير طبيعي لمستشعر موضع بوابة الهواء الكهربائية رقم 1",
+    "driverSymptoms": [
+      "تقطيع ونفضة عند الدوس على دواسة البنزين",
+      "تذبذب في السيلانتي",
+      "دخول السيارة في وضع الطوارئ والسرعة المحدودة"
+    ],
+    "rootCauses": [
+      "اتساخ مسارات المقاومة الكربونية داخل بوابة الهواء الكهربائية",
+      "تراكم كربون وزيوت على فراشة البوابة يعيق حركتها",
+      "ضعف تلامس في فيشة البوابة"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تنظيف بوابة الهواء بسبراي مخصص دون تحريك الفراشة بقوة ثم عمل معايرة (برمجة بوابة)",
+    "severity": "moderate",
+    "partNameLibyan": "بوابة هواء كهربائية أو حساس TPS",
+    "partNameEnglish": "Throttle Body Assembly / TPS",
+    "partPriceMin": 160.0,
+    "partPriceMax": 450.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Continental",
+      "Denso",
+      "Hitachi"
+    ]
+  },
+  {
+    "code": "P0128",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Coolant Thermostat (Coolant Temp Below Regulating Temp)",
+    "libyanTerm": "الترموستات معلقة فاتحة / مية المحرك ما تسخنش وتاخذ وقت طويل",
+    "standardArabicDescription": "درجة حرارة مية التبريد أقل من حرارة تنظيم الترموستات المطلوبة",
+    "driverSymptoms": [
+      "مؤشر الحرارة في الكوادرو لا يصل للنصف أثناء القيادة السريعة",
+      "تدفئة المقصورة في الشتاء ضعيفة",
+      "استهلاك بنزين زائد لأن المحرك يظل في وضع التسخين"
+    ],
+    "rootCauses": [
+      "الترموستات معلقة في وضع الفتح المستمر",
+      "إزالة الترموستات من المحرك بالخطأ",
+      "تلف صباع حرارة المية"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "استبدال الترموستات بقطعة أصلية وتعبئة مية رداتوري أصلية وإفراغ الهواء من المنظومة",
+    "severity": "moderate",
+    "partNameLibyan": "ترموستات مية المحرك",
+    "partNameEnglish": "Engine Coolant Thermostat",
+    "partPriceMin": 35.0,
+    "partPriceMax": 95.0,
+    "aftermarketBrands": [
+      "Wahler",
+      "Gates",
+      "Behr",
+      "Motorcraft",
+      "Toyota Genuine"
+    ]
+  },
+  {
+    "code": "P0234",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Turbocharger/Supercharger Overboost Condition",
+    "libyanTerm": "ضغط شاحن التربو زائد عن الحد (Overboost) / بلف الويست جيت معلق مقفل",
+    "standardArabicDescription": "ضغط شاحن التربو تجاوز الحد الأقصى الآمن المسموح به للمحرك",
+    "driverSymptoms": [
+      "اندفاع قوي مفاجئ ثم تقطيع وقص عزم مفاجئ لحماية المحرك",
+      "دخول الكمبيوتر في وضع الطوارئ فور الدوس القوي",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "بلف تفريغ ضغط التربو (Wastegate) معلق في وضع الإغلاق",
+      "انسداد أو تلف فالف التحكم الكهربائي في ضغط التربو (N75 / Boost Solenoid)",
+      "انقطاع أو تلف توبو فاكيوم التربو الصغير"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص حركة ذراع الويست جيت، فحص فالف الـ N75، وتفقد أنابيب الفاكيوم الخاصة بالتربو",
+    "severity": "critical",
+    "partNameLibyan": "بلف تحكم ضغط التربو (فالف N75)",
+    "partNameEnglish": "Turbocharger Boost Control Solenoid",
+    "partPriceMin": 90.0,
+    "partPriceMax": 240.0,
+    "aftermarketBrands": [
+      "Pierburg",
+      "Bosch",
+      "BorgWarner",
+      "Garrett"
+    ]
+  },
+  {
+    "code": "P0299",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Turbocharger/Supercharger Underboost",
+    "libyanTerm": "ضغط التربو ضعيف (Underboost) / تسريب في مناكوطيات التربو أو تنفيس إنتركولر",
+    "standardArabicDescription": "ضغط شاحن التربو أقل من القيمة المطلوبة للمحرك",
+    "driverSymptoms": [
+      "عزم السيارة ميت وتسارع بطيء جداً",
+      "صوت صفير أو تهريب هواء عالي عند الدوس",
+      "دخان أسود خفيف عند زيادة السرعة"
+    ],
+    "rootCauses": [
+      "شق أو انفلات في مناكوطي الإنتركولر أو مناكوطيات هواء التربو",
+      "ثقب في مبرد هواء التربو (الإنتركولر) بسبب خبطة",
+      "بلف تفريغ التربو معلق فاتح أو تلف مروحة التربو الداخلية"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص جميع مناكوطيات ومواسير التربو والإنتركولر بجهاز الدخان، وفحص فالف التربو",
+    "severity": "moderate",
+    "partNameLibyan": "مناكوطي إنتركولر أو فالف تفريغ تربو",
+    "partNameEnglish": "Intercooler Hose / Diverter Valve",
+    "partPriceMin": 85.0,
+    "partPriceMax": 260.0,
+    "aftermarketBrands": [
+      "Gates",
+      "Pierburg",
+      "Febi",
+      "Mahle"
+    ]
+  },
+  {
+    "code": "P0305",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Cylinder 5 Misfire Detected",
+    "libyanTerm": "فطفطة ورعشة في البسطوني رقم 5 / شمعة أو بوبينة مستهلكة",
+    "standardArabicDescription": "انقطاع احتراق في الأسطوانة رقم 5",
+    "driverSymptoms": [
+      "رعشة قوية في المحرك على السيلانتي",
+      "فطفطة عند الدوس على البنزين",
+      "ولعة وتأشير لامبة التشك بشكل متكرر"
+    ],
+    "rootCauses": [
+      "شمعة الاحتراق رقم 5 محروقة أو ملوثة بالزيت",
+      "تلف البوبينة رقم 5 أو تسريب كهربائي في كابلها",
+      "انسداد إنجكتر البنزين رقم 5"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "تبديل البوبينة رقم 5 مع بوبينة أخرى لاختبارها، وتغيير طقم الشمعات وفحص الإنجكتر",
+    "severity": "critical",
+    "partNameLibyan": "بوبينة أو شمعة احتراق",
+    "partNameEnglish": "Ignition Coil / Spark Plug",
+    "partPriceMin": 70.0,
+    "partPriceMax": 210.0,
+    "aftermarketBrands": [
+      "Denso",
+      "NGK",
+      "Bosch",
+      "Delphi",
+      "Champion"
+    ]
+  },
+  {
+    "code": "P0306",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Cylinder 6 Misfire Detected",
+    "libyanTerm": "فطفطة ورعشة في البسطوني رقم 6 / شمعة أو بوبينة رقم 6",
+    "standardArabicDescription": "انقطاع احتراق في الأسطوانة رقم 6",
+    "driverSymptoms": [
+      "رعشة واضحة في مقصورة السيارة",
+      "ضعف ملحوظ في سحب السيارة على الطريق",
+      "رائحة بنزين ني غير محروق من المرميطة"
+    ],
+    "rootCauses": [
+      "تلف شمعة الاحتراق رقم 6",
+      "احتراق البوبينة رقم 6",
+      "ضعف انضغاط في البسطوني رقم 6"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص واختبار شمعة وبوبينة البسطوني رقم 6 وقياس ضغط الانضغاط إذا لزم",
+    "severity": "critical",
+    "partNameLibyan": "بوبينة وبسطوني رقم 6 شمعة",
+    "partNameEnglish": "Ignition Coil / Spark Plug",
+    "partPriceMin": 70.0,
+    "partPriceMax": 210.0,
+    "aftermarketBrands": [
+      "Denso",
+      "NGK",
+      "Bosch",
+      "Motorcraft"
+    ]
+  },
+  {
+    "code": "P0308",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Cylinder 8 Misfire Detected",
+    "libyanTerm": "فطفطة في البسطوني رقم 8 (محركات V8 مثل تاهو وفورد ولاندكروزر)",
+    "standardArabicDescription": "انقطاع احتراق في الأسطوانة رقم 8",
+    "driverSymptoms": [
+      "تكتكة ورعشة في محرك الـ V8",
+      "ضعف عزم واستهلاك وقود مرتفع",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "تلف البوبينة أو الشمعة في البسطوني الأخير رقم 8 لقربه من جدار النار وحرارته العالية",
+      "انسداد إنجكتر الوقود",
+      "تسريب هواء من جوان المانيفولد جهة البسطوني 8"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "تغيير شمعة وبوبينة البسطوني رقم 8 وتفقد فيشة الإنجكتر",
+    "severity": "critical",
+    "partNameLibyan": "بوبينة محرك V8 وشمعة",
+    "partNameEnglish": "Ignition Coil V8",
+    "partPriceMin": 75.0,
+    "partPriceMax": 220.0,
+    "aftermarketBrands": [
+      "Motorcraft",
+      "ACDelco",
+      "Denso",
+      "Bosch"
+    ]
+  },
+  {
+    "code": "P0325",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Knock Sensor 1 Circuit Malfunction (Bank 1)",
+    "libyanTerm": "حساس النوك (Knock Sensor) / خلل في دائرة حساس طرق المحرك والنوك",
+    "standardArabicDescription": "عطل في الدائرة الكهربائية لمستشعر طرق المحرك في المجموعة 1",
+    "driverSymptoms": [
+      "ثقل في عزم المحرك لأن الكمبيوتر يؤخر توقيت الإشعال حمايةً للمحرك",
+      "صوت نقر وطرق خفيف (Knock) عند الضغط على دواسة البنزين بالوقود الرديء",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "تلف حساس النوك نتيجة الحرارة العالية تحت مانيفولد السحب",
+      "تآكل أو قطع في أسلاك الحساس بسبب القوارض أو الحرارة",
+      "ارتخاء برغي تثبيت حساس النوك في بلوك المحرك"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص أسلاك وفيشة الحساس، ربط الحساس بالعزم المحدد (Torque) أو استبداله بحساس أصلي",
+    "severity": "moderate",
+    "partNameLibyan": "حساس نوك (حساس طرق المحرك)",
+    "partNameEnglish": "Knock Sensor",
+    "partPriceMin": 65.0,
+    "partPriceMax": 160.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Bosch",
+      "NTK",
+      "Toyota Genuine"
+    ]
+  },
+  {
+    "code": "P0330",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Knock Sensor 2 Circuit Malfunction (Bank 2)",
+    "libyanTerm": "حساس النوك 2 / عطل في دائرة حساس طرق المحرك للجهة 2 (شائع في V6 تويوتا ولكزس)",
+    "standardArabicDescription": "عطل في دائرة مستشعر طرق المحرك في المجموعة 2",
+    "driverSymptoms": [
+      "الكمبيوتر يقفل صمامات التايمن ويؤخر الإشعال، مما يسبب خمولاً شديداً في العزم",
+      "زيادة صرف البنزين",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "تلف ضفيرة حساس النوك المارة تحت ثلاجة المحرك",
+      "تلف حساس النوك 2",
+      "فيشة الحساس متآكلة ومأكسدة"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تغيير حساس النوك وضفيرة الحساس الصغيرة تحت ثلاجة المحرك",
+    "severity": "moderate",
+    "partNameLibyan": "حساس نوك وضفيرة حساس نوك",
+    "partNameEnglish": "Knock Sensor & Wire Harness",
+    "partPriceMin": 75.0,
+    "partPriceMax": 190.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Toyota Genuine",
+      "Bosch"
+    ]
+  },
+  {
+    "code": "P0440",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Evaporative Emission Control System Malfunction",
+    "libyanTerm": "منظومة تبخير البنزين (EVAP) / خلل عام في دورة سحب أبخرة خزان الوقود",
+    "standardArabicDescription": "عطل في نظام التحكم في انبعاثات تبخير الوقود",
+    "driverSymptoms": [
+      "رائحة بنزين خفيفة حول السيارة",
+      "ولعة لامبة التشك في الكوادرو",
+      "لا توجد أعراض ميكانيكية حادة على أداء المحرك"
+    ],
+    "rootCauses": [
+      "غطاء خزان البنزين غير مقفل بإحكام أو جلدته متشققة",
+      "انسداد فيلترو الفحم (علبة الكانستر)",
+      "تلف فالف التنفيس الكهربائي"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "التأكد من إحكام غطاء تانكي البنزين وفحص علبة الكانستر وفالفات التنفيس",
+    "severity": "moderate",
+    "partNameLibyan": "غطاء تانكي بنزين أو فالف تبخير",
+    "partNameEnglish": "Fuel Tank Cap / EVAP Canister",
+    "partPriceMin": 30.0,
+    "partPriceMax": 95.0,
+    "aftermarketBrands": [
+      "Motorcraft",
+      "Stant",
+      "Mobis",
+      "Toyota Genuine"
+    ]
+  },
+  {
+    "code": "P0441",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Evaporative Emission System Incorrect Purge Flow",
+    "libyanTerm": "بلف تبخير البنزين (Purge Valve) / تدفق غير صحيح لبخار الوقود",
+    "standardArabicDescription": "تدفق غير سليم لأبخرة الوقود في نظام تفريغ الكانستر",
+    "driverSymptoms": [
+      "صعوبة تشغيل المحرك مباشرة بعد تعبئة بنزين من المحطة",
+      "تذبذب طفيف في السيلانتي بعد التعبئة",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "بلف تفريغ بخار البنزين (Purge Valve) معلق في وضع الفتح",
+      "تآكل وتكسر أنابيب الفاكيوم الخاصة بالكانستر",
+      "حبيبات فحم متسربة من الكانستر وتسد البلف"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "فحص واختبار بلف تبخير البنزين الكهربائي بالنفخ واستبداله إن كان ينفث في وضع الإغلاق",
+    "severity": "moderate",
+    "partNameLibyan": "بلف تبخير بنزين (Purge Solenoid)",
+    "partNameEnglish": "Vapor Canister Purge Valve",
+    "partPriceMin": 55.0,
+    "partPriceMax": 150.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Dorman",
+      "Mobis",
+      "Motorcraft"
+    ]
+  },
+  {
+    "code": "P0442",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Evaporative Emission System Leak Detected (Small Leak)",
+    "libyanTerm": "تسريب صغير في دورة بخار البنزين / تنفيس بسيط في غطاء التانكي أو الأنابيب",
+    "standardArabicDescription": "اكتشاف تسريب صغير في نظام تبخير وقود المحرك",
+    "driverSymptoms": [
+      "ولعة لامبة التشك دون أي تأثير على قوة المحرك",
+      "رائحة بنزين خفيفة بالقرب من خزان الوقود"
+    ],
+    "rootCauses": [
+      "تلف مطاطة (جلدة) غطاء تانكي البنزين",
+      "ثقب دقيق في أنابيب الفاكيوم الخاصة بتبخير الوقود",
+      "تنفيس في حساس ضغط تانكي الوقود"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "تغيير غطاء تانكي البنزين وفحص خطوط التبخير بجهاز فحص الدخان (Smoke Machine)",
+    "severity": "moderate",
+    "partNameLibyan": "غطاء تانكي بنزين أصلي",
+    "partNameEnglish": "Fuel Filler Cap",
+    "partPriceMin": 30.0,
+    "partPriceMax": 75.0,
+    "aftermarketBrands": [
+      "Stant",
+      "Gates",
+      "Motorcraft",
+      "Toyota Genuine"
+    ]
+  },
+  {
+    "code": "P0443",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Evaporative Emission Control System Purge Control Valve Circuit",
+    "libyanTerm": "خلل في الدائرة الكهربائية لصمام تفريغ بخار البنزين (Purge Solenoid)",
+    "standardArabicDescription": "عطل كهربائي في دائرة صمام تفريغ أبخرة الوقود إلى مانيفولد السحب",
+    "driverSymptoms": [
+      "صعوبة في دوران المحرك بعد تزويد البنزين في المحطة",
+      "ولعة لامبة التشك",
+      "رائحة بنزين أحياناً"
+    ],
+    "rootCauses": [
+      "فيشة فالف التبخير مرخية أو أسلاكها مقطوعة",
+      "احتراق ملف الصمام الكهرومغناطيسي الداخلي",
+      "فيوز دائرة التبخير محروق"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "قياس مقاومة ملف فالف التبخير بالأفوميتر وتفقد الفيشة واستبدال الصمام",
+    "severity": "moderate",
+    "partNameLibyan": "صمام تفريغ بخار بنزين (فالف كانستر)",
+    "partNameEnglish": "EVAP Purge Solenoid Valve",
+    "partPriceMin": 60.0,
+    "partPriceMax": 160.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Dorman",
+      "Mobis",
+      "Denso"
+    ]
+  },
+  {
+    "code": "P0455",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Evaporative Emission System Leak Detected (Gross Leak)",
+    "libyanTerm": "تسريب كبير في دورة بخار البنزين / غطاء التانكي مفكوك أو توبو مقطوع",
+    "standardArabicDescription": "اكتشاف تسريب كبير في نظام التحكم في انبعاثات الوقود المتبخر",
+    "driverSymptoms": [
+      "ولعة لامبة التشك وتنبيه تفقد غطاء البنزين (Check Fuel Cap)",
+      "رائحة وقود واضحة خلف السيارة"
+    ],
+    "rootCauses": [
+      "نسيان غطاء تانكي البنزين مفتوحاً أو عدم إحكامه",
+      "انفصال توبو سحب الأبخرة عن علبة الكانستر",
+      "كسر في رقبة تانكي البنزين أو صمام التنفيس"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "إحكام إغلاق غطاء التانكي، وتفقد سلامة علبة الفحم وتوصيلات أنابيب البخار",
+    "severity": "moderate",
+    "partNameLibyan": "غطاء تانكي أو علبة كانستر (فيلترو فحم)",
+    "partNameEnglish": "Fuel Cap / EVAP Canister",
+    "partPriceMin": 35.0,
+    "partPriceMax": 190.0,
+    "aftermarketBrands": [
+      "Stant",
+      "Dorman",
+      "Toyota Genuine",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "P0456",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Evaporative Emission System Leak Detected (Very Small Leak)",
+    "libyanTerm": "تسريب دقيق جداً في دورة بخار البنزين (Very Small Leak)",
+    "standardArabicDescription": "تسريب دقيق للغاية في دائرة ضغط بخار خزان الوقود",
+    "driverSymptoms": [
+      "ولعة لامبة التشك المتقطعة دون تأثير على القيادة"
+    ],
+    "rootCauses": [
+      "أوساخ دقيقة على جوان غطاء البنزين",
+      "مسام صغيرة جداً في وصلات الكانستر",
+      "تآكل طفيف في صمام التنفيس"
+    ],
+    "urgencyLevel": "منخفض",
+    "recommendedAction": "تنظيف جوان غطاء التانكي وفحص المنظومة بجهاز فحص الدخان الإلكتروني",
+    "severity": "moderate",
+    "partNameLibyan": "جلدة غطاء تانكي أو صمام كانستر",
+    "partNameEnglish": "Vapor Canister Vent Valve",
+    "partPriceMin": 30.0,
+    "partPriceMax": 120.0,
+    "aftermarketBrands": [
+      "Dorman",
+      "Standard",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "P1450",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Unable to Bleed Up Fuel Tank Vacuum (Ford Specific)",
+    "libyanTerm": "انكماش تانكي البنزين في سيارات فورد / بلف التبخير معلق فاتح يسحب هواء التانكي بقوة",
+    "standardArabicDescription": "عجز المنظومة عن موازنة ضغط سحب خزان الوقود (عطل شائع في فورد)",
+    "driverSymptoms": [
+      "صوت هواء قوي وصفير عند فتح غطاء خزان البنزين",
+      "صعوبة تشغيل المحرك وفطفطة بعد ملء الخزان",
+      "قراءة غير صحيحة لمستوى البنزين في الكوادرو بسبب انضغاط التانكي"
+    ],
+    "rootCauses": [
+      "صمام تفريغ بخار البنزين (Purge Valve) في محرك فورد معلق في وضع السحب المستمر",
+      "سحب فاكيوم المحرك لهواء خزان البنزين مما يؤدي لانكماشه وتغير شكله",
+      "انسداد في صمام تهوية الكانستر الخلفي"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "استبدال فالف تفريغ البخار الأمامي في محرك فورد بقطعة أصلية فوراً قبل تضرر خزان الوقود",
+    "severity": "moderate",
+    "partNameLibyan": "فالف تبخير بنزين فورد أصلي (Purge Valve)",
+    "partNameEnglish": "Ford Canister Purge Valve Assembly",
+    "partPriceMin": 85.0,
+    "partPriceMax": 180.0,
+    "aftermarketBrands": [
+      "Motorcraft",
+      "Bosch",
+      "Dorman"
+    ]
+  },
+  {
+    "code": "P0506",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Idle Air Control System RPM Lower Than Expected",
+    "libyanTerm": "السيلانتي منخفض جداً / المحرك يرعش وممكن يطفي عند الوقوف",
+    "standardArabicDescription": "سرعة دوران المحرك في وضع السيلانتي منخفضة عن المعدل المطلوب",
+    "driverSymptoms": [
+      "انخفاض عداد RPM تحت 600 دورة عند التوقف في الإشارة",
+      "رعشة قوية وميل المحرك للانطفاء عند تشغيل المكيف أو وضع المارشا في D",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "تراكم كربون وزيوت سميكة خلف فراشة بوابة الهواء",
+      "تلف أو اتساخ صمام السيلانتي (IAC Motor) في السيارات القديمة",
+      "فقدان معايرة بوابة الهواء بعد فصل البطارية"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فك بوابة الهواء وتنظيفها بسبراي كاربيراتير/بوابات وإعادة معايرة وبرمجة السيلانتي بجهاز الفحص",
+    "severity": "moderate",
+    "partNameLibyan": "تنظيف بوابة هواء أو صمام سيلانتي (IAC)",
+    "partNameEnglish": "Idle Air Control Valve / Throttle Body",
+    "partPriceMin": 60.0,
+    "partPriceMax": 180.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Bosch",
+      "Hitachi",
+      "Standard"
+    ]
+  },
+  {
+    "code": "P0507",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Idle Air Control System RPM Higher Than Expected",
+    "libyanTerm": "السيلانتي عالي ومعلق / المحرك صوته عالي على وضع الوقوف (فوق 1000 RPM)",
+    "standardArabicDescription": "سرعة دوران المحرك في وضع السيلانتي أعلى من المعدل المحدد",
+    "driverSymptoms": [
+      "ارتفاع عداد RPM فوق 1000-1200 دورة أثناء الوقوف في P أو N",
+      "اندفاع قوي وغير مرغوب فيه للسيارة عند رفع القدم عن الفرامل",
+      "نتعة في الكمبيو عند التعشيق من P إلى D بسبب ارتفاع الدوران"
+    ],
+    "rootCauses": [
+      "تسريب هواء فاكيوم بعد بوابة الهواء (من جوان المانيفولد أو توبو مكسور)",
+      "بوابة الهواء معلقة بسبب تراكم الأوساخ أو خلل في محركها الكهربائي",
+      "صمام تفريغ بخار البنزين (Purge Valve) يسرب هواء باستمرار"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص تسريبات الفاكيوم بسبراي أو جهاز دخان، تنظيف وبرمجة بوابة الهواء وفحص بلف التبخير",
+    "severity": "moderate",
+    "partNameLibyan": "جوان مانيفولد أو توبو فاكيوم أو بوابة هواء",
+    "partNameEnglish": "Intake Manifold Gasket / Throttle Body",
+    "partPriceMin": 45.0,
+    "partPriceMax": 220.0,
+    "aftermarketBrands": [
+      "Victor Reinz",
+      "Elring",
+      "Bosch",
+      "Denso"
+    ]
+  },
+  {
+    "code": "P2135",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Throttle/Pedal Position Sensor/Switch A/B Voltage Correlation",
+    "libyanTerm": "عدم تطابق حساس البوابة 1 و 2 / دعسة البنزين تفصل وتدخل وضع الأمان",
+    "standardArabicDescription": "عدم توافق الجهد بين مستشعري وضع بوابة الهواء أو دواسة الوقود",
+    "driverSymptoms": [
+      "دعسة البنزين لا تستجيب تماماً وتظل السيارة تمشي ببطء شديد (Limp Mode)",
+      "ولعة لامبة التشك ولامبة مانع الانزلاق معاً",
+      "رعشة في السيلانتي"
+    ],
+    "rootCauses": [
+      "تآكل في مسارات التلامس الكهربائية داخل بوابة الهواء الكهربائية",
+      "ضعف تلامس وأكسدة في فيشة بوابة الهواء أو فيشة دعسة البنزين",
+      "تلف حساس دعسة البنزين الإلكترونية (Accelerator Pedal Sensor)"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "تنظيف وفحص أسلاك وفيشة البوابة ودعسة البنزين واستبدال البوابة الكهربائية إذا استمر العطل",
+    "severity": "critical",
+    "partNameLibyan": "بوابة هواء كهربائية أو دعسة بنزين إلكترونية",
+    "partNameEnglish": "Electronic Throttle Body / Accelerator Pedal",
+    "partPriceMin": 180.0,
+    "partPriceMax": 520.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Continental",
+      "Denso",
+      "Hitachi"
+    ]
+  },
+  {
+    "code": "P2187",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "System Too Lean at Idle (Bank 1)",
+    "libyanTerm": "خليط فقير في البنزين على السيلانتي / سحب هواء زائد في وضع الوقوف",
+    "standardArabicDescription": "نسبة وقود منخفضة جداً (هواء زائد) أثناء دوران المحرك في وضع السيلانتي",
+    "driverSymptoms": [
+      "رعشة وفطفطة في المحرك أثناء الوقوف فقط، وتختفي عند المشي والدوس",
+      "صوت تنفيس هواء خفيف بالقرب من المحرك",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "تلف بلف تبخير زيت المحرك (PCV Valve / جوان غطاء التستاتا)",
+      "شق في مناكوطي سحب الهواء أو توبو الفاكيوم",
+      "تسريب هواء من جوان ثلاجة المحرك (المانيفولد)"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص واستبدال بلف الـ PCV وفحص مناكوطيات الهواء وجوانات المانيفولد بجهاز الدخان",
+    "severity": "moderate",
+    "partNameLibyan": "بلف تبخير زيت (PCV Valve) أو مناكوطي هواء",
+    "partNameEnglish": "PCV Valve / Intake Boot",
+    "partPriceMin": 40.0,
+    "partPriceMax": 140.0,
+    "aftermarketBrands": [
+      "Febi",
+      "Vaico",
+      "Mobis",
+      "Toyota Genuine"
+    ]
+  },
+  {
+    "code": "P2188",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "System Too Rich at Idle (Bank 1)",
+    "libyanTerm": "خليط غني بالبنزين على السيلانتي / زيادة بنزين ملحوظة في وضع الوقوف",
+    "standardArabicDescription": "نسبة وقود مرتفعة جداً مقارنة بالهواء أثناء دوران المحرك في وضع السيلانتي",
+    "driverSymptoms": [
+      "دخان أسود خفيف ورائحة بنزين قوية من المرميطة في الوقوف",
+      "تذبذب في عداد السيلانتي",
+      "اسوداد شمعات الاحتراق وتراكم كربون"
+    ],
+    "rootCauses": [
+      "إنجكتر بنزين يسيل ولا يقفل بإحكام (Leaking Injector)",
+      "ارتفاع ضغط بومبة البنزين أو تلف حساس الصالوندا",
+      "انسداد فيلترو هواء المحرك بشدة"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تنظيف وفحص إنجكترات البنزين على جهاز الاختبار، وتغيير فيلترو الهواء وشمعات الاحتراق",
+    "severity": "moderate",
+    "partNameLibyan": "إنجكتر بنزين (بخاخ) وفيلترو هواء",
+    "partNameEnglish": "Fuel Injector / Engine Air Filter",
+    "partPriceMin": 70.0,
+    "partPriceMax": 230.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Denso",
+      "Delphi",
+      "Mann"
+    ]
+  },
+  {
+    "code": "P0705",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Transmission Range Sensor Circuit Malfunction (PRNDL Input)",
+    "libyanTerm": "حساس غيارات الكمبيو (سلك التعشيق / مفتاح المارش رياك) / خلل في قراءة الغيار",
+    "standardArabicDescription": "عطل في دائرة مستشعر نطاق كمبيو السيارة (مفتاح موضع التعشيق PRNDL)",
+    "driverSymptoms": [
+      "الكوادرو لا يظهر موضع المارشا الحالي (P, R, N, D)",
+      "السيارة لا تدور في وضع P وتدور فقط في وضع N",
+      "نتعة قوية عند التعشيق وتأخر استجابة المارشا رياك (الرجوع للخلف)"
+    ],
+    "rootCauses": [
+      "تآكل أو اتساخ نقاط التماس الداخلية في حساس موضع الكمبيو الخارجي",
+      "ارتخاء أو عدم ضبط سلك تعشيق المارشا الواصل للكمبيو",
+      "دخول مياه أو غسيل المحرك بالضغط العالي وتلف فيشة الحساس"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فك حساس موضع الكمبيو وتنظيفه وضبط وزنيته وتفقد فيشته أو استبداله",
+    "severity": "moderate",
+    "partNameLibyan": "حساس موضع مارشات الكمبيو (مفتاح PRNDL)",
+    "partNameEnglish": "Transmission Range Sensor (Neutral Safety Switch)",
+    "partPriceMin": 95.0,
+    "partPriceMax": 240.0,
+    "aftermarketBrands": [
+      "Mobis",
+      "Toyota Genuine",
+      "Standard",
+      "Febi"
+    ]
+  },
+  {
+    "code": "P0715",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Input/Turbine Speed Sensor Circuit Malfunction",
+    "libyanTerm": "حساس سرعة دخل الكمبيو (حساس التوربينة) / خلل في قراءة دوران عمود الدخل",
+    "standardArabicDescription": "عطل في الدائرة الكهربائية لمستشعر سرعة عمود الدخل في الكمبيو",
+    "driverSymptoms": [
+      "الكمبيو يدخل وضع الطوارئ (معلق على الغيار الثالث Limp Mode)",
+      "نتعة قوية جداً عند التبديل من غيار لغيار",
+      "ولعة لامبة التشك وتأخر النقلات"
+    ],
+    "rootCauses": [
+      "تلف حساس سرعة التوربينة (حساس مغناطيسي)",
+      "تراكم برادة حديد ورايش على رأس الحساس داخل الكمبيو",
+      "قطع أو ضعف تلامس في فيشة الحساس"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فك الحساس وتنظيفه من الرايش وفحص مقاومته وتغييره وتفقد نظافة زيت الكمبيو",
+    "severity": "critical",
+    "partNameLibyan": "حساس سرعة كمبيو داخلي (حساس توربينة)",
+    "partNameEnglish": "Input Shaft Speed Sensor",
+    "partPriceMin": 75.0,
+    "partPriceMax": 190.0,
+    "aftermarketBrands": [
+      "Mobis",
+      "Denso",
+      "Febi",
+      "ZF"
+    ]
+  },
+  {
+    "code": "P0720",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Output Speed Sensor Circuit Malfunction",
+    "libyanTerm": "حساس سرعة خرج الكمبيو / انقطاع قراءة سرعة السيارة من الكمبيو",
+    "standardArabicDescription": "عطل في دائرة مستشعر سرعة عمود الخرج في الكمبيو",
+    "driverSymptoms": [
+      "عداد السرعة في الكوادرو لا يتحرك أو يتذبذب بعنف",
+      "الكمبيو يرفض التبديل للغيار الرابع أو الخامس",
+      "نتعات قوية وتأخر التعشيق"
+    ],
+    "rootCauses": [
+      "تلف حساس سرعة الخرج الخارجي على جسم الكمبيو",
+      "تجمع رايش وبرادة حديد على المغناطيس",
+      "تلف في الأسلاك الواصلة لكمبيوتر الكمبيو"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "استبدال حساس سرعة خرج الكمبيو وفحص حالة زيت وفيلترو الكمبيو",
+    "severity": "critical",
+    "partNameLibyan": "حساس سرعة خرج الكمبيو (Output Sensor)",
+    "partNameEnglish": "Output Shaft Speed Sensor",
+    "partPriceMin": 75.0,
+    "partPriceMax": 190.0,
+    "aftermarketBrands": [
+      "Mobis",
+      "Denso",
+      "ZF",
+      "Febi"
+    ]
+  },
+  {
+    "code": "P0730",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Incorrect Gear Ratio",
+    "libyanTerm": "نسبة تعشيق خاطئة / تفويت عام وانزلاق في كلاتشات الكمبيو",
+    "standardArabicDescription": "عدم تطابق نسبة التروس المحسوبة مع الغيار المعشق في الكمبيو",
+    "driverSymptoms": [
+      "المحرك يصرخ وعداد RPM يرتفع والسيارة لا تتسارع (تفويت/انزلاق)",
+      "نتعة وضربة قوية عند التبديل بين النقلات",
+      "ارتفاع حرارة زيت الكمبيو وظهور رسالة تحذير"
+    ],
+    "rootCauses": [
+      "نقص حاد أو حرق في زيت الكمبيو",
+      "تآكل فريكشنات وكلاتشات الكمبيو الداخلية",
+      "ضعف ضغط الزيت بسبب انسداد فيلترو الكمبيو أو تلف بومبة الزيت"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص مستوى ورائحة زيت الكمبيو فوراً، وتغيير الزيت وفيلترو الكمبيو وفحص ضغط الزيت",
+    "severity": "critical",
+    "partNameLibyan": "زيت وفيلترو كمبيو أو طقم فريكشنات",
+    "partNameEnglish": "ATF Transmission Fluid & Filter Kit / Clutch Plates",
+    "partPriceMin": 120.0,
+    "partPriceMax": 450.0,
+    "aftermarketBrands": [
+      "Motul",
+      "Aisin",
+      "Mannol",
+      "ZF",
+      "Mobil"
+    ]
+  },
+  {
+    "code": "P0731",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Gear 1 Incorrect Ratio",
+    "libyanTerm": "تفويت في المارشا رقم 1 / انزلاق الكلاتشات عند الانطلاق من الصفر",
+    "standardArabicDescription": "نسبة غير صحيحة للترس الأول في الكمبيو",
+    "driverSymptoms": [
+      "تأخر وثقل شديد في انطلاق السيارة من وضع الوقوف",
+      "صوت ونّة وارتفاع صوت المحرك عند التعشيق في 1",
+      "نتعة قوية عند التحرك"
+    ],
+    "rootCauses": [
+      "تآكل كلاتشات وفريكشنات المارشا الأولى",
+      "بلف التعشيق الخاص بالمارشا الأولى معلق أو مسدود",
+      "تسريب ضغط هيدروليك داخلي في جسم بلف الكمبيو"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص زيت الكمبيو وفحص مخ الكمبيو (الفالف بدي) وبلف التعشيق الأول",
+    "severity": "critical",
+    "partNameLibyan": "بلف تعشيق أو مخ كمبيو (فالف بدي)",
+    "partNameEnglish": "Shift Solenoid A / Valve Body",
+    "partPriceMin": 140.0,
+    "partPriceMax": 550.0,
+    "aftermarketBrands": [
+      "Sonnax",
+      "Rostra",
+      "Mobis",
+      "ZF"
+    ]
+  },
+  {
+    "code": "P0732",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Gear 2 Incorrect Ratio",
+    "libyanTerm": "تفويت في المارشا رقم 2 / انزلاق ونتعة بين الغيار الأول والثاني",
+    "standardArabicDescription": "نسبة غير صحيحة للترس الثاني في الكمبيو",
+    "driverSymptoms": [
+      "فراغ وتفويت عند الانتقال من الغيار 1 إلى 2",
+      "صوت خبطة في الكمبيو عند التعشيق",
+      "دخول الكمبيو في وضع الأمان"
+    ],
+    "rootCauses": [
+      "تآكل كلاتشات الغيار الثاني",
+      "انسداد مسارات الزيت في مخ الكمبيو (الفالف بدي)",
+      "تلف فالف التعشيق B"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "تغيير زيت وفيلترو الكمبيو وفحص بلف تعشيق الغيار الثاني وتنظيف الفالف بدي",
+    "severity": "critical",
+    "partNameLibyan": "بلف تعشيق مارشا ثانية أو زيت كمبيو",
+    "partNameEnglish": "Shift Solenoid B",
+    "partPriceMin": 130.0,
+    "partPriceMax": 350.0,
+    "aftermarketBrands": [
+      "ZF",
+      "Aisin",
+      "Mobis",
+      "Sonnax"
+    ]
+  },
+  {
+    "code": "P0733",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Gear 3 Incorrect Ratio",
+    "libyanTerm": "تفويت في المارشا رقم 3 / انزلاق عند سرعة 40-60 كم/س",
+    "standardArabicDescription": "نسبة غير صحيحة للترس الثالث في الكمبيو",
+    "driverSymptoms": [
+      "تفويت وارتفاع مفاجئ في الـ RPM عند التبديل للغيار 3",
+      "نتعة وضربة قوية في الكمبيو",
+      "ثبات السيارة على الغيار الثالث كوضع طوارئ"
+    ],
+    "rootCauses": [
+      "تآكل فريكشنات الغيار الثالث أو شريط الفرامل الداخلي للكمبيو",
+      "تسريب زيت من البستون الهيدروليكي للغيار 3",
+      "تلف بلف التعشيق C"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص ضغط زيت الغيار الثالث في مخ الكمبيو وفحص بلف التعشيق",
+    "severity": "critical",
+    "partNameLibyan": "بلف تعشيق أو طقم فريكشنات كمبيو",
+    "partNameEnglish": "Shift Solenoid C / Clutch Pack",
+    "partPriceMin": 130.0,
+    "partPriceMax": 380.0,
+    "aftermarketBrands": [
+      "ZF",
+      "Aisin",
+      "Rostra"
+    ]
+  },
+  {
+    "code": "P0740",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Torque Converter Clutch Circuit Malfunction",
+    "libyanTerm": "طنجرة الكمبيو (الكونفيرتا) / خلل في دائرة بلف قفل الطنجرة (TCC)",
+    "standardArabicDescription": "عطل كهربائي في دائرة صمام القفل الهيدروليكي لمحرك العزم (الكونفيرتر)",
+    "driverSymptoms": [
+      "عدم قفل طنجرة الكمبيو على السرعات العالية (أعلى من 80 كم/س)",
+      "ارتفاع حرارة زيت الكمبيو على الطرق السريعة",
+      "زيادة استهلاك الوقود بسبب استمرار انزلاق الطنجرة"
+    ],
+    "rootCauses": [
+      "تلف بلف قفل الطنجرة الكهرومغناطيسي (TCC Solenoid)",
+      "قطع أو ضعف تلامس في فيشة ضفيرة الكمبيو الرئيسية",
+      "احتراق كلاتش طنجرة الكمبيو الداخلي"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "قياس مقاومة بلف الـ TCC وفحص فيشة الكمبيو وتغيير بلف الطنجرة في الفالف بدي",
+    "severity": "moderate",
+    "partNameLibyan": "بلف طنجرة الكمبيو (TCC Solenoid)",
+    "partNameEnglish": "Torque Converter Clutch Solenoid",
+    "partPriceMin": 140.0,
+    "partPriceMax": 340.0,
+    "aftermarketBrands": [
+      "Rostra",
+      "Aisin",
+      "ZF",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "P0741",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Torque Converter Clutch Circuit Performance or Stuck Off",
+    "libyanTerm": "طنجرة الكمبيو معلقة مفتوحة / بلف قفل الطنجرة لا يعشق على السرعة العالية",
+    "standardArabicDescription": "أداء غير سليم لصمام قفل محول العزم أو بقاؤه في وضع الفتح المستمر",
+    "driverSymptoms": [
+      "دوران المحرك يظل مرتفعاً على السرعات العالية (100-120 كم/س)",
+      "عدم نزول الـ RPM قليلاً عند تثبيت السرعة على الطريق السريع",
+      "سخونة زيت الكمبيو وولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "تآكل كلاتش طنجرة الكمبيو (الكونفيرتا) وفقدانه لقوة التماسك",
+      "انسداد مجرى الزيت الهيدروليكي الواصل للطنجرة بالرايش",
+      "بلف الطنجرة في مخ الكمبيو معلق برواسب الزيت القديم"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تغيير زيت وفيلترو الكمبيو وفحص بلف الطنجرة، وإذا استمر العطل يلزم تجديد أو استبدال طنجرة الكمبيو",
+    "severity": "moderate",
+    "partNameLibyan": "طنجرة كمبيو (كونفيرتا) أو بلف TCC",
+    "partNameEnglish": "Torque Converter Assembly / TCC Solenoid",
+    "partPriceMin": 220.0,
+    "partPriceMax": 750.0,
+    "aftermarketBrands": [
+      "Sachs",
+      "LuK",
+      "Aisin",
+      "ZF",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "P0750",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Shift Solenoid A Malfunction",
+    "libyanTerm": "بلف التعشيق A في مخ الكمبيو / عطل كهربائي في الصمام الأول",
+    "standardArabicDescription": "عطل في صمام التعشيق الكهرومغناطيسي الأول في مخ الكمبيو",
+    "driverSymptoms": [
+      "الكمبيو لا يعشق المارشا الأولى أو يعلق على غيار واحد",
+      "نتعة قوية وصوت خبط في الكمبيو",
+      "ولعة لامبة التشك في الكوادرو"
+    ],
+    "rootCauses": [
+      "تلف ملف بلف التعشيق الكهرومغناطيسي A",
+      "ضعف تلامس في فيشة الفالف بدي الداخلية",
+      "تراكم برادة حديد داخل صمام البلف"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فك كارتير (ستاقوبا) الكمبيو واختبار مقاومة بلف التعشيق A واستبداله وتنظيف مخ الكمبيو",
+    "severity": "critical",
+    "partNameLibyan": "بلف تعشيق كمبيو A (Shift Solenoid A)",
+    "partNameEnglish": "Automatic Transmission Shift Solenoid A",
+    "partPriceMin": 110.0,
+    "partPriceMax": 280.0,
+    "aftermarketBrands": [
+      "Aisin",
+      "ZF",
+      "Rostra",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "P0755",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Shift Solenoid B Malfunction",
+    "libyanTerm": "بلف التعشيق B في مخ الكمبيو / عطل كهربائي في الصمام الثاني",
+    "standardArabicDescription": "عطل في صمام التعشيق الكهرومغناطيسي الثاني في مخ الكمبيو",
+    "driverSymptoms": [
+      "تأخر أو فشل الانتقال للغيار الثاني أو الثالث",
+      "دخول الكمبيو في وضع الطوارئ (Limp Mode)",
+      "نتعة عند التعشيق"
+    ],
+    "rootCauses": [
+      "احتراق ملف بلف التعشيق B",
+      "انقطاع في ضفيرة أسلاك مخ الكمبيو الداخلية",
+      "اتساخ البلف برواسب الزيت المحروق"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص واستبدال بلف التعشيق B في مخ الكمبيو وتغيير فيلترو وزيت الكمبيو",
+    "severity": "critical",
+    "partNameLibyan": "بلف تعشيق كمبيو B",
+    "partNameEnglish": "Shift Solenoid B",
+    "partPriceMin": 110.0,
+    "partPriceMax": 280.0,
+    "aftermarketBrands": [
+      "Aisin",
+      "ZF",
+      "Mobis",
+      "Rostra"
+    ]
+  },
+  {
+    "code": "P0841",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Transmission Fluid Pressure Sensor/Switch Circuit Range/Performance",
+    "libyanTerm": "حساس ضغط زيت الكمبيو / قراءة غير صحيحة لضغط الهيدروليك",
+    "standardArabicDescription": "أداء غير سليم لمستشعر ضغط سائل الكمبيو الهيدروليكي",
+    "driverSymptoms": [
+      "تأخر تعشيق المارشا عند التبديل من P إلى D",
+      "نتعة وخشونة في نقلات الكمبيو",
+      "ولعة لامبة التشك"
+    ],
+    "rootCauses": [
+      "تلف حساس ضغط زيت الكمبيو",
+      "انسداد فيلترو الكمبيو وهبوط ضغط الزيت الحقيقي",
+      "انخفاض مستوى زيت الكمبيو عن الحد الأدنى"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "قياس مستوى زيت الكمبيو وفحص الحساس وتغيير فيلترو وزيت الكمبيو",
+    "severity": "critical",
+    "partNameLibyan": "حساس ضغط زيت كمبيو",
+    "partNameEnglish": "Transmission Fluid Pressure Sensor",
+    "partPriceMin": 95.0,
+    "partPriceMax": 250.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Aisin",
+      "ZF",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "P0880",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "TCM Power Input Signal Malfunction",
+    "libyanTerm": "تغذية كهرباء كمبيوتر الكمبيو / انقطاع الكهرباء أو ضعف البطارية الواصلة للـ TCM",
+    "standardArabicDescription": "عطل في إشارة تغذية الطاقة الكهربائية لكمبيوتر الكمبيو",
+    "driverSymptoms": [
+      "الكمبيو يعلق في الغيار الثالث فوراً ولا يستجيب للتعشيق اليدوي",
+      "اختفاء علامة المارشا من الكوادرو",
+      "نتعة عنيفة جداً عند التعشيق من P إلى R أو D"
+    ],
+    "rootCauses": [
+      "فيوز كمبيوتر الكمبيو محروق في صندوق الفيوزات",
+      "تلف ريليه التغذية الرئيسي للكمبيو (TCM Relay)",
+      "أكسدة أو ضعف تلامس في فيشة كمبيوتر الكمبيو أو كابل الأرضي"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص فيوز وريليه كمبيوتر الكمبيو أولاً وفحص كابلات البطارية والتأريض",
+    "severity": "critical",
+    "partNameLibyan": "ريليه أو فيوز كمبيوتر كمبيو",
+    "partNameEnglish": "TCM Power Relay / Fuse",
+    "partPriceMin": 20.0,
+    "partPriceMax": 65.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Bosch",
+      "Omron",
+      "Hella"
+    ]
+  },
+  {
+    "code": "P17BF",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Hydraulic Pump Protection (VAG DSG DQ200 Specific)",
+    "libyanTerm": "تسريب ضغط مخ كمبيو DSG (DQ200 فولكسفاجن وأودي) / حماية بومبة الهيدروليك",
+    "standardArabicDescription": "تفعيل حماية مضخة الهيدروليك في وحدة الميكاترونيك لكمبيو DSG 7 سرعات بسبب تسريب الضغط",
+    "driverSymptoms": [
+      "توقف السيارة فجأة عن الحركة واختفاء التعشيق",
+      "رمز المفتاح يومض في الكوادرو مكان الغيارات",
+      "تسريب زيت هيدروليك أخضر خفيف تحت السيارة من مخ الكمبيو"
+    ],
+    "rootCauses": [
+      "شرخ في جسم مجمع الضغط (الأكومولاتور / Accumulator Housing) في مخ الميكاترونيك DQ200",
+      "تلف الأورنج ومطاطات منع تسريب ضغط الهيدروليك الداخلي",
+      "بومبة الهيدروليك الكهربائية تعمل باستمرار دون توقف محاولةً تعويض الضغط الهارب"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "تركيب طقم إصلاح مجمع الضغط المعزز لمخ الميكاترونيك وتغيير زيت الهيدروليك الأخضر ومعايرة الكمبيو",
+    "severity": "critical",
+    "partNameLibyan": "طقم إصلاح مجمع ضغط ميكاترونيك DSG DQ200",
+    "partNameEnglish": "DSG Mechatronic Accumulator Repair Kit (DQ200)",
+    "partPriceMin": 280.0,
+    "partPriceMax": 650.0,
+    "aftermarketBrands": [
+      "Kinergo",
+      "Mechatronic OEM",
+      "Febi",
+      "Vaico"
+    ]
+  },
+  {
+    "code": "P2714",
+    "module": "TCM",
+    "moduleNameArabic": "كمبيوتر الكمبيو",
+    "standardDescriptionEn": "Pressure Control Solenoid D Performance or Stuck Off (Toyota/Lexus)",
+    "libyanTerm": "بلف ضغط زيت الكمبيو D في تويوتا ولكزس (SLT/SLD) / نتعة وتفويت بين الغيارات",
+    "standardArabicDescription": "خلل في أداء صمام التحكم في ضغط الزيت D بمخ كمبيو تويوتا ولكزس",
+    "driverSymptoms": [
+      "نتعة وضربة قوية عند التبديل بين الغيار الثالث والرابع",
+      "تأخر تعشيق D بعد التوقف",
+      "ولعة لامبة التشك ولامبة مانع الانزلاق معاً"
+    ],
+    "rootCauses": [
+      "اتساخ وتعليق بلف التحكم في الضغط D في مخ الكمبيو برواسب الزيت",
+      "تلف الحلقات المطاطية لصمام البلف",
+      "تأخر تغيير زيت وفيلترو الكمبيو في تويوتا"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "تغيير زيت وفيلترو الكمبيو الأصلي، فك الفالف بدي وتنظيف أو استبدال بلف الضغط D",
+    "severity": "critical",
+    "partNameLibyan": "بلف ضغط كمبيو تويوتا D أصلي",
+    "partNameEnglish": "Toyota Shift Solenoid D (Pressure Control)",
+    "partPriceMin": 150.0,
+    "partPriceMax": 360.0,
+    "aftermarketBrands": [
+      "Toyota Genuine",
+      "Aisin",
+      "Rostra"
+    ]
+  },
+  {
+    "code": "C0030",
+    "module": "ABS",
+    "moduleNameArabic": "منظومة الفرامل ABS",
+    "standardDescriptionEn": "Left Front Tone Wheel / Speed Sensor Circuit",
+    "libyanTerm": "حساس ABS للعجلة الأمامية اليسار / انقطاع إشارة سرعة الدوران",
+    "standardArabicDescription": "عطل في دائرة مستشعر سرعة العجلة الأمامية اليسرى لمنظومة ABS",
+    "driverSymptoms": [
+      "ولعة لامبة ABS ولامبة مانع الانزلاق (ESP/TCS) باستمرار",
+      "نبض واهتزاز خفيف غير طبيعي في دواسة الفرامل عند التوقف الهادئ",
+      "توقف عمل نظام تثبيت السرعة (الكروس كنترول)"
+    ],
+    "rootCauses": [
+      "تلف كابل حساس الـ ABS بسبب احتكاكه بالعجلة أو المساعد (المزاطوري)",
+      "اتساخ مسننات حلقة المغناطيس في كوزينيطة (رولمان بلي) العجلة بالبرادة والطين",
+      "فيشة الحساس مأكسدة ومفصولة"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص كابل وفيشة الحساس وتنظيف حلقة المغناطيس في العجلة واستبدال الحساس إذا لزم",
+    "severity": "moderate",
+    "partNameLibyan": "حساس ABS أمامي يسار",
+    "partNameEnglish": "Front Left ABS Wheel Speed Sensor",
+    "partPriceMin": 65.0,
+    "partPriceMax": 160.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "ATE",
+      "Denso",
+      "Febi"
+    ]
+  },
+  {
+    "code": "C0034",
+    "module": "ABS",
+    "moduleNameArabic": "منظومة الفرامل ABS",
+    "standardDescriptionEn": "Right Front Tone Wheel / Speed Sensor Circuit",
+    "libyanTerm": "حساس ABS للعجلة الأمامية اليمين / عطل في الإشارة الكهربائية",
+    "standardArabicDescription": "عطل في دائرة مستشعر سرعة العجلة الأمامية اليمنى لمنظومة ABS",
+    "driverSymptoms": [
+      "ولعة لامبة ABS ولامبة التراكشن في الكوادرو",
+      "تعطل وظيفة الفرملة المانعة للانغلاق وتعمل الفرامل كفرامل عادية",
+      "ثقل في عداد السرعة إذا كانت السيارة تأخذ السرعة من العجلة اليمين"
+    ],
+    "rootCauses": [
+      "انقطاع في سلك الحساس جهة اليمين",
+      "تلف الحساس الداخلي",
+      "تركيب كوزينيطة عجلة عادية بدون شريط مغناطيسي للـ ABS"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "التأكد من سلامة كوزينيطة العجلة وشريطها المغناطيسي واستبدال حساس الـ ABS اليمين",
+    "severity": "moderate",
+    "partNameLibyan": "حساس ABS أمامي يمين",
+    "partNameEnglish": "Front Right ABS Wheel Speed Sensor",
+    "partPriceMin": 65.0,
+    "partPriceMax": 160.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "ATE",
+      "Denso",
+      "Febi"
+    ]
+  },
+  {
+    "code": "C0040",
+    "module": "ABS",
+    "moduleNameArabic": "منظومة الفرامل ABS",
+    "standardDescriptionEn": "Right Front Wheel Speed Sensor Malfunction",
+    "libyanTerm": "حساس ABS للعجلة اليمين / عدم انتظام القراءة أو خلل كهربائي",
+    "standardArabicDescription": "خلل في قراءة أو دائرة مستشعر سرعة العجلة الأمامية اليمنى",
+    "driverSymptoms": [
+      "ولعة لامبة ABS ولامبة التراكشن",
+      "فصل نظام الثبات الإلكتروني (ESP)"
+    ],
+    "rootCauses": [
+      "تلف حساس الـ ABS",
+      "أوساخ وزيوت متراكمة على رأس الحساس",
+      "فيشة الحساس مرخية"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تنظيف رأس الحساس وتفقد فيشته وقياس إشارة الأوم بالأفوميتر",
+    "severity": "moderate",
+    "partNameLibyan": "حساس ABS أمامي يمين",
+    "partNameEnglish": "Right Front Wheel Speed Sensor",
+    "partPriceMin": 65.0,
+    "partPriceMax": 160.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "ATE",
+      "Textar",
+      "Febi"
+    ]
+  },
+  {
+    "code": "C0045",
+    "module": "ABS",
+    "moduleNameArabic": "منظومة الفرامل ABS",
+    "standardDescriptionEn": "Left Rear Wheel Speed Sensor Malfunction",
+    "libyanTerm": "حساس ABS للعجلة الخلفية اليسار / انقطاع الإشارة",
+    "standardArabicDescription": "عطل في مستشعر سرعة العجلة الخلفية اليسرى",
+    "driverSymptoms": [
+      "ولعة لامبة ABS ولامبة فرامل اليد أحياناً",
+      "تعطل مثبت السرعة"
+    ],
+    "rootCauses": [
+      "انقطاع سلك الحساس أسفل شاسي السيارة",
+      "تآكل رولمان بلي (كوزينيطة) العجلة الخلفية",
+      "تلف الحساس"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص مسار سلك الحساس أسفل السيارة واستبدال الحساس إذا كان تالفاً",
+    "severity": "moderate",
+    "partNameLibyan": "حساس ABS خلفي يسار",
+    "partNameEnglish": "Rear Left ABS Sensor",
+    "partPriceMin": 65.0,
+    "partPriceMax": 150.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "ATE",
+      "Febi",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "C0050",
+    "module": "ABS",
+    "moduleNameArabic": "منظومة الفرامل ABS",
+    "standardDescriptionEn": "Right Rear Wheel Speed Sensor Malfunction",
+    "libyanTerm": "حساس ABS للعجلة الخلفية اليمين / انقطاع الإشارة",
+    "standardArabicDescription": "عطل في مستشعر سرعة العجلة الخلفية اليمنى",
+    "driverSymptoms": [
+      "ولعة لامبة ABS ولامبة مانع الانزلاق في الكوادرو",
+      "فصل نظام الثبات"
+    ],
+    "rootCauses": [
+      "تلف الحساس أو انقطاع سلكه",
+      "أوساخ متراكمة داخل صرة العجلة الخلفية",
+      "فيشة الحساس بها أكسدة"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تنظيف الفيشة وفحص مقاومة الحساس وتغييره",
+    "severity": "moderate",
+    "partNameLibyan": "حساس ABS خلفي يمين",
+    "partNameEnglish": "Rear Right ABS Sensor",
+    "partPriceMin": 65.0,
+    "partPriceMax": 150.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "ATE",
+      "Febi",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "C1201",
+    "module": "ABS",
+    "moduleNameArabic": "منظومة الفرامل ABS",
+    "standardDescriptionEn": "Engine Control System Malfunction (Toyota/Lexus ABS/VSC)",
+    "libyanTerm": "إشارة عطل المحرك في تويوتا ولكزس / ولعة لامبة ABS والتراكشن بسبب كود في المحرك",
+    "standardArabicDescription": "إشعار من كمبيوتر المحرك إلى كمبيوتر الفرامل بوجود عطل في المحرك يؤدي لفصل نظام VSC",
+    "driverSymptoms": [
+      "ولعة لامبة التشك مع لامبة ABS ولامبة مانع الانزلاق (VSC OFF/TRAC) معاً في سيارات تويوتا",
+      "نظام الفرامل الميكانيكي يعمل طبيعياً ولكن أنظمة الثبات الإلكتروني معطلة مؤقتاً"
+    ],
+    "rootCauses": [
+      "وجود عطل مسجل في كمبيوتر المحرك (مثل P0300 أو P0171 أو P0420) يجعل كمبيوتر المحرك يأمر الـ ABS بفصل الثبات",
+      "الكود C1201 في تويوتا هو كود تابع ولا يعني وجود عطل في فرامل الـ ABS نفسها",
+      "انخفاض طفيف في فولتية البطارية"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص كمبيوتر المحرك (ECM) وإصلاح كود المحرك الأساسي ومسح الأعطال وستنطفئ لمبة ABS تلقائياً",
+    "severity": "moderate",
+    "partNameLibyan": "إصلاح كود المحرك الأساسي (فحص بجهاز)",
+    "partNameEnglish": "Engine Fault Resolution (Diagnostic Service)",
+    "partPriceMin": 30.0,
+    "partPriceMax": 120.0,
+    "aftermarketBrands": [
+      "Toyota Genuine",
+      "Denso"
+    ]
+  },
+  {
+    "code": "C1241",
+    "module": "ABS",
+    "moduleNameArabic": "منظومة الفرامل ABS",
+    "standardDescriptionEn": "Low Battery Positive Voltage or IG Circuit Malfunction (ABS)",
+    "libyanTerm": "انخفاض فولتية البطارية لمنظومة ABS / البطارية ضعيفة أو كابلها مرخي",
+    "standardArabicDescription": "انخفاض الجهد الكهربائي الموجب المغذي لوحدة التحكم في الفرامل ABS",
+    "driverSymptoms": [
+      "ولعة لامبة ABS ولامبة البطارية فجأة عند التشغيل في الصباح أو عند الدوس على الفرامل",
+      "ثقل طفيف في التوجيه وتذبذب أضواء الفنارات",
+      "إعادة تشغيل مفاجئة للكوادرو والشاشات"
+    ],
+    "rootCauses": [
+      "البطارية ضعيفة ومستهلكة ولا تحتفظ بالشحن",
+      "أكسدة وترسبات أملاح على أصابع البطارية أو ارتخاؤها",
+      "ضعف شحن الدينمو (شحن أقل من 13.5 فولت)"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "تنظيف وربط أصابع البطارية جيداً وقياس شحن الدينمو واستبدال البطارية إذا لزم",
+    "severity": "moderate",
+    "partNameLibyan": "بطارية سيارة جديدة أو فحص دينمو",
+    "partNameEnglish": "Car Battery / Alternator Test",
+    "partPriceMin": 180.0,
+    "partPriceMax": 420.0,
+    "aftermarketBrands": [
+      "Varta",
+      "Bosch",
+      "Mutlu",
+      "Rocket"
+    ]
+  },
+  {
+    "code": "B1000",
+    "module": "SRS",
+    "moduleNameArabic": "منظومة الأكياس الهوائية (الإيرباق)",
+    "standardDescriptionEn": "ECU Internal Malfunction (Airbag Control Module)",
+    "libyanTerm": "عطل داخلي في كمبيوتر الإيرباق / يلزم فحص وبرمجة عقل الإيرباق",
+    "standardArabicDescription": "عطل داخلي في معالج وحدة التحكم الإلكترونية للوسائد الهوائية",
+    "driverSymptoms": [
+      "ولعة لامبة الإيرباق الحمراء في الكوادرو باستمرار",
+      "تعطل منظومة الوسائد الهوائية في حالة الاصطدام"
+    ],
+    "rootCauses": [
+      "تخزين بيانات تصادم سابقة (Crash Data) في الذاكرة بعد حادث",
+      "تلف معالج الكمبيوتر نتيجة صدمة كهربائية أو ماس أرضي",
+      "انخفاض شديد في فولتية البطارية أثناء دوران المارش"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص كمبيوتر الإيرباق وبرمجته ومسح بيانات الحادث (Crash Data Clear) أو استبداله",
+    "severity": "critical",
+    "partNameLibyan": "كمبيوتر إيرباق أو برمجة عقل الإيرباق",
+    "partNameEnglish": "SRS Airbag Control Module / ECU",
+    "partPriceMin": 150.0,
+    "partPriceMax": 450.0,
+    "aftermarketBrands": [
+      "OEM Reprogramming",
+      "Bosch",
+      "Mobis",
+      "Continental"
+    ]
+  },
+  {
+    "code": "B1620",
+    "module": "SRS",
+    "moduleNameArabic": "منظومة الأكياس الهوائية (الإيرباق)",
+    "standardDescriptionEn": "Internal Airbag Module Fault (Hyundai/Kia Specific)",
+    "libyanTerm": "عطل داخلي في عقل الإيرباق في هيونداي وكيا (B1620) / مشكلة برمجة أو تصادم",
+    "standardArabicDescription": "خطأ داخلي في وحدة تحكم الوسائد الهوائية بسيارات هيونداي وكيا",
+    "driverSymptoms": [
+      "ولعة لامبة الإيرباق بشكل دائم دون انطفاء",
+      "الكود لا يمسح بجهاز الفحص العادي"
+    ],
+    "rootCauses": [
+      "تسجيل بيانات حادث في ذاكرة الـ EEPROM لكمبيوتر الإيرباق",
+      "تلف داخلي في مكثفات وحدة الإيرباق بسبب تفريغ شحنة بطارية سيئة",
+      "خلل في التغذية الكهربائية للوحدة"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "إعادة برمجة شريحة الـ EEPROM لكمبيوتر الإيرباق في مركز برمجة متخصص أو استبدال العقل",
+    "severity": "critical",
+    "partNameLibyan": "برمجة كمبيوتر إيرباق هيونداي/كيا",
+    "partNameEnglish": "Hyundai/Kia Airbag Module Repair/EEPROM",
+    "partPriceMin": 120.0,
+    "partPriceMax": 350.0,
+    "aftermarketBrands": [
+      "Mobis Original",
+      "Specialist EEPROM Service"
+    ]
+  },
+  {
+    "code": "B1801",
+    "module": "SRS",
+    "moduleNameArabic": "منظومة الأكياس الهوائية (الإيرباق)",
+    "standardDescriptionEn": "Open in Driver Side Airbag Squib Circuit",
+    "libyanTerm": "شريط الإيرباق مقطوع (شريط المقود / Clock Spring) / دائرة إيرباق السائق مفتوحة",
+    "standardArabicDescription": "انقطاع في الدائرة الكهربائية لكيس هواء السائق داخل عجلة القيادة",
+    "driverSymptoms": [
+      "ولعة لامبة الإيرباق في الكوادرو",
+      "تعطل أزرار التحكم في المسجل أو مثبت السرعة على المقود",
+      "تعطل كلاكس (بوق) السيارة في بعض وضعيات لف المقود"
+    ],
+    "rootCauses": [
+      "انقطاع الشريط المرن الداخلي (Clock Spring) خلف عجلة القيادة بسبب لفه بالخطأ أثناء فك مقود السيارة",
+      "تآكل واهتراء مسارات الشريط مع كثرة لف المقود",
+      "فيشة كيس هواء السائق مفصولة"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "استبدال شريط الإيرباق (Clock Spring) بقطعة جديدة وتثبيته في المنتصف قبل تركيب المقود",
+    "severity": "critical",
+    "partNameLibyan": "شريط إيرباق المقود (Clock Spring)",
+    "partNameEnglish": "Airbag Spiral Cable / Clock Spring",
+    "partPriceMin": 75.0,
+    "partPriceMax": 210.0,
+    "aftermarketBrands": [
+      "Mobis",
+      "Toyota Genuine",
+      "Dorman",
+      "Febi"
+    ]
+  },
+  {
+    "code": "C1260",
+    "module": "EPS",
+    "moduleNameArabic": "منظومة المقود الكهربائي EPS",
+    "standardDescriptionEn": "Steering Angle Sensor Circuit Malfunction",
+    "libyanTerm": "حساس زاوية المقود (الستيرنج) / فقدان الإشارة أو المعايرة",
+    "standardArabicDescription": "عطل في دائرة مستشعر زاوية عجلة القيادة لمنظومة التوجيه والثبات",
+    "driverSymptoms": [
+      "ولعة لامبة EPS ولامبة مانع الانزلاق (ESP)",
+      "ثقل في مقود السيارة وعدم رجوعه للمنتصف تلقائياً بعد الانعطاف",
+      "انحراف طفيف في مسار السيارة"
+    ],
+    "rootCauses": [
+      "فقدان معايرة نقطة الصفر لحساس زاوية المقود بعد ضبط الزوايا أو فك البطارية",
+      "تلف حساس زاوية المقود المدمج خلف شريط الإيرباق",
+      "انقطاع التغذية الكهربائية عن الحساس"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "عمل معايرة وبرمجة نقطة الصفر لحساس المقود (Steering Angle Calibration) بجهاز الفحص",
+    "severity": "moderate",
+    "partNameLibyan": "معايرة زاوية المقود أو حساس زاوية التوجيه",
+    "partNameEnglish": "Steering Angle Sensor (SAS)",
+    "partPriceMin": 40.0,
+    "partPriceMax": 230.0,
+    "aftermarketBrands": [
+      "Mobis",
+      "Bosch",
+      "Toyota Genuine"
+    ]
+  },
+  {
+    "code": "U0001",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "High Speed CAN Communication Bus",
+    "libyanTerm": "شبكة الكان باص (CAN Bus) / توقف شبكة الاتصال السريعة بين كمبيوترات السيارة",
+    "standardArabicDescription": "عطل أو توقف في خط نقل البيانات عالي السرعة لشبكة الكان (CAN Bus)",
+    "driverSymptoms": [
+      "ولعة أغلب لمبات الكوادرو دفعة واحدة (Check Engine, ABS, Airbag, EPS)",
+      "سقوط عداد السرعة والحرارة للصفر فجأة",
+      "الكمبيو يعلق في الغيار الثالث وضعف استجابة السيارة"
+    ],
+    "rootCauses": [
+      "التماس أو قصر كهربائي بين سلكي شبكة الكان (CAN High و CAN Low) مع الأرضي أو مع بعضهما",
+      "تلف أحد كمبيوترات السيارة المتصلة بالشبكة وإرساله شوشرة تعطل باقي العقول",
+      "دخول مياه ورطوبة إلى فيش التوصيل المركزية أسفل الطبلون"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "قياس مقاومة شبكة الكان بالأفوميتر بين الطرف 6 و 14 في فيشة OBD (يجب أن تقرأ 60 أوم تقريباً) وفحص الأسلاك",
+    "severity": "critical",
+    "partNameLibyan": "فحص وإصلاح ضفيرة شبكة الكان باص",
+    "partNameEnglish": "CAN Bus Wiring Harness Diagnostics",
+    "partPriceMin": 60.0,
+    "partPriceMax": 250.0,
+    "aftermarketBrands": [
+      "Specialist Auto Electrician Service"
+    ]
+  },
+  {
+    "code": "U0100",
+    "module": "BCM",
+    "moduleNameArabic": "كمبيوتر الهيكل BCM",
+    "standardDescriptionEn": "Lost Communication with ECM/PCM",
+    "libyanTerm": "فقدان الاتصال بكمبيوتر المحرك (ECM) / الكمبيوتر لا يستجيب في شبكة الكان",
+    "standardArabicDescription": "فقدان الاتصال بشبكة البيانات مع وحدة التحكم في المحرك",
+    "driverSymptoms": [
+      "السيارة تدور مارش لكن لا تشتغل نهائياً",
+      "عدم ظهور لمبة التشك في الكوادرو عند فتح السويتش (دليل عدم إقلاع عقل المحرك)",
+      "مروحة الرداتوري تشتغل بأقصى سرعة فور فتح السويتش كحماية طوارئ"
+    ],
+    "rootCauses": [
+      "فيوز كمبيوتر المحرك الرئيسي (EFI / ECM Fuse) محروق في صندوق الفيوزات",
+      "ريليه التغذية الرئيسي للمحرك (Main Relay) تالف ولا يوصل كهرباء",
+      "أكسدة أو قطع في كابل الأرضي الرئيسي بين بطارية السيارة وشاسي وبلوك المحرك"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص فيوزات وريليه المحرك الرئيسي وتفقد كابلات التأريض وفيش كمبيوتر المحرك الكبيرة",
+    "severity": "critical",
+    "partNameLibyan": "ريليه رئيسي للمحرك أو فيوز EFI",
+    "partNameEnglish": "Main Engine Relay / ECM Fuse",
+    "partPriceMin": 25.0,
+    "partPriceMax": 85.0,
+    "aftermarketBrands": [
+      "Denso",
+      "Bosch",
+      "Hella",
+      "Omron"
+    ]
+  },
+  {
+    "code": "U0101",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Lost Communication with TCM",
+    "libyanTerm": "فقدان الاتصال بكمبيوتر الكمبيو (TCM) / كمبيوتر المحرك لا يجد إشارة الكمبيو",
+    "standardArabicDescription": "فقدان الاتصال بشبكة البيانات مع وحدة التحكم في الكمبيو",
+    "driverSymptoms": [
+      "الكمبيو يعلق في وضع الطوارئ (Limp Mode)",
+      "ضربة ونتعة قوية جداً عند وضع المارشا في R أو D",
+      "اختفاء قراءة الغيارات من الكوادرو"
+    ],
+    "rootCauses": [
+      "فصل فيشة كمبيوتر الكمبيو أو رطوبة ومياه داخل الفيشة",
+      "فيوز تغذية كمبيوتر الكمبيو محروق",
+      "تلف عقل الكمبيو أو انقطاع أسلاك شبكة الكان الواصلة إليه"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص فيوز وريليه كمبيوتر الكمبيو، وتنظيف فيشة الـ TCM بسبراي الكترونيات وتفقد أسلاك الكان",
+    "severity": "critical",
+    "partNameLibyan": "فيوز/ريليه كمبيوتر كمبيو أو فحص فيشة TCM",
+    "partNameEnglish": "TCM Relay / Wiring Check",
+    "partPriceMin": 25.0,
+    "partPriceMax": 95.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "Denso",
+      "Mobis"
+    ]
+  },
+  {
+    "code": "U0121",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Lost Communication with Anti-Lock Brake System (ABS) Control Module",
+    "libyanTerm": "فقدان الاتصال بكمبيوتر الفرامل ABS / انقطاع شبكة الكان عن وحدة ABS",
+    "standardArabicDescription": "فقدان الاتصال بشبكة البيانات مع وحدة التحكم في الفرامل المانعة للانغلاق",
+    "driverSymptoms": [
+      "ولعة لمبات ABS ومانع الانزلاق وعلامة التعجب الحمراء في الكوادرو",
+      "سقوط عداد السرعة في بعض السيارات",
+      "تحجر أو تغير في إحساس دواسة الفرامل"
+    ],
+    "rootCauses": [
+      "فيوز منظومة ABS الرئيسي (40 أو 50 أمبير) محروق في صندوق الفيوزات",
+      "فيشة بلوك الـ ABS الكبيرة بها أكسدة أو غير مثبتة بإحكام",
+      "تلف الجزء الإلكتروني في بلوك فرامل الـ ABS"
+    ],
+    "urgencyLevel": "عالي",
+    "recommendedAction": "فحص الفيوزات الكبيرة لمنظومة ABS وفحص فيشة البلوك وتنظيفها والتأكد من وصول الكهرباء والأرضي",
+    "severity": "critical",
+    "partNameLibyan": "فيوز ABS رئيسي أو بلوك فرامل ABS",
+    "partNameEnglish": "ABS Maxi Fuse / ABS Module",
+    "partPriceMin": 30.0,
+    "partPriceMax": 380.0,
+    "aftermarketBrands": [
+      "Bosch",
+      "ATE",
+      "TRW",
+      "Toyota Genuine"
+    ]
+  },
+  {
+    "code": "U0140",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Lost Communication with Body Control Module (BCM)",
+    "libyanTerm": "فقدان الاتصال بكمبيوتر الهيكل (BCM) / خلل في شبكة كهرباء المقصورة والإنارة",
+    "standardArabicDescription": "فقدان الاتصال بشبكة البيانات مع وحدة التحكم في هيكل السيارة ومقصورتها",
+    "driverSymptoms": [
+      "تعطل وظائف الراحة (السنتر لوك، النوافذ الكهربائية، المساحات، المكيف)",
+      "الأنوار والإنارة تظل شغالة أو لا تشتعل نهائياً",
+      "عدم استجابة الريموت أو بصمة التشغيل"
+    ],
+    "rootCauses": [
+      "فيوز كمبيوتر الهيكل (BCM) محروق",
+      "دخول مياه الأمطار أو مياه الغسيل إلى كمبيوتر الـ BCM أسفل الطبلون",
+      "ارتخاء فيش التوصيل المتعددة في علبة الفيوزات الداخلية"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص فيوزات الـ BCM وتجفيف وتنظيف الفيش من الرطوبة والتأكد من سلامة عقل الهيكل",
+    "severity": "moderate",
+    "partNameLibyan": "فيوزات BCM أو كمبيوتر هيكل",
+    "partNameEnglish": "Body Control Module (BCM)",
+    "partPriceMin": 40.0,
+    "partPriceMax": 350.0,
+    "aftermarketBrands": [
+      "OEM BCM",
+      "Continental",
+      "Denso",
+      "Bosch"
+    ]
+  },
+  {
+    "code": "U0155",
+    "module": "ECM",
+    "moduleNameArabic": "كمبيوتر المحرك",
+    "standardDescriptionEn": "Lost Communication with Instrument Panel Cluster (IPC)",
+    "libyanTerm": "فقدان الاتصال بلوحة العدادات (الكوادرو) / شاشة العدادات لا تقرأ بيانات المحرك",
+    "standardArabicDescription": "فقدان الاتصال بشبكة البيانات مع لوحة العدادات ومؤشرات القيادة",
+    "driverSymptoms": [
+      "مؤشرات الكوادرو (السرعة، الـ RPM، الحرارة، البنزين) متوقفة تماماً",
+      "شاشة المعلومات في الطبلون مظلمة أو تظهر خطوطاً متقطعة",
+      "ولعة لمبات التحذير دون قراءات حقيقية"
+    ],
+    "rootCauses": [
+      "فيوز لوحة العدادات (الكوادرو / Instrument Cluster) محروق",
+      "فيشة الكوادرو الخلفية مرخية بعد فك الطبلون",
+      "تلف اللوحة الإلكترونية الداخلية للكوادرو (لحامات باردة أو مكثفات تالفة)"
+    ],
+    "urgencyLevel": "متوسط",
+    "recommendedAction": "فحص فيوز الكوادرو في العلبة الداخلية، فك الكوادرو والتأكد من إحكام فيشته الخلفية أو فحص بوردته",
+    "severity": "moderate",
+    "partNameLibyan": "فيوز كوادرو أو تصليح بوردة العدادات",
+    "partNameEnglish": "Instrument Cluster Repair / Cluster Fuse",
+    "partPriceMin": 20.0,
+    "partPriceMax": 280.0,
+    "aftermarketBrands": [
+      "VDO",
+      "Bosch",
+      "Magneti Marelli",
+      "Yazaki"
+    ]
   }
 ]

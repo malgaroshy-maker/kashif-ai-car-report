@@ -46,6 +46,23 @@ class OfflineDtcKnowledge {
     this.aftermarketBrands,
   });
 
+  static CodeSeverity _parseSeverity(String? value) {
+    if (value == null) return CodeSeverity.moderate;
+    switch (value.trim().toLowerCase()) {
+      case 'critical':
+      case 'high':
+        return CodeSeverity.critical;
+      case 'history':
+        return CodeSeverity.history;
+      case 'passed':
+        return CodeSeverity.passed;
+      case 'moderate':
+      case 'low':
+      default:
+        return CodeSeverity.moderate;
+    }
+  }
+
   factory OfflineDtcKnowledge.fromJson(Map<String, dynamic> j) =>
       OfflineDtcKnowledge(
         code: j['code'] as String,
@@ -58,7 +75,7 @@ class OfflineDtcKnowledge {
         rootCauses: List<String>.from(j['rootCauses'] as List),
         urgencyLevel: j['urgencyLevel'] as String,
         recommendedAction: j['recommendedAction'] as String,
-        severity: CodeSeverity.values.byName(j['severity'] as String),
+        severity: _parseSeverity(j['severity'] as String?),
         partNameLibyan: j['partNameLibyan'] as String?,
         partNameEnglish: j['partNameEnglish'] as String?,
         partPriceMin: (j['partPriceMin'] as num?)?.toDouble(),
