@@ -228,6 +228,28 @@ class KashifStorage {
   static Future<void> setWorkshopPhone(String phone) async =>
       await settingsBox.put('workshopPhone', phone);
 
+  static String get workshopAddress {
+    try {
+      return settingsBox.get('workshopAddress', defaultValue: '') as String;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  static Future<void> setWorkshopAddress(String address) async =>
+      await settingsBox.put('workshopAddress', address);
+
+  static String get technicianName {
+    try {
+      return settingsBox.get('technicianName', defaultValue: '') as String;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  static Future<void> setTechnicianName(String name) async =>
+      await settingsBox.put('technicianName', name);
+
   static String get themeMode =>
       settingsBox.get('themeMode', defaultValue: 'system') as String;
   static Future<void> setThemeMode(String mode) async =>

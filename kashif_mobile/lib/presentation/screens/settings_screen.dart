@@ -54,7 +54,9 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _newKeyController;
   late TextEditingController _nameController;
+  late TextEditingController _techNameController;
   late TextEditingController _phoneController;
+  late TextEditingController _addressController;
   late TextEditingController _apinexKeyController;
   late TextEditingController _apinexModelController;
   late String _selectedModelPreset;
@@ -74,7 +76,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final s = ref.read(settingsProvider);
     _newKeyController = TextEditingController();
     _nameController = TextEditingController(text: s.workshopName);
+    _techNameController = TextEditingController(text: s.technicianName);
     _phoneController = TextEditingController(text: s.workshopPhone);
+    _addressController = TextEditingController(text: s.workshopAddress);
     final initialKey = s.apinexApiKey.isNotEmpty ? s.apinexApiKey : ApinexClient.defaultApiKey;
     _apinexKeyController = TextEditingController(text: initialKey);
     final initialModel = s.apinexModel.isNotEmpty ? s.apinexModel : ApinexClient.defaultModel;
@@ -103,12 +107,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     }
     final name = _nameController.text.trim();
+    final techName = _techNameController.text.trim();
     final phone = _phoneController.text.trim();
+    final address = _addressController.text.trim();
     final apKey = _apinexKeyController.text.trim();
     final apModel = _apinexModelController.text.trim();
     final current = ref.read(settingsProvider);
-    if (name != current.workshopName || phone != current.workshopPhone) {
-      ref.read(settingsProvider.notifier).updateWorkshop(name, phone);
+    if (name != current.workshopName ||
+        phone != current.workshopPhone ||
+        address != current.workshopAddress ||
+        techName != current.technicianName) {
+      ref.read(settingsProvider.notifier).updateWorkshop(
+        name,
+        phone,
+        address: address,
+        technicianName: techName,
+      );
     }
     if (apKey != current.apinexApiKey || apModel != current.apinexModel) {
       ref.read(settingsProvider.notifier).updateApinexSettings(
@@ -118,7 +132,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
     _newKeyController.dispose();
     _nameController.dispose();
+    _techNameController.dispose();
     _phoneController.dispose();
+    _addressController.dispose();
     _apinexKeyController.dispose();
     _apinexModelController.dispose();
     super.dispose();
@@ -633,6 +649,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         .updateWorkshop(
           _nameController.text.trim(),
           _phoneController.text.trim(),
+          address: _addressController.text.trim(),
+          technicianName: _techNameController.text.trim(),
         );
 
     ref.read(settingsProvider.notifier).updateApinexSettings(
@@ -777,8 +795,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Technician section
-            const MoldedRib(label: 'بيانات الفني للتقارير'),
+            // Workshop and Technician section
+            const MoldedRib(label: 'بيانات الورشة والفني للاعتماد الرسمي'),
             const SizedBox(height: 10),
 
             FuseCell(
@@ -787,7 +805,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'اسم الفني:',
+                    'اسم الورشة / مركز الفحص:',
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -798,7 +816,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     controller: _nameController,
                     style: KashifTypography.arabic(fontSize: 13),
                     decoration: InputDecoration(
-                      hintText: 'اكتب اسم الفني هنا',
+                      hintText: 'مثال: مركز الفحص الفني المعتمد أو ورشة السلام',
                       filled: true,
                       fillColor: isDark
                           ? KashifColors.darkBoard
@@ -819,7 +837,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'رقم الهاتف:',
+                    'اسم الفني المسؤول:',
+                    style: KashifTypography.arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _techNameController,
+                    style: KashifTypography.arabic(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'مثال: م. محمد المهدي أو الفني المسؤول',
+                      filled: true,
+                      fillColor: isDark
+                          ? KashifColors.darkBoard
+                          : KashifColors.lightBoard,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? KashifColors.goldPrimary.withValues(alpha: 0.4)
+                              : KashifColors.royalBlue.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'رقم هاتف التواصل:',
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -831,7 +881,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     keyboardType: TextInputType.phone,
                     style: KashifTypography.mono(fontSize: 13),
                     decoration: InputDecoration(
-                      hintText: 'مثال: 0927968986',
+                      hintText: 'مثال: 0912345678 أو 0927968986',
+                      filled: true,
+                      fillColor: isDark
+                          ? KashifColors.darkBoard
+                          : KashifColors.lightBoard,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? KashifColors.goldPrimary.withValues(alpha: 0.4)
+                              : KashifColors.royalBlue.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'عنوان الورشة / المدينة:',
+                    style: KashifTypography.arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _addressController,
+                    style: KashifTypography.arabic(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'مثال: طرابلس - طريق السراج أو بنغازي - الهواري',
                       filled: true,
                       fillColor: isDark
                           ? KashifColors.darkBoard
@@ -852,7 +934,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'يظهر اسم الفني ورقم الهاتف تلقائياً في التقرير وشهادة الفحص.',
+                    'تظهر هذه البيانات وترويسة الورشة وخانة التوقيع والختم في تقارير PDF المعتمدة للزبائن.',
                     style: KashifTypography.arabic(
                       fontSize: 10,
                       color: isDark
@@ -867,7 +949,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: _saveSettings,
                       icon: const Icon(Icons.save_rounded, size: 18),
                       label: Text(
-                        'حفظ بيانات الفني',
+                        'حفظ بيانات الورشة والاعتماد',
                         style: KashifTypography.arabic(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

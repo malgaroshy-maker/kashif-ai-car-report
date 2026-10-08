@@ -26,6 +26,7 @@ class ReportSectionsConfig {
   final bool includeProbabilitiesTable;  // جدول احتمالات ومسببات الأعطال المشتركة
   final bool includeChecklist;            // قائمة خطوات الفحص
   final bool includeSpareParts;           // دليل قطع الغيار
+  final bool includeTechnicianSignature;  // اعتماد وختم الفحص وتوقيع الفني
 
   const ReportSectionsConfig({
     this.includeTechnicalAssessment = true,
@@ -34,6 +35,7 @@ class ReportSectionsConfig {
     this.includeProbabilitiesTable = true,
     this.includeChecklist = true,
     this.includeSpareParts = true,
+    this.includeTechnicianSignature = true,
   });
 
   ReportSectionsConfig copyWith({
@@ -43,6 +45,7 @@ class ReportSectionsConfig {
     bool? includeProbabilitiesTable,
     bool? includeChecklist,
     bool? includeSpareParts,
+    bool? includeTechnicianSignature,
   }) {
     return ReportSectionsConfig(
       includeTechnicalAssessment:
@@ -54,6 +57,8 @@ class ReportSectionsConfig {
           includeProbabilitiesTable ?? this.includeProbabilitiesTable,
       includeChecklist: includeChecklist ?? this.includeChecklist,
       includeSpareParts: includeSpareParts ?? this.includeSpareParts,
+      includeTechnicianSignature:
+          includeTechnicianSignature ?? this.includeTechnicianSignature,
     );
   }
 
@@ -71,6 +76,8 @@ class ReportSectionsConfig {
         return copyWith(includeChecklist: enabled);
       case 'includeSpareParts':
         return copyWith(includeSpareParts: enabled);
+      case 'includeTechnicianSignature':
+        return copyWith(includeTechnicianSignature: enabled);
       default:
         return this;
     }
@@ -84,6 +91,7 @@ class ReportSectionsConfig {
       'includeProbabilitiesTable': includeProbabilitiesTable,
       'includeChecklist': includeChecklist,
       'includeSpareParts': includeSpareParts,
+      'includeTechnicianSignature': includeTechnicianSignature,
     };
   }
 
@@ -98,6 +106,8 @@ class ReportSectionsConfig {
           map['includeProbabilitiesTable'] as bool? ?? true,
       includeChecklist: map['includeChecklist'] as bool? ?? true,
       includeSpareParts: map['includeSpareParts'] as bool? ?? true,
+      includeTechnicianSignature:
+          map['includeTechnicianSignature'] as bool? ?? true,
     );
   }
 
@@ -147,6 +157,13 @@ class ReportSectionsConfig {
         description: 'قائمة القطع البديلة المطلوبة للإصلاح والأسعار التقديرية بالدينار الليبي',
         icon: Icons.build_circle_outlined,
         isEnabled: includeSpareParts,
+      ),
+      ReportSectionItem(
+        key: 'includeTechnicianSignature',
+        title: 'اعتماد وختم الفحص وتوقيع الفني',
+        description: 'مربع رسمي لتوقيع الفني المسؤول وختم المركز المعتمد أسفل التقرير',
+        icon: Icons.verified_rounded,
+        isEnabled: includeTechnicianSignature,
       ),
     ];
   }

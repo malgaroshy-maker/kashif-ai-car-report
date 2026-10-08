@@ -8,6 +8,8 @@ class SettingsState {
   final String? customApiKey;
   final String workshopName;
   final String workshopPhone;
+  final String workshopAddress;
+  final String technicianName;
   final ThemeMode themeMode;
   final String apinexApiKey;
   final String apinexModel;
@@ -21,6 +23,8 @@ class SettingsState {
     this.customApiKey,
     this.workshopName = '',
     this.workshopPhone = '',
+    String? workshopAddress,
+    String? technicianName,
     this.themeMode = ThemeMode.system,
     String? apinexApiKey,
     String? apinexModel,
@@ -30,6 +34,10 @@ class SettingsState {
     ReportSectionsConfig? reportSectionsConfig,
   })  : customApiKeys =
             customApiKeys ?? (customApiKey != null ? [customApiKey] : []),
+        workshopAddress =
+            workshopAddress ?? KashifStorage.workshopAddress,
+        technicianName =
+            technicianName ?? KashifStorage.technicianName,
         apinexApiKey = apinexApiKey ?? KashifStorage.apinexApiKey,
         apinexModel = apinexModel ?? KashifStorage.apinexModel,
         isApinexAutoFailoverEnabled =
@@ -46,6 +54,8 @@ class SettingsState {
     String? customApiKey,
     String? workshopName,
     String? workshopPhone,
+    String? workshopAddress,
+    String? technicianName,
     ThemeMode? themeMode,
     String? apinexApiKey,
     String? apinexModel,
@@ -65,6 +75,8 @@ class SettingsState {
       customApiKey: primary,
       workshopName: workshopName ?? this.workshopName,
       workshopPhone: workshopPhone ?? this.workshopPhone,
+      workshopAddress: workshopAddress ?? this.workshopAddress,
+      technicianName: technicianName ?? this.technicianName,
       themeMode: themeMode ?? this.themeMode,
       apinexApiKey: apinexApiKey ?? this.apinexApiKey,
       apinexModel: apinexModel ?? this.apinexModel,
@@ -85,6 +97,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           customApiKey: KashifStorage.customApiKey,
           workshopName: KashifStorage.workshopName,
           workshopPhone: KashifStorage.workshopPhone,
+          workshopAddress: KashifStorage.workshopAddress,
+          technicianName: KashifStorage.technicianName,
           themeMode: _parseThemeMode(KashifStorage.themeMode),
           apinexApiKey: KashifStorage.apinexApiKey,
           apinexModel: KashifStorage.apinexModel,
@@ -143,10 +157,24 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     );
   }
 
-  Future<void> updateWorkshop(String name, String phone) async {
+  Future<void> updateWorkshop(
+    String name,
+    String phone, {
+    String? address,
+    String? technicianName,
+  }) async {
     await KashifStorage.setWorkshopName(name);
     await KashifStorage.setWorkshopPhone(phone);
-    state = state.copyWith(workshopName: name, workshopPhone: phone);
+    if (address != null) await KashifStorage.setWorkshopAddress(address);
+    if (technicianName != null) {
+      await KashifStorage.setTechnicianName(technicianName);
+    }
+    state = state.copyWith(
+      workshopName: name,
+      workshopPhone: phone,
+      workshopAddress: address,
+      technicianName: technicianName,
+    );
   }
 
   Future<void> updateThemeMode(ThemeMode mode) async {
@@ -200,6 +228,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       includeProbabilitiesTable: enabled,
       includeChecklist: enabled,
       includeSpareParts: enabled,
+      includeTechnicianSignature: enabled,
     );
     await KashifStorage.setReportSectionsConfig(updated);
     state = state.copyWith(reportSectionsConfig: updated);

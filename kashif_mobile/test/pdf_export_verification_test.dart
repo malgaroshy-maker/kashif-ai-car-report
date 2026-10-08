@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kashif_mobile/core/utils/pdf_generator.dart';
+import 'package:kashif_mobile/data/models/report_sections_config.dart';
 import 'package:kashif_mobile/data/repositories/offline_report_service.dart';
 
 void main() {
@@ -48,5 +49,33 @@ void main() {
       final pdfBytes = await KashifPdfGenerator.generateReportPdf(report!);
       expect(pdfBytes.length, greaterThan(5000), reason: 'Failed bytes for code: $code');
     }
+  });
+
+  test('PDF generator renders workshop branding and toggles technician signature section', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+
+    final report = OfflineReportService.tryBuildOfflineReport(
+      'P0300, P0171',
+      vin: '1G1JC5444RTEST123',
+      make: 'Chevrolet',
+      model: 'Cruze',
+      year: '2015',
+    );
+    expect(report, isNotNull);
+
+    // Test with technician signature enabled (default)
+    final withSignatureBytes = await KashifPdfGenerator.generateReportPdf(
+      report!,
+      sectionsConfig: const ReportSectionsConfig(includeTechnicianSignature: true),
+    );
+    expect(withSignatureBytes, isNotEmpty);
+
+    // Test with technician signature disabled
+    final withoutSignatureBytes = await KashifPdfGenerator.generateReportPdf(
+      report,
+      sectionsConfig: const ReportSectionsConfig(includeTechnicianSignature: false),
+    );
+    expect(withoutSignatureBytes, isNotEmpty);
+    expect(withSignatureBytes.length, greaterThan(withoutSignatureBytes.length));
   });
 }

@@ -369,7 +369,9 @@ void main() {
       expect(defaultConfig.includePassedSystems, isTrue);
       expect(defaultConfig.includeProbabilitiesTable, isTrue);
       expect(defaultConfig.includeChecklist, isTrue);
-      expect(defaultConfig.toItemList().length, 6);
+      expect(defaultConfig.includeSpareParts, isTrue);
+      expect(defaultConfig.includeTechnicianSignature, isTrue);
+      expect(defaultConfig.toItemList().length, 7);
 
       final fullHtml = KashifHtmlGenerator.buildHtml(
         report,
