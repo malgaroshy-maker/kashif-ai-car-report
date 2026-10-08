@@ -491,7 +491,7 @@ class PartNumberResolver {
     VehicleInfo? vehicle,
   }) {
     final vMake = (vehicle?.make ?? '').toUpperCase();
-    final code = part.relatedCode?.toUpperCase() ?? '';
+    final code = part.relatedCode.toUpperCase();
     final text =
         '${part.partNameLibyan} ${part.partNameStandardArabic} ${part.partNameEnglish} $code'
             .toLowerCase();

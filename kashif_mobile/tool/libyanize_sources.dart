@@ -1,7 +1,7 @@
 // One-off: rewrites Arabic terms in static data sources to Libyan workshop terms.
 // Usage (from kashif_mobile/): dart run tool/libyanize_sources.dart <file>...
 import 'dart:io';
-import '../lib/core/utils/report_sanitizer.dart';
+import 'package:kashif_mobile/core/utils/report_sanitizer.dart';
 
 void main(List<String> args) {
   for (final path in args) {
