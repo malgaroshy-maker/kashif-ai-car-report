@@ -9,11 +9,19 @@ echo           📱 Target: ARM64-v8a (Dimensity 8400-Ultra / 64-bit)
 echo ======================================================================
 echo.
 
-cd /d "%~dp0"
+set "SCRIPT_DIR=%~dp0"
+set "PROJECT_ROOT=%SCRIPT_DIR:~0,-1%"
 
-echo [1/3] Checking Flutter environment...
+echo [1/4] Checking Flutter environment...
 where flutter >nul 2>nul
 if errorlevel 1 goto NO_FLUTTER
+
+echo [2/4] Setting up clean ASCII build junction at C:\kashif_build...
+if not exist "C:\kashif_build" (
+    powershell -NoProfile -Command "New-Item -ItemType Junction -Path 'C:\kashif_build' -Target '%PROJECT_ROOT%' -Force" >nul 2>nul
+)
+
+cd /d "C:\kashif_build"
 
 echo.
 echo Choose build mode:
@@ -25,25 +33,25 @@ set /p CHOICE="Enter choice [1, 2, or 3, default is 1]: "
 if "%CHOICE%"=="" set CHOICE=1
 
 echo.
-echo [2/3] Fetching dependencies...
+echo [3/4] Fetching dependencies...
 call flutter pub get
 if errorlevel 1 goto BUILD_ERROR
 
 echo.
-echo [3/3] Compiling APK (this may take a few minutes)...
+echo [4/4] Compiling APK (this may take a few minutes)...
 if "%CHOICE%"=="2" goto BUILD_UNIVERSAL
 if "%CHOICE%"=="3" goto BUILD_INSTALL
 
 :BUILD_ARM64
 echo Compiling optimized ARM64 release for Poco X7 Pro...
-call flutter build apk --release --target-platform android-arm64
+call flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons --android-skip-build-dependency-validation
 set APK_FILE=build\app\outputs\flutter-apk\app-arm64-v8a-release.apk
 if not exist "%APK_FILE%" set APK_FILE=build\app\outputs\flutter-apk\app-release.apk
 goto COPY_OUTPUT
 
 :BUILD_UNIVERSAL
 echo Compiling universal release APK...
-call flutter build apk --release
+call flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation
 set APK_FILE=build\app\outputs\flutter-apk\app-release.apk
 goto COPY_OUTPUT
 
@@ -65,8 +73,8 @@ goto BUILD_ARM64
 :COPY_OUTPUT
 if not exist "%APK_FILE%" goto BUILD_ERROR
 
-if not exist "..\APK_OUTPUT" mkdir "..\APK_OUTPUT"
-copy /y "%APK_FILE%" "..\APK_OUTPUT\kashif_poco_x7_pro.apk" > nul
+if not exist "%PROJECT_ROOT%\..\APK_OUTPUT" mkdir "%PROJECT_ROOT%\..\APK_OUTPUT"
+copy /y "%APK_FILE%" "%PROJECT_ROOT%\..\APK_OUTPUT\kashif_poco_x7_pro.apk" > nul
 
 echo.
 echo ======================================================================
@@ -82,7 +90,7 @@ echo  3. If HyperOS warns about unknown source, allow installation.
 echo ======================================================================
 echo.
 
-explorer.exe "..\APK_OUTPUT"
+explorer.exe "%PROJECT_ROOT%\..\APK_OUTPUT"
 pause
 exit /b 0
 

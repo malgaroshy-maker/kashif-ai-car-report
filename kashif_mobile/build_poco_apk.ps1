@@ -6,7 +6,14 @@ Write-Host "          Kashif AI - Poco X7 Pro APK Builder" -ForegroundColor Gree
 Write-Host "          Architecture: ARM64-v8a [64-bit]" -ForegroundColor Yellow
 Write-Host "======================================================================" -ForegroundColor Cyan
 
-Set-Location -Path $PSScriptRoot
+$projectRoot = $PSScriptRoot
+$junctionPath = "C:\kashif_build"
+
+if (-not (Test-Path $junctionPath)) {
+    New-Item -ItemType Junction -Path $junctionPath -Target $projectRoot -Force | Out-Null
+}
+
+Set-Location -Path $junctionPath
 
 if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
     Write-Host "[ERROR] Flutter SDK is not found in PATH!" -ForegroundColor Red
@@ -17,15 +24,15 @@ Write-Host "`n[1/3] Getting dependencies..." -ForegroundColor Gray
 flutter pub get
 
 Write-Host "`n[2/3] Compiling optimized ARM64 release for Poco X7 Pro..." -ForegroundColor Yellow
-flutter build apk --release --target-platform android-arm64
+flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons --android-skip-build-dependency-validation
 
-$apkSrc = "build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"
+$apkSrc = Join-Path $junctionPath "build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"
 if (-not (Test-Path $apkSrc)) {
-    $apkSrc = "build\app\outputs\flutter-apk\app-release.apk"
+    $apkSrc = Join-Path $junctionPath "build\app\outputs\flutter-apk\app-release.apk"
 }
 
 if (Test-Path $apkSrc) {
-    $destDir = Join-Path (Split-Path $PSScriptRoot -Parent) "APK_OUTPUT"
+    $destDir = Join-Path (Split-Path $projectRoot -Parent) "APK_OUTPUT"
     if (-not (Test-Path $destDir)) {
         New-Item -ItemType Directory -Path $destDir | Out-Null
     }
