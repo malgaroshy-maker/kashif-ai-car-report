@@ -116,6 +116,41 @@ class DiagnosticFaultCode {
             ? standardArabicDescription
             : standardDescriptionEn);
 
+  DiagnosticFaultCode copyWith({
+    String? code,
+    String? module,
+    String? moduleNameArabic,
+    String? standardDescriptionEn,
+    String? libyanTerm,
+    String? standardArabicDescription,
+    List<String>? driverSymptoms,
+    List<String>? rootCauses,
+    String? urgencyLevel,
+    String? recommendedAction,
+    String? recommendedPartId,
+    CodeSeverity? severity,
+    ElectricalDiagnosticInfo? electricalDiagnostics,
+  }) {
+    return DiagnosticFaultCode(
+      code: code ?? this.code,
+      module: module ?? this.module,
+      moduleNameArabic: moduleNameArabic ?? this.moduleNameArabic,
+      standardDescriptionEn:
+          standardDescriptionEn ?? this.standardDescriptionEn,
+      libyanTerm: libyanTerm ?? this.libyanTerm,
+      standardArabicDescription:
+          standardArabicDescription ?? this.standardArabicDescription,
+      driverSymptoms: driverSymptoms ?? this.driverSymptoms,
+      rootCauses: rootCauses ?? this.rootCauses,
+      urgencyLevel: urgencyLevel ?? this.urgencyLevel,
+      recommendedAction: recommendedAction ?? this.recommendedAction,
+      recommendedPartId: recommendedPartId ?? this.recommendedPartId,
+      severity: severity ?? this.severity,
+      electricalDiagnostics:
+          electricalDiagnostics ?? this.electricalDiagnostics,
+    );
+  }
+
   factory DiagnosticFaultCode.fromJson(
     Map<String, dynamic> json, {
     CodeSeverity defaultSeverity = CodeSeverity.moderate,

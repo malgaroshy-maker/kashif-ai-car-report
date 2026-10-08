@@ -851,7 +851,7 @@ class KashifPdfGenerator {
 
             // Fault Probabilities Matrix (جدول احتمالات ومسببات الأعطال المشتركة)
             if (config.includeProbabilitiesTable &&
-                allFaults.any((f) => f.rootCauses.length > 1)) ...[
+                allFaults.any((f) => f.rootCauses.isNotEmpty)) ...[
               pw.Text(
                 'جدول احتمالات ومسببات الأعطال (فحص متسلسل للأعطال متعددة الأسباب):',
                 style: pw.TextStyle(font: arabicBoldFont, fontSize: 11),
@@ -904,7 +904,7 @@ class KashifPdfGenerator {
                   2: pw.Alignment.center,
                 },
                 data: allFaults
-                    .where((f) => f.rootCauses.length > 1)
+                    .where((f) => f.rootCauses.isNotEmpty)
                     .map((f) {
                   final cleanLibyanTerm = ReportSanitizer.clean(f.libyanTerm)
                       .replaceAll('السلندر', 'البسطوني')

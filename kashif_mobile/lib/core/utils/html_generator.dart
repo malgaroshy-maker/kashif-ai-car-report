@@ -72,7 +72,7 @@ class KashifHtmlGenerator {
     final modFaults = report.moderateFaults;
     final histFaults = report.historyFaults;
     final allFaults = [...critFaults, ...modFaults, ...histFaults];
-    final multiCauseFaults = allFaults.where((f) => f.rootCauses.length > 1).toList();
+    final multiCauseFaults = allFaults.where((f) => f.rootCauses.isNotEmpty).toList();
     final passedSystems = report.soundSystems;
     final spareParts = PartNumberResolver.enrichList(report.spareParts, vehicle: report.vehicle);
     final checklist = report.checklist;

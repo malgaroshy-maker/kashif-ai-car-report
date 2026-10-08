@@ -91,7 +91,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       ...report.historyFaults,
     ];
     final multiCauseFaults =
-        allFaultsList.where((f) => f.rootCauses.length > 1).toList();
+        allFaultsList.where((f) => f.rootCauses.isNotEmpty).toList();
 
     final activeTabs = <({Widget tab, Widget view})>[
       if (sectionsConfig.includeFaultsTable) ...[
@@ -132,7 +132,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
           tab: Tab(text: 'قطع الغيار (${report.spareParts.length})'),
           view: _buildPartsList(report.spareParts, isDark),
         ),
-      if (sectionsConfig.includeProbabilitiesTable && multiCauseFaults.isNotEmpty)
+      if (sectionsConfig.includeProbabilitiesTable)
         (
           tab: Tab(text: 'الاحتمالات (${multiCauseFaults.length})'),
           view: _buildProbabilitiesList(multiCauseFaults, isDark),
@@ -702,6 +702,18 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     );
                   },
                 ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(
+                    Icons.support_agent_rounded,
+                    size: 19,
+                    color: primaryColor,
+                  ),
+                  tooltip: 'استشارة المساعد الفني الذكي',
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: widget.onOpenChat,
+                ),
               ],
             ),
           ),
@@ -842,6 +854,44 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
               color: isDark
                   ? KashifColors.darkTextPrimary
                   : KashifColors.lightTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                backgroundColor: (isDark
+                        ? KashifColors.goldLight
+                        : KashifColors.royalBlue)
+                    .withValues(alpha: 0.12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              onPressed: widget.onOpenChat,
+              icon: Icon(
+                Icons.support_agent_rounded,
+                size: 16,
+                color: isDark
+                    ? KashifColors.goldLight
+                    : KashifColors.royalBlue,
+              ),
+              label: Text(
+                'استشر المساعد الفني الذكي حول هذا التقرير',
+                style: KashifTypography.arabic(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? KashifColors.goldLight
+                      : KashifColors.royalBlue,
+                ),
+              ),
             ),
           ),
         ],

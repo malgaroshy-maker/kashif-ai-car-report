@@ -452,5 +452,41 @@ void main() {
         expect(p.aftermarketReplacements.any((r) => RegExp(r'\d').hasMatch(r)), isTrue);
       }
     });
+
+    test('DiagnosticReport.fromJson enriches rootCauses when missing and generates Probabilities table', () {
+      final json = {
+        'reportId': 'TEST-PROB-001',
+        'vehicle': {'make': 'Toyota', 'model': 'Camry', 'year': 2018},
+        'summary': {'overallHealthScore': 65, 'briefSummaryArabic': 'فحص عام'},
+        'faultCategories': {
+          'criticalFaults': [
+            {
+              'code': 'P0300',
+              'libyanTerm': 'فطفطة عشوائية في المحرك',
+              'rootCauses': <String>[], // Empty from AI/scanner
+            },
+          ],
+          'moderateFaults': [
+            {
+              'code': 'P0171',
+              'libyanTerm': 'خليط هواء زائد (خلطة فقيرة)',
+              'rootCauses': <String>[], // Empty from AI/scanner
+            },
+          ],
+          'historyFaults': [],
+          'passedSystems': ['ABS', 'SRS'],
+        },
+      };
+
+      final report = DiagnosticReport.fromJson(json);
+      expect(report.criticalFaults.first.rootCauses, isNotEmpty);
+      expect(report.criticalFaults.first.rootCauses.length, greaterThanOrEqualTo(2));
+      expect(report.moderateFaults.first.rootCauses, isNotEmpty);
+
+      // Verify HTML output contains the Probabilities Table
+      final html = KashifHtmlGenerator.buildHtml(report);
+      expect(html, contains('جدول احتمالات ومسببات الأعطال'));
+      expect(html, contains('P0300'));
+    });
   });
 }

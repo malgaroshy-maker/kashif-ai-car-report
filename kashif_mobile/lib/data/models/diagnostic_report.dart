@@ -3,6 +3,7 @@ import 'fault_code.dart';
 import 'spare_part.dart';
 import 'checklist_step.dart';
 import '../repositories/part_number_resolver.dart';
+import '../repositories/offline_report_service.dart';
 import '../../core/utils/report_sanitizer.dart';
 
 class ScannerInfo {
@@ -115,6 +116,25 @@ class DiagnosticReport {
     return <String, dynamic>{};
   }
 
+  static DiagnosticFaultCode _enrichFaultRootCauses(DiagnosticFaultCode f) {
+    if (f.rootCauses.length > 1) {
+      return f;
+    }
+    final offlineMatch = OfflineReportService.findCode(f.code);
+    if (offlineMatch != null && offlineMatch.rootCauses.isNotEmpty) {
+      return f.copyWith(rootCauses: offlineMatch.rootCauses);
+    }
+    if (f.rootCauses.isEmpty) {
+      final term = f.libyanTerm.isNotEmpty ? f.libyanTerm : 'القطعة المتأثرة';
+      return f.copyWith(rootCauses: [
+        'رخاوة أو تمليح سنون الفيشة (ضعف تلامس كهربائي)',
+        'انقطاع أو احتكاك في خيوط البيانتو والضفيرة الكهربائية لـ$term',
+        'تلف داخلي في $term بعد استبعاد المشاكل الكهربائية',
+      ]);
+    }
+    return f;
+  }
+
   factory DiagnosticReport.fromJson(Map<String, dynamic> json) {
     final vehicleJson = _asMap(json['vehicle']);
     final scannerJson = _asMap(json['scannerInfo']);
@@ -129,6 +149,7 @@ class DiagnosticReport {
                 defaultSeverity: CodeSeverity.critical,
               ),
             )
+            .map(_enrichFaultRootCauses)
             .toList() ??
         [];
 
@@ -140,6 +161,7 @@ class DiagnosticReport {
                 defaultSeverity: CodeSeverity.moderate,
               ),
             )
+            .map(_enrichFaultRootCauses)
             .toList() ??
         [];
 
@@ -155,6 +177,7 @@ class DiagnosticReport {
                 defaultSeverity: CodeSeverity.history,
               ),
             )
+            .map(_enrichFaultRootCauses)
             .toList() ??
         [];
 
