@@ -5,7 +5,6 @@ import '../../core/theme/typography.dart';
 import '../providers/history_provider.dart';
 import 'scan_screen.dart';
 import 'report_screen.dart';
-import 'chat_screen.dart';
 import 'dtc_lookup_screen.dart';
 import 'history_screen.dart';
 import 'dictionary_screen.dart';
@@ -38,13 +37,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final screens = [
       ScanScreen(onReportReady: () => _navigateToTab(1)),
-      ReportScreen(
-        onOpenChat: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ChatScreen()),
-          );
-        },
-      ),
+      const ReportScreen(),
       DtcLookupScreen(onReportGenerated: () => _navigateToTab(1)),
       HistoryScreen(onReportSelected: () => _navigateToTab(1)),
       const DictionaryScreen(),
@@ -157,23 +150,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Navigator.of(
                 context,
               ).push(MaterialPageRoute(builder: (_) => const FuseBoxScreen()));
-            },
-          ),
-
-          // AI Mechanic Assistant Chat button
-          IconButton(
-            icon: Icon(
-              Icons.support_agent_rounded,
-              size: 21,
-              color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
-            ),
-            tooltip: 'المساعد الفني الذكي',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const ChatScreen(),
-                ),
-              );
             },
           ),
           // Settings button

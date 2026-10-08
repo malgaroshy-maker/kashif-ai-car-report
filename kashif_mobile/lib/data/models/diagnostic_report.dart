@@ -127,7 +127,7 @@ class DiagnosticReport {
     if (f.rootCauses.isEmpty) {
       final term = f.libyanTerm.isNotEmpty ? f.libyanTerm : 'القطعة المتأثرة';
       return f.copyWith(rootCauses: [
-        'رخاوة أو تمليح سنون الفيشة (ضعف تلامس كهربائي)',
+        'ضعف تلامس كهربائي أو أكسدة في فيشة الحساس (أو ارتخاء التوصيلات)',
         'انقطاع أو احتكاك في خيوط البيانتو والضفيرة الكهربائية لـ$term',
         'تلف داخلي في $term بعد استبعاد المشاكل الكهربائية',
       ]);

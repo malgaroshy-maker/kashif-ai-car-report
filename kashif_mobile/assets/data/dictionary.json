@@ -99,7 +99,7 @@
     "category": "الهيكل والمقصورة"
   },
   {
-    "libyanTerm": "كوادرو",
+    "libyanTerm": "لوحة العدادات / الطبلون (كوادرو)",
     "standardArabic": "لوحة العدادات",
     "english": "Instrument cluster",
     "category": "الهيكل والمقصورة"
@@ -360,8 +360,8 @@
     "category": "الكهرباء والحساسات"
   },
   {
-    "libyanTerm": "حساس النوك / حساس دق وتصفيق المحرك (Knock Sensor)",
-    "standardArabic": "مستشعر صفع واهتزاز المحرك",
+    "libyanTerm": "حساس النوك / طرق المحرك (Knock Sensor)",
+    "standardArabic": "مستشعر طرق المحرك والصرقعة",
     "english": "Knock Sensor",
     "category": "الكهرباء والحساسات"
   },

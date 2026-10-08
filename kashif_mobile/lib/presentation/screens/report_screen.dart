@@ -23,13 +23,12 @@ import '../../core/utils/share_service.dart';
 import 'report_compare_screen.dart';
 import 'fuse_box_screen.dart';
 import 'dashboard_lights_screen.dart';
+import 'dtc_lookup_screen.dart';
 import '../../core/utils/report_sanitizer.dart';
 import '../../core/utils/pdf_generator.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
-  final VoidCallback onOpenChat;
-
-  const ReportScreen({super.key, required this.onOpenChat});
+  const ReportScreen({super.key});
 
   @override
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
@@ -411,7 +410,13 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
-                onPressed: widget.onOpenChat,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const DtcLookupScreen(),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.troubleshoot_rounded, size: 18),
                 label: Text(
                   'موسوعة وبحث الأعطال (DTC Lookup)',
@@ -702,18 +707,6 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     );
                   },
                 ),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: Icon(
-                    Icons.support_agent_rounded,
-                    size: 19,
-                    color: primaryColor,
-                  ),
-                  tooltip: 'استشارة المساعد الفني الذكي',
-                  padding: const EdgeInsets.all(4),
-                  constraints: const BoxConstraints(),
-                  onPressed: widget.onOpenChat,
-                ),
               ],
             ),
           ),
@@ -854,44 +847,6 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
               color: isDark
                   ? KashifColors.darkTextPrimary
                   : KashifColors.lightTextPrimary,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                backgroundColor: (isDark
-                        ? KashifColors.goldLight
-                        : KashifColors.royalBlue)
-                    .withValues(alpha: 0.12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              onPressed: widget.onOpenChat,
-              icon: Icon(
-                Icons.support_agent_rounded,
-                size: 16,
-                color: isDark
-                    ? KashifColors.goldLight
-                    : KashifColors.royalBlue,
-              ),
-              label: Text(
-                'استشر المساعد الفني الذكي حول هذا التقرير',
-                style: KashifTypography.arabic(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? KashifColors.goldLight
-                      : KashifColors.royalBlue,
-                ),
-              ),
             ),
           ),
         ],
