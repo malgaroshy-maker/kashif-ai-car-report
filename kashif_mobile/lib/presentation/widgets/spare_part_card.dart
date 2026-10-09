@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/spare_part.dart';
@@ -300,7 +301,10 @@ class SparePartCard extends StatelessWidget {
               p.oemPartNumber!.toUpperCase() != 'N/A' &&
               p.oemPartNumber != 'null') ...[
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 4,
               children: [
                 Text(
                   'رقم الوكالة الأصلي (OEM): ',
@@ -312,39 +316,9 @@ class SparePartCard extends StatelessWidget {
                         : KashifColors.lightTextMuted,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF132347)
-                        : const Color(0xFFE8F0FC),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isDark
-                          ? KashifColors.goldPrimary.withValues(alpha: 0.5)
-                          : KashifColors.royalBlue.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Text(
-                    p.oemPartNumber!,
-                    style: KashifTypography.mono(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? KashifColors.goldLight
-                          : KashifColors.royalBlue,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.copy_rounded, size: 14),
-                  padding: const EdgeInsets.all(4),
-                  constraints: const BoxConstraints(),
-                  tooltip: 'نسخ رقم القطعة',
-                  onPressed: () {
+                InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () {
                     Clipboard.setData(ClipboardData(text: p.oemPartNumber!));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -355,22 +329,180 @@ class SparePartCard extends StatelessWidget {
                       ),
                     );
                   },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF132347)
+                          : const Color(0xFFE8F0FC),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? KashifColors.goldPrimary.withValues(alpha: 0.5)
+                            : KashifColors.royalBlue.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          p.oemPartNumber!,
+                          style: KashifTypography.mono(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? KashifColors.goldLight
+                                : KashifColors.royalBlue,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.copy_rounded,
+                          size: 13,
+                          color: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Direct Google Search Action
+                InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () async {
+                    final query = '${p.oemPartNumber!} ${p.partNameEnglish}'.trim();
+                    final uri = Uri.parse(
+                      'https://www.google.com/search?q=${Uri.encodeComponent(query)}',
+                    );
+                    try {
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    } catch (_) {}
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF1B281B)
+                          : const Color(0xFFEAF5EA),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF388E3C)
+                            : const Color(0xFF4CAF50),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.travel_explore_rounded,
+                          size: 13,
+                          color: isDark
+                              ? const Color(0xFF81C784)
+                              : const Color(0xFF2E7D32),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'بحث في Google 🔍',
+                          style: KashifTypography.arabic(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? const Color(0xFF81C784)
+                                : const Color(0xFF2E7D32),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ],
 
-          // Aftermarket Alternatives
+          // Aftermarket Alternatives with Interactive Search/Copy
           if (p.aftermarketReplacements.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
-              'الشركات البديلة (المعتمدة): ${p.aftermarketReplacements.join(", ")}',
+              'الشركات البديلة المعتمدة (اضغط للبحث في Google أو النسخ):',
               style: KashifTypography.arabic(
                 fontSize: 11,
                 color: isDark
                     ? KashifColors.darkTextMuted
                     : KashifColors.lightTextMuted,
               ),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: p.aftermarketReplacements.map((alt) {
+                return InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  onTap: () async {
+                    final uri = Uri.parse(
+                      'https://www.google.com/search?q=${Uri.encodeComponent(alt)}',
+                    );
+                    try {
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    } catch (_) {}
+                  },
+                  onLongPress: () {
+                    Clipboard.setData(ClipboardData(text: alt));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('تم نسخ كود البديل: $alt'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        width: 0.7,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          alt,
+                          style: KashifTypography.mono(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.open_in_new_rounded,
+                          size: 10.5,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ],
