@@ -151,6 +151,7 @@ async function generateWithModelFallback(
     responseMimeType?: string;
     model?: string;
     temperature?: number;
+    tools?: unknown[];
   }
 ) {
   const candidates = modelsToTry(params.model || process.env.GEMINI_MODEL);
@@ -169,6 +170,7 @@ async function generateWithModelFallback(
             ...(params.responseMimeType
               ? { responseMimeType: params.responseMimeType }
               : {}),
+            ...(params.tools ? { tools: params.tools as never } : {}),
           },
           contents: params.contents as never,
         }),
@@ -382,22 +384,43 @@ ${rawInput.codesFound?.length ? `--- الأكواد المقروءة حرفيا�
 ${rawInput.scannerTool ? `جهاز الفحص كما طبعه التقرير حرفياً: ${rawInput.scannerTool} — استعمل هذا الاسم كما هو ولا تزيد عليه.\n` : ""}
 ${rawInput.vehicleInfo?.vin ? `رقم الهيكل VIN: ${rawInput.vehicleInfo.vin}\n` : ""}
 ${rawInput.vehicleInfo?.make ? `الصانع: ${rawInput.vehicleInfo.make} ${rawInput.vehicleInfo.model || ""} ${rawInput.vehicleInfo.year || ""}\n` : ""}
-مطلوب في جدول قطع الغيار (sparePartsRequired): لكل عطل أو قطعة تتطلب استبدالاً، استخرج أو طابق رقم القطعة الأصلي للوكالة (oemPartNumber) بدقة متناهية حسب الشركة الصانعة والموديل ورقم الهيكل VIN وسنة الصنع، وقدم قائمة بأكواد القطع البديلة المعتمدة من شركات عالمية (aftermarketReplacements مع أرقامها وكوداتها الدقيقة مثل Denso, Bosch, TRW, Febi, Valeo). ممنوع كتابة عبارات عامة مثل 'حسب رقم الهيكل' أو تركها فارغة.
+مطلوب في جدول قطع الغيار (sparePartsRequired):
+ابحث في الإنترنت وقواعد بيانات قطع الغيار العالمية (مثل RockAuto, PartsMonkey, RealOEM, Catcar, Amayama, أو المواقع الرسمية للشركات الصانعة) عن أرقام القطع الأصلية المطابقة بدقة لموديل السيارة وسنتها ومحركها ورقم هيكلها VIN المذكورين أعلاه.
+- لكل قطعة، ضع رقم الوكالة الأصلي الحقيقي (oemPartNumber) بصيغته الرسمية الدقيقة للشركة الصانعة.
+- ممنوع تكرار نفس رقم القطعة لقطع مختلفة في نفس التقرير!
+- وفّر كودات القطع البديلة المعتمدة (aftermarketReplacements) من شركات موثوقة (مثل Bosch, Denso, NGK, Delphi, TRW, Valeo, Febi, Mann) مع أرقامها وكوداتها الدقيقة.
+- إذا لم يتوفر رقم الهيكل، ابحث وطابق بدقة حسب (سنة الصنع + الشركة الصانعة + الموديل + سعة المحرك ومواصفاته).
 `;
 
   const contents: unknown[] = [];
   if (rawInput.imageParts?.length) contents.push(...rawInput.imageParts);
   contents.push({ text: userPrompt });
 
-  // Model/availability errors surface as KashifError from the ladder above.
-  const response = await generateWithModelFallback(ai, {
-    systemInstruction,
-    responseMimeType: "application/json",
-    contents,
-    model: modelId,
-    // Reading a scan is extraction, not writing. See ANALYSIS_TEMPERATURE.
-    temperature: ANALYSIS_TEMPERATURE,
-  });
+  // Attempt generation with Google Search Grounding to find authentic online OEM part numbers.
+  // If search grounding is unsupported or rejected upstream (e.g. 400), fall back gracefully
+  // to standard structured JSON generation.
+  let response;
+  try {
+    response = await generateWithModelFallback(ai, {
+      systemInstruction,
+      contents,
+      model: modelId,
+      temperature: ANALYSIS_TEMPERATURE,
+      tools: [{ googleSearch: {} }],
+    });
+  } catch (groundingErr) {
+    console.warn(
+      "[Gemini] Search grounding attempt failed or unsupported, falling back to standard JSON generation:",
+      upstreamMessage(groundingErr)
+    );
+    response = await generateWithModelFallback(ai, {
+      systemInstruction,
+      responseMimeType: "application/json",
+      contents,
+      model: modelId,
+      temperature: ANALYSIS_TEMPERATURE,
+    });
+  }
 
   const parsedData = safeJsonParseOrRepair(response.response?.text || "");
 
@@ -743,8 +766,18 @@ export function normalizeDiagnosticReport(
   // commercial claims someone will spend money on. Unknown stays null.
   const oemOrNull = (value: string | null): string | null =>
     value && !saysNothing(value) ? value : null;
+  const seenOemNumbers = new Set<string>();
   const sparePartsRequired = (d.sparePartsRequired ?? []).map(
     (part: RawPart, idx: number) => {
+      let resolvedOem = oemOrNull(pick(part.oemPartNumber));
+      if (resolvedOem) {
+        // Prevent duplicate OEM numbers from being assigned across distinct parts in the same report
+        if (seenOemNumbers.has(resolvedOem)) {
+          resolvedOem = null;
+        } else {
+          seenOemNumbers.add(resolvedOem);
+        }
+      }
       // The schema keeps a price range only when both ends are real numbers,
       // so there is no half-rendered "from 40 to —".
       const price = part.estimatedPriceRangeLYD;
@@ -759,8 +792,8 @@ export function normalizeDiagnosticReport(
           // an airbag connector repair with an oemPartNumber of "N/A", and
           // the card printed "N/A" in the slot somebody reads out at the
           // parts counter. Same filter the odometer already uses.
-          oemPartNumber: oemOrNull(pick(part.oemPartNumber)),
-          isOemNumberUnverified: !statedInScan(oemOrNull(pick(part.oemPartNumber))),
+          oemPartNumber: resolvedOem,
+          isOemNumberUnverified: !statedInScan(resolvedOem),
           aftermarketReplacements: part.aftermarketReplacements ?? [],
           estimatedPriceRangeLYD: price
             ? {
