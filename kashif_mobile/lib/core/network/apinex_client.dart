@@ -51,9 +51,12 @@ class ApinexClient {
     return (model.isNotEmpty) ? model : defaultModel;
   }
 
-  String get masterInstruction => KashifStorage.isTokenSaverEnabled
-      ? LibyanPromptConstants.getCompactSystemInstruction()
-      : LibyanPromptConstants.getMasterSystemInstruction();
+  String get masterInstruction {
+    if (_activeModel.startsWith('free/') || KashifStorage.isTokenSaverEnabled) {
+      return LibyanPromptConstants.getCompactSystemInstruction();
+    }
+    return LibyanPromptConstants.getMasterSystemInstruction();
+  }
 
   Future<Response> _postRequest(dynamic data, {String? keyOverride}) async {
     final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride : _activeApiKey;
@@ -368,7 +371,7 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
       'model': _activeModel,
       'messages': messages,
       'temperature': 0.1,
-      'max_tokens': 16000,
+      'max_tokens': 3500,
     });
 
     if (res.statusCode != 200 || res.data == null) {
