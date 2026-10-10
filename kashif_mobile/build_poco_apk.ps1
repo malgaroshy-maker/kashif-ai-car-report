@@ -27,7 +27,7 @@ if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
 }
 
 if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
-    Write-Host "`n[ERROR] Flutter SDK was not found in PATH or standard directories!" -ForegroundColor Red
+    Write-Host "[ERROR] Flutter SDK was not found in PATH or standard directories!" -ForegroundColor Red
     exit 1
 }
 
@@ -55,16 +55,16 @@ try {
 
 Set-Location -Path $buildDir
 
-Write-Host "`n[1/3] Fetching dependencies..." -ForegroundColor Gray
+Write-Host "[1/3] Fetching dependencies..." -ForegroundColor Gray
 flutter pub get
 
-Write-Host "`nCleaning previous APK build outputs to prevent stale version copying..." -ForegroundColor Gray
+Write-Host "Cleaning previous APK build outputs to prevent stale version copying..." -ForegroundColor Gray
 Remove-Item -Path (Join-Path $buildDir "build\app\outputs\flutter-apk\*.apk") -Force -ErrorAction SilentlyContinue
 Remove-Item -Path (Join-Path $projectRoot "build\app\outputs\flutter-apk\*.apk") -Force -ErrorAction SilentlyContinue
 $destDir = Join-Path (Split-Path $projectRoot -Parent) "APK_OUTPUT"
 Remove-Item -Path (Join-Path $destDir "kashif_poco_x7_pro.apk") -Force -ErrorAction SilentlyContinue
 
-Write-Host "`n[2/3] Compiling optimized ARM64 release for Poco X7 Pro..." -ForegroundColor Yellow
+Write-Host "[2/3] Compiling optimized ARM64 release for Poco X7 Pro..." -ForegroundColor Yellow
 flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons --android-skip-build-dependency-validation
 
 $apkSrc = $null
@@ -91,15 +91,17 @@ if ($apkSrc) {
     
     $fileSizeMB = [math]::Round(((Get-Item $destFile).Length / 1MB), 2)
     
-    Write-Host "`n======================================================================" -ForegroundColor Green
-    Write-Host " ✅ تم بناء تطبيق كاشف بنجاح لجهاز Poco X7 Pro!" -ForegroundColor Green
-    Write-Host " SUCCESS: APK is built successfully!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "======================================================================" -ForegroundColor Green
+    Write-Host " SUCCESS: Kashif APK built successfully for Poco X7 Pro!" -ForegroundColor Green
     Write-Host " File: $destFile" -ForegroundColor Cyan
     Write-Host " Size: $fileSizeMB MB" -ForegroundColor Yellow
-    Write-Host "======================================================================`n" -ForegroundColor Green
+    Write-Host "======================================================================" -ForegroundColor Green
+    Write-Host ""
     
     Invoke-Item $destDir
 } else {
-    Write-Host "`n[ERROR] APK build output was not found." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "[ERROR] APK build output was not found." -ForegroundColor Red
     exit 1
 }

@@ -724,70 +724,78 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const MoldedRib(label: 'مظهر التطبيق والإضاءة'),
             const SizedBox(height: 10),
             FuseCell(
-              padding: const EdgeInsets.all(12),
-              child: Row(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    s.themeMode == ThemeMode.dark
-                        ? Icons.dark_mode_rounded
-                        : Icons.light_mode_rounded,
-                    color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'نمط المظهر:',
-                          style: KashifTypography.arabic(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          s.themeMode == ThemeMode.dark
-                              ? 'الوضع الليلي (الداكن)'
-                              : s.themeMode == ThemeMode.light
-                                  ? 'الوضع النهاري (الفاتح)'
-                                  : 'تلقائي (حسب إعدادات الهاتف)',
-                          style: KashifTypography.arabic(
-                            fontSize: 10.5,
-                            color: isDark
-                                ? KashifColors.darkTextMuted
-                                : KashifColors.lightTextMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SegmentedButton<ThemeMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        icon: Icon(Icons.dark_mode_rounded, size: 16),
-                        label: Text('داكن'),
+                  Row(
+                    children: [
+                      Icon(
+                        s.themeMode == ThemeMode.dark
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
+                        size: 22,
                       ),
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        icon: Icon(Icons.light_mode_rounded, size: 16),
-                        label: Text('فاتح'),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        icon: Icon(Icons.settings_brightness_rounded, size: 16),
-                        label: Text('تلقائي'),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'نمط المظهر',
+                              style: KashifTypography.arabic(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              s.themeMode == ThemeMode.dark
+                                  ? 'الوضع الليلي (الداكن)'
+                                  : s.themeMode == ThemeMode.light
+                                      ? 'الوضع النهاري (الفاتح)'
+                                      : 'تلقائي (حسب إعدادات الهاتف)',
+                              style: KashifTypography.arabic(
+                                fontSize: 11,
+                                color: isDark
+                                    ? KashifColors.darkTextMuted
+                                    : KashifColors.lightTextMuted,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                    selected: {s.themeMode},
-                    onSelectionChanged: (newSelection) {
-                      ref.read(settingsProvider.notifier).updateThemeMode(newSelection.first);
-                    },
-                    style: SegmentedButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<ThemeMode>(
+                      segments: const [
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          icon: Icon(Icons.dark_mode_rounded, size: 16),
+                          label: Text('داكن'),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          icon: Icon(Icons.light_mode_rounded, size: 16),
+                          label: Text('فاتح'),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.system,
+                          icon: Icon(Icons.settings_brightness_rounded, size: 16),
+                          label: Text('تلقائي'),
+                        ),
+                      ],
+                      selected: {s.themeMode},
+                      onSelectionChanged: (newSelection) {
+                        ref.read(settingsProvider.notifier).updateThemeMode(newSelection.first);
+                      },
+                      style: SegmentedButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ),
                   ),
                 ],
@@ -2114,7 +2122,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Flow Cars للأندرويد — الإصدار 1.2.0',
+                    'Flow Cars للأندرويد — الإصدار 1.2.1',
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
