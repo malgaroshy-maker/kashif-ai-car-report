@@ -107,6 +107,44 @@ class CustomHandler(SimpleHTTPRequestHandler):
             self.wfile.write(unregister_code)
             return
 
+        if self.path.startswith('/apinex-proxy'):
+            sub_path = self.path[len('/apinex-proxy'):]
+            target_url = f"https://api.apinex.bond/v1{sub_path}"
+            auth_header = self.headers.get('Authorization', '')
+            req_headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            }
+            if auth_header:
+                req_headers['Authorization'] = auth_header
+
+            req = urllib.request.Request(
+                target_url,
+                headers=req_headers,
+                method='GET'
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=300) as resp:
+                    resp_body = resp.read()
+                    self.send_response(resp.status)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(resp_body)
+            except urllib.error.HTTPError as e:
+                err_body = e.read()
+                self.send_response(e.code)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_body)
+            except Exception as ex:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(ex)}).encode('utf-8'))
+            return
+
         super().do_GET()
 
     def end_headers(self):
@@ -146,7 +184,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 method='POST'
             )
             try:
-                with urllib.request.urlopen(req, timeout=40) as resp:
+                # No restrictive timeout: allow large diagnoses without premature cut-off
+                with urllib.request.urlopen(req, timeout=300) as resp:
                     resp_body = resp.read()
                     self.send_response(resp.status)
                     self.send_header('Content-Type', 'application/json; charset=utf-8')

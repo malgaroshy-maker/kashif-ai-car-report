@@ -96,6 +96,9 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
   String _formatFriendlyError(dynamic e) {
     final str = e.toString();
+    if (str.contains('NO_API_KEY') || str.contains('مفتاح Google Gemini')) {
+      return 'لم يتم إدخال مفتاح Google Gemini في إعدادات التطبيق.';
+    }
     if (str.contains('429') || str.contains('Resource Exhausted') || str.contains('QUOTA')) {
       return 'تم استنفاد كوتة الذكاء الاصطناعي (Quota Exceeded 429). يمكنك التحويل التلقائي أو استخراج التقرير بالقاموس المحلي.';
     }
@@ -108,7 +111,7 @@ class ReportNotifier extends StateNotifier<ReportState> {
     if (str.contains('SocketException') || str.contains('Failed host lookup') || str.contains('Timeout')) {
       return 'تعذر الاتصال بخادم الذكاء الاصطناعي (تحقق من اتصال الإنترنت).';
     }
-    return 'تعذر إتمام الفحص عبر الذكاء الاصطناعي: $str';
+    return str.replaceFirst('Exception: ', '');
   }
 
   /// Scan PDF with strict AI prioritization
@@ -180,13 +183,14 @@ class ReportNotifier extends StateNotifier<ReportState> {
         return;
       } catch (apError) {
         // Failover to Gemini if configured
-        if (KashifStorage.customApiKey?.isNotEmpty == true) {
+        final customKey = KashifStorage.customApiKey;
+        if (customKey?.isNotEmpty == true) {
           try {
             state = state.copyWith(progressText: 'تحويل إلى محرك Gemini...');
             final report = await _apiClient.analyzePdfBytes(
               bytes,
               fileName,
-              customApiKey: KashifStorage.customApiKey,
+              customApiKey: customKey,
             );
             await KashifStorage.cacheReportByFingerprint(fp, report);
             await KashifStorage.saveReport(report);
@@ -202,13 +206,26 @@ class ReportNotifier extends StateNotifier<ReportState> {
               canFallbackToOffline: false,
             );
             return;
-          } catch (_) {}
+          } catch (geminiError) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage:
+                  'تعذر الفحص عبر APInex: ${_formatFriendlyError(apError)}\nوفشل التحويل لـ Gemini: ${_formatFriendlyError(geminiError)}',
+              canFallbackToOffline: true,
+              progressText: '',
+              lastScannedBytes: bytes,
+              lastScannedFileName: fileName,
+              lastScannedIsPdf: true,
+            );
+            return;
+          }
         }
 
-        // Both AI engines failed -> ask user instead of silent bypass
+        // Gemini key is not configured in settings
         state = state.copyWith(
           isLoading: false,
-          errorMessage: _formatFriendlyError(apError),
+          errorMessage:
+              'تعذر الفحص عبر APInex (${_formatFriendlyError(apError)}).\nلم يتم إدخال مفتاح Google Gemini في الإعدادات لتفعيل التحويل التلقائي.',
           canFallbackToOffline: true,
           progressText: '',
           lastScannedBytes: bytes,
@@ -285,10 +302,22 @@ class ReportNotifier extends StateNotifier<ReportState> {
             progressText: '',
           );
           return;
-        } catch (_) {}
+        } catch (apError) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage:
+                'تعذر الفحص عبر Gemini: ${_formatFriendlyError(geminiError)}\nوفشل التحويل لـ APInex: ${_formatFriendlyError(apError)}',
+            canFallbackToOffline: true,
+            progressText: '',
+            lastScannedBytes: bytes,
+            lastScannedFileName: fileName,
+            lastScannedIsPdf: true,
+          );
+          return;
+        }
       }
 
-      // Both AI attempts failed -> notify user and offer fallback
+      // Gemini failed and APInex failover disabled
       state = state.copyWith(
         isLoading: false,
         errorMessage: _formatFriendlyError(geminiError),
@@ -359,13 +388,14 @@ class ReportNotifier extends StateNotifier<ReportState> {
         return;
       } catch (apError) {
         // Try Gemini fallback if configured
-        if (KashifStorage.customApiKey?.isNotEmpty == true) {
+        final customKey = KashifStorage.customApiKey;
+        if (customKey?.isNotEmpty == true) {
           try {
             state = state.copyWith(progressText: 'تحويل إلى محرك Gemini Vision...');
             final report = await _apiClient.analyzeImageBytes(
               bytes,
               fileName,
-              customApiKey: KashifStorage.customApiKey,
+              customApiKey: customKey,
             );
             await KashifStorage.cacheReportByFingerprint(fp, report);
             await KashifStorage.saveReport(report);
@@ -379,12 +409,25 @@ class ReportNotifier extends StateNotifier<ReportState> {
               canFallbackToOffline: false,
             );
             return;
-          } catch (_) {}
+          } catch (geminiError) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage:
+                  'تعذر الفحص عبر APInex: ${_formatFriendlyError(apError)}\nوفشل التحويل لـ Gemini: ${_formatFriendlyError(geminiError)}',
+              canFallbackToOffline: true,
+              progressText: '',
+              lastScannedBytes: bytes,
+              lastScannedFileName: fileName,
+              lastScannedIsPdf: false,
+            );
+            return;
+          }
         }
 
         state = state.copyWith(
           isLoading: false,
-          errorMessage: _formatFriendlyError(apError),
+          errorMessage:
+              'تعذر الفحص عبر APInex (${_formatFriendlyError(apError)}).\nلم يتم إدخال مفتاح Google Gemini في الإعدادات لتفعيل التحويل التلقائي.',
           canFallbackToOffline: true,
           progressText: '',
           lastScannedBytes: bytes,
@@ -450,7 +493,19 @@ class ReportNotifier extends StateNotifier<ReportState> {
             progressText: '',
           );
           return;
-        } catch (_) {}
+        } catch (apError) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage:
+                'تعذر الفحص عبر Gemini: ${_formatFriendlyError(geminiError)}\nوفشل التحويل لـ APInex: ${_formatFriendlyError(apError)}',
+            canFallbackToOffline: true,
+            progressText: '',
+            lastScannedBytes: bytes,
+            lastScannedFileName: fileName,
+            lastScannedIsPdf: false,
+          );
+          return;
+        }
       }
 
       state = state.copyWith(
@@ -519,13 +574,14 @@ class ReportNotifier extends StateNotifier<ReportState> {
         );
         return;
       } catch (apError) {
-        if (KashifStorage.customApiKey?.isNotEmpty == true) {
+        final customKey = KashifStorage.customApiKey;
+        if (customKey?.isNotEmpty == true) {
           try {
             state = state.copyWith(progressText: 'تحويل إلى محرك Gemini...');
             final report = await _apiClient.analyzeManual(
               codes: codes,
               vin: vin,
-              customApiKey: KashifStorage.customApiKey,
+              customApiKey: customKey,
             );
             await KashifStorage.cacheReportByFingerprint(fp, report);
             await KashifStorage.saveReport(report);
@@ -539,12 +595,24 @@ class ReportNotifier extends StateNotifier<ReportState> {
               canFallbackToOffline: false,
             );
             return;
-          } catch (_) {}
+          } catch (geminiError) {
+            state = state.copyWith(
+              isLoading: false,
+              errorMessage:
+                  'تعذر الفحص عبر APInex: ${_formatFriendlyError(apError)}\nوفشل التحويل لـ Gemini: ${_formatFriendlyError(geminiError)}',
+              canFallbackToOffline: true,
+              progressText: '',
+              lastManualCodes: codes,
+              lastManualVin: vin,
+            );
+            return;
+          }
         }
 
         state = state.copyWith(
           isLoading: false,
-          errorMessage: _formatFriendlyError(apError),
+          errorMessage:
+              'تعذر الفحص عبر APInex (${_formatFriendlyError(apError)}).\nلم يتم إدخال مفتاح Google Gemini في الإعدادات لتفعيل التحويل التلقائي.',
           canFallbackToOffline: true,
           progressText: '',
           lastManualCodes: codes,
@@ -607,7 +675,18 @@ class ReportNotifier extends StateNotifier<ReportState> {
             progressText: '',
           );
           return;
-        } catch (_) {}
+        } catch (apError) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage:
+                'تعذر الفحص عبر Gemini: ${_formatFriendlyError(geminiError)}\nوفشل التحويل لـ APInex: ${_formatFriendlyError(apError)}',
+            canFallbackToOffline: true,
+            progressText: '',
+            lastManualCodes: codes,
+            lastManualVin: vin,
+          );
+          return;
+        }
       }
 
       state = state.copyWith(

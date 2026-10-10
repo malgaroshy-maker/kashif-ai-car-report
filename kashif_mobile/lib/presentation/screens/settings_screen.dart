@@ -16,19 +16,19 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
   static const List<Map<String, String>> apinexFreeModels = [
     {
+      'id': 'free/deepseek-v4.1-flash',
+      'name': 'DeepSeek V4.1 Flash (مجاني • الموصى به لكاشف)',
+      'desc': 'سرعة فائقة (3 ثوانٍ) ودقة عالية في استنتاج الأكواد وتشخيص الأنظمة (1M Context)',
+    },
+    {
       'id': 'free/gpt-6-luna',
-      'name': 'GPT-6 Luna (مجاني • الافتراضي لكاشف)',
+      'name': 'GPT-6 Luna (مجاني • تقرير شامل)',
       'desc': 'الموديل المعتمد لتقارير الفحص ومصطلحات الورش الليبية (1M Context)',
     },
     {
       'id': 'free/glm-5.3-flash',
       'name': 'GLM-5.3 Flash (مجاني • سرعة فائقة)',
       'desc': 'استجابة فورية وسريعة جداً في قراءة وتحليل الأعطال (1M Context)',
-    },
-    {
-      'id': 'free/deepseek-v4.1-flash',
-      'name': 'DeepSeek V4.1 Flash (مجاني • دقة ومطابقة)',
-      'desc': 'قوي جداً في استنتاج الأكواد وتشخيص الأنظمة والدوائر (1M Context)',
     },
     {
       'id': 'free/deepseek-v4-pro-0813',

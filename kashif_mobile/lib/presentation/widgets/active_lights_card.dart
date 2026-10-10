@@ -220,6 +220,7 @@ class ActiveLightsCard extends StatelessWidget {
                             symbolId: item.id,
                             color: lightColor,
                             size: 22,
+                            fallbackIcon: item.icon,
                           ),
                           const SizedBox(width: 8),
                           Column(

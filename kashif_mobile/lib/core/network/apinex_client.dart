@@ -8,7 +8,7 @@ import '../../data/storage/hive_storage.dart';
 class ApinexClient {
   static const String directBaseUrl = 'https://api.apinex.bond/v1';
   static const String defaultApiKey = 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
-  static const String defaultModel = 'free/gpt-6-luna';
+  static const String defaultModel = 'free/deepseek-v4.1-flash';
 
   static String get defaultBaseUrl {
     if (kIsWeb) {
@@ -29,8 +29,8 @@ class ApinexClient {
             Dio(
               BaseOptions(
                 baseUrl: defaultBaseUrl,
-                connectTimeout: const Duration(seconds: 30),
-                receiveTimeout: const Duration(seconds: 90),
+                connectTimeout: const Duration(seconds: 45),
+                receiveTimeout: const Duration(minutes: 5),
                 headers: {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
@@ -78,8 +78,8 @@ class ApinexClient {
         final directDio = Dio(
           BaseOptions(
             baseUrl: directBaseUrl,
-            connectTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 90),
+            connectTimeout: const Duration(seconds: 45),
+            receiveTimeout: const Duration(minutes: 5),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -367,11 +367,11 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
   }
 
   Future<DiagnosticReport> _sendRequestAndParse(List<dynamic> messages) async {
+    // No artificial token limit: allow full detailed diagnostic report generation
     final res = await _postRequest({
       'model': _activeModel,
       'messages': messages,
       'temperature': 0.1,
-      'max_tokens': 3500,
     });
 
     if (res.statusCode != 200 || res.data == null) {
@@ -385,16 +385,34 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
     }
 
     final content = choices[0]['message']?['content']?.toString() ?? '';
-    if (choices[0]['finish_reason'] == 'length') {
-      throw Exception(
-        'انقطع رد النموذج قبل اكتمال التقرير (تجاوز الحد الأقصى). أعد المحاولة أو قلّل عدد الأكواد.',
-      );
+    if (content.trim().isEmpty) {
+      if (choices[0]['finish_reason'] == 'length') {
+        throw Exception(
+          'استهلك النموذج كامل الرموز في التفكير المسبق دون إخراج التقرير. اختر نموذجاً سريعاً مثل DeepSeek V4.1 Flash.',
+        );
+      }
+      throw Exception('استجابة نموذج الذكاء الاصطناعي فارغة.');
     }
-    return _parseReportContent(content);
+
+    try {
+      return _parseReportContent(content);
+    } catch (parseError) {
+      if (choices[0]['finish_reason'] == 'length') {
+        throw Exception(
+          'انقطع رد النموذج قبل اكتمال التقرير (تجاوز الحد الأقصى للسيرفر). جرب تقليل عدد الأكواد أو اختيار DeepSeek V4.1 Flash.',
+        );
+      }
+      rethrow;
+    }
   }
 
   DiagnosticReport _parseReportContent(String rawContent) {
     String clean = rawContent.trim();
+
+    // 0. Strip reasoning / chain-of-thought blocks if present
+    if (clean.contains('<think>')) {
+      clean = clean.replaceAll(RegExp(r'<think>[\s\S]*?</think>'), '').trim();
+    }
 
     // 1. Strip markdown code fences if present
     if (clean.contains('```json')) {
@@ -432,18 +450,24 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
         );
       }
     } catch (e) {
-      // Attempt to clean escaped characters or formatting issues
-      try {
-        final sanitized = clean
-            .replaceAll(RegExp(r',\s*}'), '}')
-            .replaceAll(RegExp(r',\s*]'), ']');
-        final decoded = jsonDecode(sanitized);
-        if (decoded is Map) {
-          return DiagnosticReport.fromJson(
-            decoded.map((k, v) => MapEntry(k.toString(), v)),
-          );
-        }
-      } catch (_) {}
+      // Attempt to clean escaped characters or unclosed formatting
+      final attempts = [
+        clean.replaceAll(RegExp(r',\s*}'), '}').replaceAll(RegExp(r',\s*]'), ']'),
+        '$clean}',
+        '$clean]}',
+        '$clean"]}',
+      ];
+
+      for (final candidate in attempts) {
+        try {
+          final decoded = jsonDecode(candidate);
+          if (decoded is Map) {
+            return DiagnosticReport.fromJson(
+              decoded.map((k, v) => MapEntry(k.toString(), v)),
+            );
+          }
+        } catch (_) {}
+      }
     }
 
     throw Exception('تعذر استخراج بيانات تقرير الفحص بصيغة صالحة من النموذج.');

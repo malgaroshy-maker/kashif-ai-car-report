@@ -23,9 +23,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
 
   void _navigateToTab(int index) {
-    if (index == 3) {
-      ref.read(historyProvider.notifier).loadHistory();
-    }
     setState(() {
       _currentIndex = index;
     });
@@ -39,7 +36,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ScanScreen(onReportReady: () => _navigateToTab(1)),
       const ReportScreen(),
       DtcLookupScreen(onReportGenerated: () => _navigateToTab(1)),
-      HistoryScreen(onReportSelected: () => _navigateToTab(1)),
+      const FuseBoxScreen(showAppBar: false),
       const DictionaryScreen(),
     ];
 
@@ -47,7 +44,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       'فحص جديد',
       'تقرير الفحص',
       'الأعطال',
-      'سجل الفحوصات',
+      'دليل ومكتشف الفيوزات',
       'قاموس الورش',
     ];
 
@@ -138,18 +135,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
             },
           ),
-          // Fuse Box Guide button
+          // Reports History button (Moved to Header)
           IconButton(
             icon: Icon(
-              Icons.electric_bolt_rounded,
-              size: 20,
+              Icons.history_rounded,
+              size: 21,
               color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
             ),
-            tooltip: 'دليل ومكتشف الفيوزات',
+            tooltip: 'سجل الفحوصات المحفوظة',
             onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const FuseBoxScreen()));
+              ref.read(historyProvider.notifier).loadHistory();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => HistoryScreen(
+                    showAppBar: true,
+                    onReportSelected: () {
+                      Navigator.of(context).pop();
+                      _navigateToTab(1);
+                    },
+                  ),
+                ),
+              );
             },
           ),
           // Settings button
@@ -204,12 +210,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: 'الأعطال',
           ),
           NavigationDestination(
-            icon: const Icon(Icons.history_rounded),
+            icon: const Icon(Icons.electric_bolt_outlined),
             selectedIcon: Icon(
-              Icons.history_rounded,
+              Icons.electric_bolt_rounded,
               color: isDark ? KashifColors.goldLight : KashifColors.goldDark,
             ),
-            label: 'السجل',
+            label: 'الفيوزات',
           ),
           NavigationDestination(
             icon: const Icon(Icons.menu_book_outlined),

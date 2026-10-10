@@ -288,21 +288,29 @@ class KashifStorage {
     await settingsBox.put('customDictionaryEntries', list);
   }
 
-  // APInex Alternative Engine Settings (GPT-6 Luna)
+  // APInex Alternative Engine Settings (DeepSeek / GPT-6)
   static String get apinexApiKey {
     try {
-      final key = settingsBox.get('apinexApiKey', defaultValue: 'sk-apx6963c3f6039e5c06788e4a6e7920707a1f17d36c90319db') as String;
-      return key.trim();
+      final key = settingsBox.get('apinexApiKey', defaultValue: 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19') as String;
+      final clean = key.trim();
+      return clean.isNotEmpty ? clean : 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
     } catch (_) {
-      return 'sk-apx6963c3f6039e5c06788e4a6e7920707a1f17d36c90319db';
+      return 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
     }
   }
 
   static Future<void> setApinexApiKey(String key) async =>
       await settingsBox.put('apinexApiKey', key.trim());
 
-  static String get apinexModel =>
-      settingsBox.get('apinexModel', defaultValue: 'free/gpt-6-luna') as String;
+  static String get apinexModel {
+    try {
+      final m = settingsBox.get('apinexModel', defaultValue: 'free/deepseek-v4.1-flash') as String;
+      final clean = m.trim();
+      return clean.isNotEmpty ? clean : 'free/deepseek-v4.1-flash';
+    } catch (_) {
+      return 'free/deepseek-v4.1-flash';
+    }
+  }
 
   static Future<void> setApinexModel(String model) async =>
       await settingsBox.put('apinexModel', model.trim());

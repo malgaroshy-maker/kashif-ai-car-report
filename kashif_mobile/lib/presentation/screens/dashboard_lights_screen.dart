@@ -28,6 +28,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
   LightSeverity? _selectedSeverity;
   String? _dtcFilter;
   String _searchQuery = '';
+  bool _isGridView = false;
 
   bool get _isSelectionMode => widget.onLightsSelected != null;
 
@@ -64,13 +65,25 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
         title: Text(
           _isSelectionMode
               ? 'تحديد لمبات الطبلون المضاءة'
-              : 'دليل لمبات طبلون السيارة',
+              : 'دليل لمبات طبلون السيارة (64 لمبة)',
           style: KashifTypography.arabic(
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              _isGridView ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
+              color: const Color(0xFFD4AF37),
+            ),
+            tooltip: _isGridView
+                ? 'عرض القائمة المفصلة'
+                : 'عرض شبكة الطبلون (64 لمبة)',
+            onPressed: () {
+              setState(() => _isGridView = !_isGridView);
+            },
+          ),
           if (_isSelectionMode && _selectedIds.isNotEmpty)
             TextButton(
               onPressed: () {
@@ -150,7 +163,8 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                         : KashifColors.lightTextPrimary,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'ابحث عن اللمبة (المكينة، الزيت، ABS، P0300)...',
+                    hintText:
+                        'ابحث برقم اللمبة (مثال: 57) أو بالاسم (الزيت، ABS، P0300)...',
                     hintStyle: KashifTypography.arabic(
                       fontSize: 12,
                       color: isDark
@@ -297,7 +311,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
               ),
             ),
 
-          // Lights list
+          // Lights list or grid
           Expanded(
             child: filteredLights.isEmpty
                 ? Center(
@@ -326,7 +340,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'جرب البحث باسم آخر مثل: الزيت، الفرامل، ABS، المكينة، أو كود DTC.',
+                            'جرب البحث برقم اللمبة (مثل: 57) أو باسمها (الزيت، الفرامل، ABS، المكينة).',
                             textAlign: TextAlign.center,
                             style: KashifTypography.arabic(
                               fontSize: 11.5,
@@ -339,18 +353,48 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                       ),
                     ),
                   )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    itemCount: filteredLights.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredLights[index];
-                      final isSelected = _selectedIds.contains(item.id);
-                      return _buildLightCard(context, item, isSelected, isDark);
-                    },
-                  ),
+                : _isGridView
+                    ? GridView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 0.82,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: filteredLights.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredLights[index];
+                          final isSelected = _selectedIds.contains(item.id);
+                          return _buildLightGridCard(
+                            context,
+                            item,
+                            isSelected,
+                            isDark,
+                          );
+                        },
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        itemCount: filteredLights.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredLights[index];
+                          final isSelected = _selectedIds.contains(item.id);
+                          return _buildLightCard(
+                            context,
+                            item,
+                            isSelected,
+                            isDark,
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -415,6 +459,147 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
     );
   }
 
+  Widget _buildLightGridCard(
+    BuildContext context,
+    DashboardLightItem item,
+    bool isSelected,
+    bool isDark,
+  ) {
+    final lightColor = Color(item.colorValue);
+
+    return InkWell(
+      onTap: () {
+        if (_isSelectionMode) {
+          setState(() {
+            if (isSelected) {
+              _selectedIds.remove(item.id);
+            } else {
+              _selectedIds.add(item.id);
+            }
+          });
+        } else {
+          _showLightDetailSheet(context, item, isDark);
+        }
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFFD4AF37).withValues(alpha: 0.16)
+              : (isDark ? KashifColors.darkCell : KashifColors.lightCell),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFFD4AF37)
+                : (isDark ? KashifColors.darkBorder : KashifColors.lightBorder),
+            width: isSelected ? 2.0 : 1.0,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
+                blurRadius: 6,
+              ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Top Row: Number badge and selection / symbolCode
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: lightColor.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: lightColor.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Text(
+                    '#${item.number}',
+                    style: TextStyle(
+                      fontFamily: 'Courier',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: lightColor,
+                    ),
+                  ),
+                ),
+                if (_isSelectionMode)
+                  Icon(
+                    isSelected
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    size: 16,
+                    color: isSelected
+                        ? const Color(0xFFD4AF37)
+                        : (isDark ? Colors.white38 : Colors.black26),
+                  )
+                else
+                  Text(
+                    item.symbolCode,
+                    style: TextStyle(
+                      fontFamily: 'Courier',
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: lightColor.withValues(alpha: 0.8),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+
+            // Center Icon with glow
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: lightColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: lightColor, width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: lightColor.withValues(alpha: 0.25),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: CarDashboardSymbol(
+                  symbolId: item.id,
+                  color: lightColor,
+                  size: 24,
+                  fallbackIcon: item.icon,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+
+            // Bottom Name (centered, maxLines: 2)
+            Text(
+              item.nameArabic,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: KashifTypography.arabic(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: isDark
+                    ? KashifColors.darkTextPrimary
+                    : KashifColors.lightTextPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLightCard(
     BuildContext context,
     DashboardLightItem item,
@@ -437,7 +622,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                 }
               });
             }
-          : null,
+          : () => _showLightDetailSheet(context, item, isDark),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -446,8 +631,8 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
             children: [
               // Icon Frame with colored glow
               Container(
-                width: 46,
-                height: 46,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: lightColor.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(10),
@@ -464,25 +649,55 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                     symbolId: item.id,
                     color: lightColor,
                     size: 28,
+                    fallbackIcon: item.icon,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // Title and English name
+              // Title and number
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.nameArabic,
-                      style: KashifTypography.arabic(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: isDark
-                            ? KashifColors.darkTextPrimary
-                            : KashifColors.lightTextPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: lightColor.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: lightColor.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: Text(
+                            '#${item.number}',
+                            style: TextStyle(
+                              fontFamily: 'Courier',
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w900,
+                              color: lightColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            item.nameArabic,
+                            style: KashifTypography.arabic(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? KashifColors.darkTextPrimary
+                                  : KashifColors.lightTextPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -689,6 +904,316 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  void _showLightDetailSheet(
+    BuildContext context,
+    DashboardLightItem item,
+    bool isDark,
+  ) {
+    final lightColor = Color(item.colorValue);
+    final canDriveColor = Color(item.canDrive.colorValue);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          border: Border.all(
+            color: isDark ? KashifColors.darkBorder : KashifColors.lightBorder,
+          ),
+        ),
+        padding: const EdgeInsets.all(18),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: lightColor.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: lightColor, width: 1.5),
+                    ),
+                    child: Center(
+                      child: CarDashboardSymbol(
+                        symbolId: item.id,
+                        color: lightColor,
+                        size: 28,
+                        fallbackIcon: item.icon,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: lightColor.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: lightColor.withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Text(
+                                '#${item.number}',
+                                style: TextStyle(
+                                  fontFamily: 'Courier',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  color: lightColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                item.nameArabic,
+                                style: KashifTypography.arabic(
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? KashifColors.darkTextPrimary
+                                      : KashifColors.lightTextPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          item.nameEnglish,
+                          style: TextStyle(
+                            fontFamily: 'Courier',
+                            fontSize: 11,
+                            color: isDark
+                                ? KashifColors.darkTextMuted
+                                : KashifColors.lightTextMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const Divider(height: 18),
+
+              // Can-Drive status
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: canDriveColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border:
+                      Border.all(color: canDriveColor.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      item.canDrive == CanDriveStatus.stopImmediately
+                          ? Icons.dangerous_rounded
+                          : Icons.warning_amber_rounded,
+                      color: canDriveColor,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        item.canDrive.labelArabic,
+                        style: KashifTypography.arabic(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: canDriveColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Meaning
+              Text(
+                'المعنى ودلالة التحذير:',
+                style: KashifTypography.arabic(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.meaningArabic,
+                style: KashifTypography.arabic(
+                  fontSize: 12.5,
+                  color: isDark
+                      ? KashifColors.darkTextPrimary
+                      : KashifColors.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Common Causes
+              if (item.commonCauses.isNotEmpty) ...[
+                Text(
+                  'الأسباب الشائعة:',
+                  style: KashifTypography.arabic(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ...item.commonCauses.map(
+                  (cause) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('• ', style: TextStyle(fontSize: 14)),
+                        Expanded(
+                          child: Text(
+                            cause,
+                            style: KashifTypography.arabic(
+                              fontSize: 12,
+                              color: isDark
+                                  ? KashifColors.darkTextPrimary
+                                  : KashifColors.lightTextPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+
+              // Action required
+              Text(
+                'الإجراء الفوري المطلوب:',
+                style: KashifTypography.arabic(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? KashifColors.darkTextMuted
+                      : KashifColors.lightTextMuted,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? const Color(0xFF142019) : const Color(0xFFF0F9F3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFF2E9E5B).withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text(
+                  item.actionRequired,
+                  style: KashifTypography.arabic(
+                    fontSize: 11.5,
+                    color: isDark
+                        ? const Color(0xFFC8E6C9)
+                        : const Color(0xFF1B5E20),
+                  ),
+                ),
+              ),
+
+              // Associated DTCs
+              if (item.associatedDTCs.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'أكواد الأعطال المرتبطة (DTC):',
+                  style: KashifTypography.arabic(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? KashifColors.darkTextMuted
+                        : KashifColors.lightTextMuted,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: item.associatedDTCs.map((code) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF1E2838)
+                            : const Color(0xFFEEF3F8),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Text(
+                        code,
+                        style: const TextStyle(
+                          fontFamily: 'Courier',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFD4AF37),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFD4AF37),
+                  foregroundColor: const Color(0xFF070E1E),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'إغلاق',
+                  style: KashifTypography.arabic(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

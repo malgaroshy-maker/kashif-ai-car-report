@@ -21,6 +21,7 @@ enum CanDriveStatus {
 }
 
 class DashboardLightItem {
+  final int number;
   final String id;
   final String nameArabic;
   final String nameEnglish;
@@ -35,6 +36,7 @@ class DashboardLightItem {
   final int colorValue;
 
   const DashboardLightItem({
+    required this.number,
     required this.id,
     required this.nameArabic,
     required this.nameEnglish,
@@ -50,6 +52,7 @@ class DashboardLightItem {
   });
 
   Map<String, dynamic> toJson() => {
+    'number': number,
     'id': id,
     'nameArabic': nameArabic,
     'nameEnglish': nameEnglish,
@@ -61,6 +64,7 @@ class DashboardLightItem {
   factory DashboardLightItem.fromId(String id) {
     // Will be linked to repository lookup
     return DashboardLightItem(
+      number: 0,
       id: id,
       nameArabic: id,
       nameEnglish: id,

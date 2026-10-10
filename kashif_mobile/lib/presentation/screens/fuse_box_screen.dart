@@ -7,8 +7,13 @@ import '../widgets/fuse_cell.dart';
 
 class FuseBoxScreen extends StatefulWidget {
   final String? initialDtcFilter;
+  final bool showAppBar;
 
-  const FuseBoxScreen({super.key, this.initialDtcFilter});
+  const FuseBoxScreen({
+    super.key,
+    this.initialDtcFilter,
+    this.showAppBar = true,
+  });
 
   @override
   State<FuseBoxScreen> createState() => _FuseBoxScreenState();
@@ -48,22 +53,24 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'دليل ومكتشف علبة الفيوزات',
-          style: KashifTypography.arabic(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline_rounded, size: 20),
-            tooltip: 'إرشادات السلامة والفحص',
-            onPressed: () => _showSafetyGuide(context, isDark),
-          ),
-        ],
-      ),
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: Text(
+                'دليل ومكتشف علبة الفيوزات',
+                style: KashifTypography.arabic(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.info_outline_rounded, size: 20),
+                  tooltip: 'إرشادات السلامة والفحص',
+                  onPressed: () => _showSafetyGuide(context, isDark),
+                ),
+              ],
+            )
+          : null,
       body: Column(
         children: [
           // Search & Filters Header

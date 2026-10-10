@@ -13,8 +13,13 @@ import 'report_compare_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
   final VoidCallback onReportSelected;
+  final bool showAppBar;
 
-  const HistoryScreen({super.key, required this.onReportSelected});
+  const HistoryScreen({
+    super.key,
+    required this.onReportSelected,
+    this.showAppBar = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,6 +28,17 @@ class HistoryScreen extends ConsumerWidget {
 
     if (savedReports.isEmpty) {
       return Scaffold(
+        appBar: showAppBar
+            ? AppBar(
+                title: Text(
+                  'سجل الفحوصات والتقارير',
+                  style: KashifTypography.arabic(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              )
+            : null,
         body: RefreshIndicator(
           onRefresh: () async =>
               ref.read(historyProvider.notifier).loadHistory(),
@@ -99,6 +115,17 @@ class HistoryScreen extends ConsumerWidget {
     }
 
     return Scaffold(
+      appBar: showAppBar
+          ? AppBar(
+              title: Text(
+                'سجل الفحوصات والتقارير',
+                style: KashifTypography.arabic(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            )
+          : null,
       body: RefreshIndicator(
         onRefresh: () async => ref.read(historyProvider.notifier).loadHistory(),
         child: ListView.builder(

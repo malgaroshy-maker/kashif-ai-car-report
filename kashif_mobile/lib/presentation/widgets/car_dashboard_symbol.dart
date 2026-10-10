@@ -6,16 +6,55 @@ class CarDashboardSymbol extends StatelessWidget {
   final String symbolId;
   final Color color;
   final double size;
+  final IconData? fallbackIcon;
 
   const CarDashboardSymbol({
     super.key,
     required this.symbolId,
     required this.color,
     this.size = 28.0,
+    this.fallbackIcon,
   });
+
+  static const _supportedCustomPainters = {
+    'oil_pressure',
+    'check_engine',
+    'coolant_temp',
+    'battery_charge',
+    'abs_system',
+    'abs_system_red',
+    'brake_system',
+    'tpms_pressure',
+    'esp_tcs',
+    'airbag_srs',
+    'steering_eps',
+    'trans_temp',
+    'glow_dpf',
+    'brake_pads',
+    'fuel_cap',
+    'low_fuel',
+    'washer_fluid',
+    'high_beam',
+    'cruise_control',
+    'eco_mode',
+  };
 
   @override
   Widget build(BuildContext context) {
+    if (_supportedCustomPainters.contains(symbolId)) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(
+          painter: _DashboardSymbolPainter(symbolId: symbolId, color: color),
+        ),
+      );
+    }
+
+    if (fallbackIcon != null) {
+      return Icon(fallbackIcon, size: size, color: color);
+    }
+
     return SizedBox(
       width: size,
       height: size,
@@ -63,6 +102,7 @@ class _DashboardSymbolPainter extends CustomPainter {
         _drawBattery(canvas, size, fillPaint, strokePaint);
         break;
       case 'abs_system':
+      case 'abs_system_red':
         _drawAbs(canvas, size, strokePaint);
         break;
       case 'brake_system':
@@ -90,6 +130,7 @@ class _DashboardSymbolPainter extends CustomPainter {
         _drawBrakePads(canvas, size, strokePaint);
         break;
       case 'fuel_cap':
+      case 'low_fuel':
         _drawFuelCap(canvas, size, fillPaint, strokePaint);
         break;
       case 'washer_fluid':
