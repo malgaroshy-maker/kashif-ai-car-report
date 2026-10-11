@@ -82,6 +82,15 @@ class PartNumberResolver {
         effectiveVehicle = VehicleInfo(vin: '', make: 'Toyota', model: '', year: '');
       } else if (combined.contains('hyundai') || combined.contains('هيونداي') || combined.contains('النترا') || combined.contains('كيا')) {
         effectiveVehicle = VehicleInfo(vin: '', make: 'Hyundai', model: '', year: '');
+      } else if (combined.contains('opel') ||
+          combined.contains('أوبل') ||
+          combined.contains('اوبل') ||
+          combined.contains('astra') ||
+          combined.contains('أسترا') ||
+          combined.contains('استرا') ||
+          combined.contains('corsa') ||
+          combined.contains('vectra')) {
+        effectiveVehicle = VehicleInfo(vin: '', make: 'Opel', model: 'Astra-G', year: '1999');
       }
     }
 
@@ -92,27 +101,37 @@ class PartNumberResolver {
       final enriched = enrich(parts[i], vehicle: effectiveVehicle);
       final oem = enriched.oemPartNumber;
 
-      // Deduplication guard: if an exact OEM number is already used by an earlier part in this report,
-      // and it's not a generic note, distinguish it to prevent misleading duplicates.
+      // Deduplication guard: if an exact OEM number is repeated across different parts,
+      // resolve with specific catalog part or fall back cleanly to VIN match, NEVER fake "-ALT" codes.
       if (oem != null &&
           oem.isNotEmpty &&
           !oem.contains('مطابقة') &&
           seenOems.contains(oem)) {
-        final distinguishedOem = '$oem-ALT${i + 1}';
+        final specificMatch = _lookupCatalog(part: parts[i], vehicle: effectiveVehicle) ??
+            _generateSmartMatchingPart(parts[i], vehicle: effectiveVehicle);
+        String resolvedOem = specificMatch.oem;
+        List<String> resolvedReplacements = specificMatch.replacements;
+        PriceRangeLYD? resolvedPrice = specificMatch.priceRange;
+
+        if (seenOems.contains(resolvedOem)) {
+          resolvedOem = 'مطابقة برقم الهيكل (VIN)';
+        } else {
+          seenOems.add(resolvedOem);
+        }
+
         final updated = SparePartItem(
           id: enriched.id,
           relatedCode: enriched.relatedCode,
           partNameLibyan: enriched.partNameLibyan,
           partNameStandardArabic: enriched.partNameStandardArabic,
           partNameEnglish: enriched.partNameEnglish,
-          oemPartNumber: distinguishedOem,
-          aftermarketReplacements: enriched.aftermarketReplacements,
-          estimatedPriceRangeLYD: enriched.estimatedPriceRangeLYD,
+          oemPartNumber: resolvedOem,
+          aftermarketReplacements: resolvedReplacements,
+          estimatedPriceRangeLYD: enriched.estimatedPriceRangeLYD ?? resolvedPrice,
           systemCategory: enriched.systemCategory,
           partImageUrl: enriched.partImageUrl,
           replacementUrgency: enriched.replacementUrgency,
         );
-        seenOems.add(distinguishedOem);
         enrichedList.add(updated);
       } else {
         if (oem != null && oem.isNotEmpty && !oem.contains('مطابقة')) {
@@ -157,6 +176,16 @@ class PartNumberResolver {
     final isHyundaiKia = vMake.contains('hyundai') || vMake.contains('kia') || vMake.contains('هيونداي') || vMake.contains('كيا') || text.contains('elantra');
     final isNissan = vMake.contains('nissan') || vMake.contains('نيسان') || text.contains('nissan') || vModel.contains('sunny');
     final isVag = vMake.contains('volkswagen') || vMake.contains('audi') || vMake.contains('فولكس') || text.contains('golf') || text.contains('passat');
+    final isOpel = vMake.contains('opel') ||
+        vMake.contains('أوبل') ||
+        vMake.contains('اوبل') ||
+        vMake.contains('vauxhall') ||
+        vModel.contains('astra') ||
+        vModel.contains('أسترا') ||
+        vModel.contains('corsa') ||
+        vModel.contains('vectra') ||
+        text.contains('opel') ||
+        text.contains('أوبل');
 
     // 1. BMW Specifics
     if (isBmw) {
@@ -483,7 +512,83 @@ class PartNumberResolver {
       }
     }
 
-    // 6. Generic Component Matching based on standard automotive parts
+    // 6. Opel / GM Specifics (Astra-G, Corsa, Vectra)
+    if (isOpel) {
+      // 1. Camshaft Sensor (P0340 / حساس امبروكم / كامات)
+      if (text.contains('امبروكم') || text.contains('كامات') || text.contains('كامة') || text.contains('camshaft') || part.relatedCode == 'P0340' || text.contains('0340')) {
+        return const _CatalogEntry(
+          oem: '90559857',
+          replacements: ['Bosch 0 261 202 003', 'Febi Bilstein 08466', 'Delphi SS10808'],
+          priceRange: PriceRangeLYD(min: 45, max: 90),
+        );
+      }
+      // 2. Crankshaft Sensor (P0335 / حساس كولوا / كرنك)
+      if (text.contains('كولوا') || text.contains('كرنك') || text.contains('crankshaft') || part.relatedCode == 'P0335' || text.contains('0335')) {
+        return const _CatalogEntry(
+          oem: '90536064',
+          replacements: ['Bosch 0 261 210 130', 'Febi Bilstein 08467', 'Delphi SS10804'],
+          priceRange: PriceRangeLYD(min: 50, max: 100),
+        );
+      }
+      // 3. MAP Sensor (P0105 / حساس ماب / ضغط المانيفولد)
+      if (text.contains('ماب') || text.contains('ماف') || text.contains('مانيفولد') || text.contains('map') || part.relatedCode == 'P0105' || text.contains('0105')) {
+        return const _CatalogEntry(
+          oem: '16212460',
+          replacements: ['Delphi PS10002', 'Bosch 0 261 230 043', 'Febi Bilstein 37214'],
+          priceRange: PriceRangeLYD(min: 40, max: 85),
+        );
+      }
+      // 4. Fuel Injector (P0200 / رشاش وقود / بخاخ)
+      if (text.contains('رشاش') || text.contains('بخاخ') || text.contains('injector') || part.relatedCode == 'P0200' || text.contains('0200')) {
+        return const _CatalogEntry(
+          oem: '17091942',
+          replacements: ['Bosch 0 280 155 822', 'Delphi FJ10024', 'Siemens VDO'],
+          priceRange: PriceRangeLYD(min: 70, max: 150),
+        );
+      }
+      // 5. Knock Sensor / Knock Control (P0607 / حساس طرق / صرقعة)
+      if ((text.contains('طرق') || text.contains('صرقعة') || text.contains('نوك') || text.contains('knock')) && !text.contains('كمبيوتر') && !text.contains('ecu')) {
+        return const _CatalogEntry(
+          oem: '90530586',
+          replacements: ['Bosch 0 261 231 140', 'Febi Bilstein 21544', 'Delphi SS10787'],
+          priceRange: PriceRangeLYD(min: 45, max: 95),
+        );
+      }
+      // 6. Engine ECU (P0607 / كمبيوتر المحرك)
+      if (text.contains('كمبيوتر') || text.contains('عقل') || text.contains('ecu') || part.relatedCode == 'P0607' || text.contains('0607')) {
+        return const _CatalogEntry(
+          oem: '09353459',
+          replacements: ['Delco Multec ECU', 'Bosch Motronic', 'مطابقة وبرمجة برقم الهيكل (VIN)'],
+          priceRange: PriceRangeLYD(min: 400, max: 900),
+        );
+      }
+      // 7. Driver Seat Belt Pre-tensioner (Airbag 16 / مشد حزام الأمان للسائق)
+      if (text.contains('حزام') || text.contains('مشد') || text.contains('tensioner') || part.relatedCode == '16' || text.contains('srs 16')) {
+        return const _CatalogEntry(
+          oem: '90588667',
+          replacements: ['TRW Automotive OE', 'Autoliv Genuine', 'OPEL Original Parts'],
+          priceRange: PriceRangeLYD(min: 80, max: 180),
+        );
+      }
+      // 8. Passenger Airbag Squib / Seat Sensor (Airbag 25 / كبسولة وسادة الراكب)
+      if (text.contains('وسادة') || text.contains('كبسولة') || text.contains('squib') || text.contains('ايرباق') || text.contains('airbag') || part.relatedCode == '25' || text.contains('srs 25')) {
+        return const _CatalogEntry(
+          oem: '90588320',
+          replacements: ['Autoliv Airbag Safety', 'TRW Safety Systems', 'محاكي إيرباق معتمد (Bypass Emulator)'],
+          priceRange: PriceRangeLYD(min: 90, max: 200),
+        );
+      }
+      // 9. Coolant Temperature Sensor (IC 164 / حساس حرارة المية / الرداتوري)
+      if (text.contains('مية') || text.contains('حرارة') || text.contains('رداتوري') || text.contains('coolant') || part.relatedCode == '164' || text.contains('ic 164')) {
+        return const _CatalogEntry(
+          oem: '90510183',
+          replacements: ['Bosch 0 280 130 093', 'Febi Bilstein 01939', 'Delphi TS10249'],
+          priceRange: PriceRangeLYD(min: 25, max: 55),
+        );
+      }
+    }
+
+    // 7. Generic Component Matching based on standard automotive parts
     if (text.contains('بوبين') || text.contains('اشعال') || text.contains('coil')) {
       return _CatalogEntry(
         oem: 'GEN-COIL-01',
@@ -777,16 +882,27 @@ class PartNumberResolver {
     }
 
     // 5. Thermostats & Cooling (ثيرموستات / ثرموستات / كوعة مية / طرمبة مية)
-    if (text.contains('ثيرموستات') ||
-        text.contains('ثرموستات') ||
-        text.contains('كوعة') ||
-        text.contains('thermostat') ||
-        text.contains('حرارة') ||
-        text.contains('مية') ||
-        text.contains('coolant') ||
-        code == 'P0128' ||
-        code.startsWith('P0115') ||
-        code.startsWith('P0116')) {
+    if ((text.contains('ثيرموستات') ||
+            text.contains('ثرموستات') ||
+            text.contains('كوعة') ||
+            text.contains('thermostat') ||
+            (text.contains('حرارة') && (text.contains('مية') || text.contains('رداتوري') || text.contains('تبريد') || text.contains('محرك'))) ||
+            text.contains('coolant') ||
+            code == 'P0128' ||
+            code.startsWith('P0115') ||
+            code.startsWith('P0116')) &&
+        !text.contains('airbag') &&
+        !text.contains('وسادة') &&
+        !text.contains('ايرباق') &&
+        !text.contains('squib') &&
+        !text.contains('حزام')) {
+      if (vMake.contains('OPEL') || vMake.contains('VAUXHALL')) {
+        return const _CatalogEntry(
+          oem: '90573921',
+          replacements: ['Wahler 410214.92D', 'Gates TH37892G1', 'Behr TX 14 92D'],
+          priceRange: PriceRangeLYD(min: 35, max: 75),
+        );
+      }
       if (vMake.contains('TOYOTA')) {
         return const _CatalogEntry(
           oem: '90916-03093',
@@ -1027,12 +1143,22 @@ class PartNumberResolver {
     // 11. Airbag / SRS / Clock Spring (شريط دومان / إيرباق / محاكي)
     if (text.contains('airbag') ||
         text.contains('ايرباق') ||
+        text.contains('وسادة') ||
+        text.contains('كبسولة') ||
         text.contains('دومان') ||
         text.contains('حزام') ||
+        text.contains('مشد') ||
         text.contains('كرسي') ||
         text.contains('squib') ||
         text.contains('clock spring') ||
         code.startsWith('B')) {
+      if (vMake.contains('OPEL') || vMake.contains('VAUXHALL')) {
+        return const _CatalogEntry(
+          oem: '90588667',
+          replacements: ['TRW Airbag Safety', 'Autoliv Genuine', 'محاكي إيرباق معتمد (Bypass Emulator)'],
+          priceRange: PriceRangeLYD(min: 80, max: 180),
+        );
+      }
       if (vMake.contains('TOYOTA')) {
         return const _CatalogEntry(
           oem: '84306-06140',

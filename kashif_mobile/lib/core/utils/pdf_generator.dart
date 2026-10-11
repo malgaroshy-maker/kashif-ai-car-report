@@ -774,10 +774,10 @@ class KashifPdfGenerator {
                             ),
                           ),
                           child: pw.Text(
-                            'سليم 30A',
+                            'سليم',
                             style: pw.TextStyle(
                               font: arabicBoldFont,
-                              fontSize: 7,
+                              fontSize: 7.5,
                               color: PdfColor.fromHex('2E9E5B'),
                             ),
                           ),
@@ -792,6 +792,7 @@ class KashifPdfGenerator {
 
             // Spare Parts Guide Table (دليل قطع الغيار)
             if (config.includeSpareParts && report.spareParts.isNotEmpty) ...[
+              if (allFaults.length >= 7) pw.NewPage(),
               pw.Text(
                 'دليل قطع الغيار المطلوبة والأسعار التقديرية بالدينار الليبي:',
                 style: pw.TextStyle(font: arabicBoldFont, fontSize: 11),
@@ -853,13 +854,15 @@ class KashifPdfGenerator {
                 ).map((p) {
                   final price = p.estimatedPriceRangeLYD;
                   final priceStr = price != null
-                      ? '${price.min.toInt()} - ${price.max.toInt()} د.ل'
+                      ? '\u200F${price.min.toInt()} - ${price.max.toInt()} د.ل'
                       : 'حسب السوق';
-                  final cleanPartName = p.partNameLibyan
+                  final cleanPartName = ReportSanitizer.clean(p.partNameLibyan)
                       .replaceAll('السلندر', 'البسطوني')
-                      .replaceAll('سلندر', 'بسطوني');
+                      .replaceAll('سلندر', 'بسطوني')
+                      .replaceAll(RegExp(r'[\u200E\u202A\u202D]'), '')
+                      .trim();
                   final replacementsStr = p.aftermarketReplacements.isNotEmpty
-                      ? p.aftermarketReplacements.join(' • ')
+                      ? ReportSanitizer.clean(p.aftermarketReplacements.join(' • '))
                       : 'أصلي أو حسب المتوفر';
                   final rawOem = p.oemPartNumber?.trim() ?? '';
                   final oemDisplay = (rawOem.isEmpty || rawOem.toUpperCase() == 'N/A' || rawOem == 'null')

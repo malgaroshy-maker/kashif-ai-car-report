@@ -4,6 +4,9 @@ import 'package:kashif_mobile/core/utils/ediag_pdf_parser.dart';
 import 'package:kashif_mobile/core/utils/report_sanitizer.dart';
 import 'package:kashif_mobile/data/repositories/dashboard_lights_repository.dart';
 import 'package:kashif_mobile/data/repositories/offline_report_service.dart';
+import 'package:kashif_mobile/data/models/spare_part.dart';
+import 'package:kashif_mobile/data/models/vehicle_info.dart';
+import 'package:kashif_mobile/data/repositories/part_number_resolver.dart';
 
 final _banned = RegExp(
   r'ناقل الحركة|(?<![ء-ي])(ال)?(قير|جير|فتيس|طرمبة|راديتر|رديتر|بواجي|شكمان|دركسيون|سلندر|كتاوت|سلانسيه|تواير|صرقعة|استبن|تسييخ|شماعي|سفايف|هوبات|شنتورة|طكاكة)(?![ء-ي])',
@@ -117,5 +120,47 @@ The following systems are OK:
     for (final p in r.spareParts) {
       expect(p.oemPartNumber == null || !RegExp(r'221-824|24801').hasMatch(p.oemPartNumber!), isTrue);
     }
+  });
+
+  test('Knock stutter prevention and idempotent behavior', () {
+    const input = 'طرق المحرك / الصرقعة (Knock)';
+    expect(ReportSanitizer.clean(input), input);
+    expect(ReportSanitizer.clean('صرقعة'), 'طرق المحرك / الصرقعة (Knock)');
+    expect(ReportSanitizer.clean('طرق المحرك / طرق المحرك / الصرقعة (Knock) (Knock)'), 'طرق المحرك / الصرقعة (Knock)');
+  });
+
+  test('SRS Airbag is never translated as oxygen', () {
+    expect(
+      ReportSanitizer.clean('مشاكل خطيرة في الأكسجين (SRS) عند السائق والراكب'),
+      'مشاكل خطيرة في منظومة الوسائد الهوائية (الأيرباق - SRS) عند السائق والراكب',
+    );
+    expect(
+      ReportSanitizer.clean('فحص منظومة الأكسجين (SRS)'),
+      'فحص منظومة الوسائد الهوائية (الأيرباق - SRS)',
+    );
+  });
+
+  test('PartNumberResolver resolves genuine Opel Astra-G parts with no -ALT suffixes', () {
+    final parts = [
+      SparePartItem(id: '1', relatedCode: 'P0340', partNameLibyan: 'حساس امبروكم', partNameStandardArabic: 'حساس الكامة', partNameEnglish: 'Camshaft Sensor', aftermarketReplacements: const []),
+      SparePartItem(id: '2', relatedCode: 'P0335', partNameLibyan: 'حساس كولوا', partNameStandardArabic: 'حساس الكرنك', partNameEnglish: 'Crankshaft Sensor', aftermarketReplacements: const []),
+      SparePartItem(id: '3', relatedCode: 'P0105', partNameLibyan: 'حساس ماب', partNameStandardArabic: 'حساس ماب', partNameEnglish: 'MAP Sensor', aftermarketReplacements: const []),
+      SparePartItem(id: '4', relatedCode: 'P0200', partNameLibyan: 'رشاش وقود', partNameStandardArabic: 'بخاخ وقود', partNameEnglish: 'Fuel Injector', aftermarketReplacements: const []),
+      SparePartItem(id: '5', relatedCode: 'P0607', partNameLibyan: 'كمبيوتر المحرك', partNameStandardArabic: 'وحدة التحكم', partNameEnglish: 'ECU', aftermarketReplacements: const []),
+      SparePartItem(id: '6', relatedCode: '16', partNameLibyan: 'مشد حزام الأمان', partNameStandardArabic: 'مشد الحزام', partNameEnglish: 'Pre-tensioner', aftermarketReplacements: const []),
+      SparePartItem(id: '7', relatedCode: '25', partNameLibyan: 'كبسولة وسادة الراكب', partNameStandardArabic: 'وسادة هوائية', partNameEnglish: 'Passenger Airbag Squib', aftermarketReplacements: const []),
+      SparePartItem(id: '8', relatedCode: '164', partNameLibyan: 'حساس مية الرداتوري', partNameStandardArabic: 'حساس حرارة المبرد', partNameEnglish: 'Coolant Temp Sensor', aftermarketReplacements: const []),
+    ];
+    final vehicle = VehicleInfo(vin: 'W0L0TGF69X5059457', make: 'OPEL', model: 'Astra-G', year: '1999');
+    final enriched = PartNumberResolver.enrichList(parts, vehicle: vehicle);
+
+    for (final ep in enriched) {
+      expect(ep.oemPartNumber, isNotNull);
+      expect(ep.oemPartNumber!.contains('-ALT'), isFalse, reason: 'Found fake -ALT in ${ep.partNameLibyan}');
+    }
+    expect(enriched[0].oemPartNumber, '90559857');
+    expect(enriched[1].oemPartNumber, '90536064');
+    expect(enriched[2].oemPartNumber, '16212460');
+    expect(enriched[6].aftermarketReplacements.any((r) => r.contains('Gates') || r.contains('Wahler')), isFalse);
   });
 }
