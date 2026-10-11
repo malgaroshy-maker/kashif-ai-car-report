@@ -252,6 +252,14 @@ class ApinexClient {
                 '⏳ تم تجاوز معدل الطلبات المسموح به للنموذج ($model) حالياً (Rate Limit 429). يرجى الانتظار دقيقة وإعادة المحاولة.',
             'availableModels': availableModels,
           };
+        } else if (status == 524 || status == 504) {
+          return {
+            'success': false,
+            'stage': 2,
+            'message':
+                '⚠️ تجاوز النموذج ($model) مهلة استجابة السيرفر (Cloudflare 524). نوصي باختيار DeepSeek V4.1 Flash فائق السرعة.',
+            'availableModels': availableModels,
+          };
         } else if (serverMsg != null && serverMsg.isNotEmpty) {
           return {
             'success': false,
@@ -366,13 +374,117 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
     return _sendRequestAndParse(messages);
   }
 
-  Future<DiagnosticReport> _sendRequestAndParse(List<dynamic> messages) async {
-    // No artificial token limit: allow full detailed diagnostic report generation
-    final res = await _postRequest({
-      'model': _activeModel,
-      'messages': messages,
-      'temperature': 0.1,
-    });
+  Future<String> _streamChatCompletion(
+    Map<String, dynamic> payload, {
+    String? keyOverride,
+  }) async {
+    final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride : _activeApiKey;
+    final streamPayload = Map<String, dynamic>.from(payload);
+    streamPayload['stream'] = true;
+
+    Response<ResponseBody> response;
+    try {
+      response = await _dio.post<ResponseBody>(
+        '/chat/completions',
+        options: Options(
+          responseType: ResponseType.stream,
+          headers: {
+            'Authorization': 'Bearer $key',
+            if (!kIsWeb)
+              'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          },
+        ),
+        data: streamPayload,
+      );
+    } catch (e) {
+      if (kIsWeb && _dio.options.baseUrl != directBaseUrl) {
+        final directDio = Dio(
+          BaseOptions(
+            baseUrl: directBaseUrl,
+            connectTimeout: const Duration(seconds: 45),
+            receiveTimeout: const Duration(minutes: 5),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          ),
+        );
+        response = await directDio.post<ResponseBody>(
+          '/chat/completions',
+          options: Options(
+            responseType: ResponseType.stream,
+            headers: {'Authorization': 'Bearer $key'},
+          ),
+          data: streamPayload,
+        );
+      } else {
+        rethrow;
+      }
+    }
+
+    if (response.statusCode != 200 || response.data == null) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: Response(
+          requestOptions: response.requestOptions,
+          statusCode: response.statusCode,
+          statusMessage: response.statusMessage,
+        ),
+      );
+    }
+
+    final buffer = StringBuffer();
+    final stream = response.data!.stream
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
+
+    await for (final line in stream) {
+      final trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      final dataStr = trimmed.substring(5).trim();
+      if (dataStr == '[DONE]') break;
+      try {
+        final decoded = jsonDecode(dataStr);
+        if (decoded is Map) {
+          final choices = decoded['choices'] as List<dynamic>?;
+          if (choices != null && choices.isNotEmpty) {
+            final delta = choices[0]['delta']?['content']?.toString();
+            if (delta != null && delta.isNotEmpty) {
+              buffer.write(delta);
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    return buffer.toString();
+  }
+
+  Future<String> _fetchCompletionContent(
+    Map<String, dynamic> payload, {
+    String? keyOverride,
+  }) async {
+    // 1. Try Streaming first (keeps connection alive continuously, bypassing Cloudflare 524 100s timeout)
+    try {
+      final streamedContent = await _streamChatCompletion(payload, keyOverride: keyOverride);
+      if (streamedContent.trim().isNotEmpty) {
+        return streamedContent;
+      }
+    } catch (streamErr) {
+      final errStr = streamErr.toString();
+      // If server timed out with 524, 504, 502 or was rate limited 429, don't fall back to even slower standard POST
+      if (errStr.contains('524') || errStr.contains('504') || errStr.contains('502') || errStr.contains('429')) {
+        rethrow;
+      }
+      debugPrint('[ApinexClient] Streaming failed ($streamErr), trying standard POST fallback...');
+    }
+
+    // 2. Fallback to standard POST request
+    final nonStreamPayload = Map<String, dynamic>.from(payload);
+    nonStreamPayload['stream'] = false;
+    final res = await _postRequest(nonStreamPayload, keyOverride: keyOverride);
 
     if (res.statusCode != 200 || res.data == null) {
       throw Exception('فشل طلب الفحص من APInex (رمز: ${res.statusCode})');
@@ -384,23 +496,45 @@ ${LibyanPromptConstants.libyanMandatoryDirectives}
       throw Exception('لم يُرجع نموذج الذكاء الاصطناعي أي رد.');
     }
 
-    final content = choices[0]['message']?['content']?.toString() ?? '';
-    if (content.trim().isEmpty) {
-      if (choices[0]['finish_reason'] == 'length') {
-        throw Exception(
-          'استهلك النموذج كامل الرموز في التفكير المسبق دون إخراج التقرير. اختر نموذجاً سريعاً مثل DeepSeek V4.1 Flash.',
-        );
-      }
-      throw Exception('استجابة نموذج الذكاء الاصطناعي فارغة.');
-    }
+    return choices[0]['message']?['content']?.toString() ?? '';
+  }
+
+  Future<DiagnosticReport> _sendRequestAndParse(List<dynamic> messages) async {
+    final requestedModel = _activeModel;
 
     try {
+      final content = await _fetchCompletionContent({
+        'model': requestedModel,
+        'messages': messages,
+        'temperature': 0.1,
+      });
+
+      if (content.trim().isEmpty) {
+        throw Exception('استجابة نموذج الذكاء الاصطناعي فارغة.');
+      }
+
       return _parseReportContent(content);
-    } catch (parseError) {
-      if (choices[0]['finish_reason'] == 'length') {
-        throw Exception(
-          'انقطع رد النموذج قبل اكتمال التقرير (تجاوز الحد الأقصى للسيرفر). جرب تقليل عدد الأكواد أو اختيار DeepSeek V4.1 Flash.',
+    } catch (primaryError) {
+      // If primary model was NOT defaultModel and encountered a timeout (524, 504), 429, or error:
+      if (requestedModel != defaultModel) {
+        debugPrint(
+          '[ApinexClient] Primary model $requestedModel failed with: $primaryError. Automatically failing over to fast $defaultModel...',
         );
+        try {
+          final fallbackContent = await _fetchCompletionContent({
+            'model': defaultModel,
+            'messages': messages,
+            'temperature': 0.1,
+          });
+
+          if (fallbackContent.trim().isNotEmpty) {
+            return _parseReportContent(fallbackContent);
+          }
+        } catch (fallbackError) {
+          debugPrint(
+            '[ApinexClient] Fallback model $defaultModel also failed: $fallbackError',
+          );
+        }
       }
       rethrow;
     }

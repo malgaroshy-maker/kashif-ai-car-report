@@ -17,13 +17,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
   static const List<Map<String, String>> apinexFreeModels = [
     {
       'id': 'free/deepseek-v4.1-flash',
-      'name': 'DeepSeek V4.1 Flash (مجاني • الموصى به لكاشف)',
-      'desc': 'سرعة فائقة (3 ثوانٍ) ودقة عالية في استنتاج الأكواد وتشخيص الأنظمة (1M Context)',
-    },
-    {
-      'id': 'free/gpt-6-luna',
-      'name': 'GPT-6 Luna (مجاني • تقرير شامل)',
-      'desc': 'الموديل المعتمد لتقارير الفحص ومصطلحات الورش الليبية (1M Context)',
+      'name': 'DeepSeek V4.1 Flash (مجاني • فائق السرعة ⚡ • موصى به)',
+      'desc': 'سرعة استجابة فورية (3-8 ثوانٍ) وتفادي مهلة السيرفر 524 مع معالجة دقيقة (1M Context)',
     },
     {
       'id': 'free/glm-5.3-flash',
@@ -32,13 +27,18 @@ class SettingsScreen extends ConsumerStatefulWidget {
     },
     {
       'id': 'free/deepseek-v4-pro-0813',
-      'name': 'DeepSeek V4 Pro (مجاني • تحليل معماري دقيق)',
+      'name': 'DeepSeek V4 Pro (مجاني • استدلال دقيق)',
       'desc': 'استدلال منطقي متقدم لأعطال السيارات الشديدة والمتشابكة (1M Context)',
     },
     {
       'id': 'free/mimo-v2.6-pro',
       'name': 'Mimo V2.6 Pro (مجاني • استنتاج احترافي)',
       'desc': 'معالجة فنية متطورة وصياغة تقارير موثوقة (1M Context)',
+    },
+    {
+      'id': 'free/gpt-6-luna',
+      'name': 'GPT-6 Luna (مجاني • قد يستغرق دقائق)',
+      'desc': 'نموذج ثقيل قد يتعرض لمهلة السيرفر (Cloudflare 524) في التقارير الكبيرة',
     },
     {
       'id': 'custom',
@@ -2122,7 +2122,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Flow Cars للأندرويد — الإصدار 1.2.1',
+                    'Flow Cars للأندرويد — الإصدار 1.2.2',
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

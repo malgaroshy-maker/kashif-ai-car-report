@@ -184,14 +184,18 @@ class CustomHandler(SimpleHTTPRequestHandler):
                 method='POST'
             )
             try:
-                # No restrictive timeout: allow large diagnoses without premature cut-off
                 with urllib.request.urlopen(req, timeout=300) as resp:
-                    resp_body = resp.read()
                     self.send_response(resp.status)
-                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    content_type = resp.headers.get('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Content-Type', content_type)
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
-                    self.wfile.write(resp_body)
+                    while True:
+                        chunk = resp.read(1024)
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                        self.wfile.flush()
             except urllib.error.HTTPError as e:
                 err_body = e.read()
                 self.send_response(e.code)

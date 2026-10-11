@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/apinex_client.dart';
@@ -96,6 +97,12 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
   String _formatFriendlyError(dynamic e) {
     final str = e.toString();
+    if (str.contains('524') || str.contains('status code of 524')) {
+      return 'تجاوزت استجابة السيرفر مهلة الانتظار (Cloudflare 524). النموذج الذي تم اختياره استغرق وقتاً طويلاً. تم تفعيل التحويل التلقائي لنموذج DeepSeek V4.1 Flash فائق السرعة لتفادي أي انقطاع.';
+    }
+    if (str.contains('504') || str.contains('Gateway Timeout') || str.contains('522') || str.contains('520')) {
+      return 'انتهت مهلة انتظار خادم الذكاء الاصطناعي. نوصي باختيار نموذج DeepSeek V4.1 Flash السريع من الإعدادات.';
+    }
     if (str.contains('NO_API_KEY') || str.contains('مفتاح Google Gemini')) {
       return 'لم يتم إدخال مفتاح Google Gemini في إعدادات التطبيق.';
     }
@@ -110,6 +117,13 @@ class ReportNotifier extends StateNotifier<ReportState> {
     }
     if (str.contains('SocketException') || str.contains('Failed host lookup') || str.contains('Timeout')) {
       return 'تعذر الاتصال بخادم الذكاء الاصطناعي (تحقق من اتصال الإنترنت).';
+    }
+    if (e is DioException) {
+      final code = e.response?.statusCode;
+      if (code != null) {
+        return 'خطأ في استجابة السيرفر (رمز: $code). جرب إعادة المحاولة أو تفعيل نموذج DeepSeek V4.1 Flash.';
+      }
+      return 'تعذر إتمام طلب الفحص من السيرفر. تأكد من استقرار الإنترنت وأعد المحاولة.';
     }
     return str.replaceFirst('Exception: ', '');
   }
