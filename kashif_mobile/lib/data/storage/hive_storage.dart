@@ -9,15 +9,56 @@ class KashifStorage {
   static const String partsCacheBoxName = 'kashif_parts_cache';
 
   static Future<void> init() async {
-    await Hive.initFlutter();
-    await Hive.openBox<Map>(reportsBoxName);
-    await Hive.openBox(settingsBoxName);
-    await Hive.openBox<Map>(partsCacheBoxName);
+    try {
+      await Hive.initFlutter();
+    } catch (e) {
+      debugPrint('Hive.initFlutter error: $e');
+    }
+    await _safeOpenBox<Map>(reportsBoxName);
+    await _safeOpenBox(settingsBoxName);
+    await _safeOpenBox<Map>(partsCacheBoxName);
   }
 
-  static Box<Map> get reportsBox => Hive.box<Map>(reportsBoxName);
-  static Box get settingsBox => Hive.box(settingsBoxName);
-  static Box<Map> get partsCacheBox => Hive.box<Map>(partsCacheBoxName);
+  static Future<void> _safeOpenBox<T>(String name) async {
+    try {
+      if (Hive.isBoxOpen(name)) return;
+      await Hive.openBox<T>(name);
+    } catch (e) {
+      debugPrint('Warning: Hive.openBox<$T>("$name") failed: $e. Attempting untyped recovery...');
+      try {
+        await Hive.openBox(name);
+      } catch (e2) {
+        debugPrint('Warning: Hive.openBox("$name") failed: $e2. Clearing box and re-creating...');
+        try {
+          await Hive.deleteBoxFromDisk(name);
+          await Hive.openBox<T>(name);
+        } catch (e3) {
+          debugPrint('Critical: Could not re-create box "$name": $e3');
+        }
+      }
+    }
+  }
+
+  static Box<Map> get reportsBox {
+    try {
+      if (Hive.isBoxOpen(reportsBoxName)) return Hive.box<Map>(reportsBoxName);
+    } catch (_) {}
+    return Hive.box<Map>(reportsBoxName);
+  }
+
+  static Box get settingsBox {
+    try {
+      if (Hive.isBoxOpen(settingsBoxName)) return Hive.box(settingsBoxName);
+    } catch (_) {}
+    return Hive.box(settingsBoxName);
+  }
+
+  static Box<Map> get partsCacheBox {
+    try {
+      if (Hive.isBoxOpen(partsCacheBoxName)) return Hive.box<Map>(partsCacheBoxName);
+    } catch (_) {}
+    return Hive.box<Map>(partsCacheBoxName);
+  }
 
   /// Computes a deterministic 32-bit FNV-1a fingerprint for byte buffers (safe for Web/JS & Native)
   static String computeFingerprint(Uint8List bytes) {
@@ -125,19 +166,23 @@ class KashifStorage {
   // Get all saved reports
   static List<DiagnosticReport> getSavedReports() {
     final list = <DiagnosticReport>[];
-    for (var key in reportsBox.keys) {
-      final data = reportsBox.get(key);
-      if (data != null) {
-        try {
-          final json = _deepConvertMap(data);
-          list.add(DiagnosticReport.fromJson(json));
-        } catch (e, stack) {
-          debugPrint('Error loading saved report $key: $e\n$stack');
+    try {
+      if (!Hive.isBoxOpen(reportsBoxName)) return list;
+      for (var key in reportsBox.keys) {
+        final data = reportsBox.get(key);
+        if (data != null) {
+          try {
+            final json = _deepConvertMap(data);
+            list.add(DiagnosticReport.fromJson(json));
+          } catch (e, stack) {
+            debugPrint('Error loading saved report $key: $e\n$stack');
+          }
         }
       }
+      list.sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
+    } catch (e, stack) {
+      debugPrint('Error getting saved reports: $e\n$stack');
     }
-    // Sort descending by date
-    list.sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
     return list;
   }
 
@@ -153,18 +198,19 @@ class KashifStorage {
 
   // Settings getters & setters
   static List<String> get customApiKeys {
-    final raw = settingsBox.get('customApiKeys');
-    if (raw is List && raw.isNotEmpty) {
-      final list = raw
-          .map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-      if (list.isNotEmpty) return list;
-    }
-    final single = settingsBox.get('customApiKey');
-    if (single != null && single.toString().trim().isNotEmpty) {
-      return [single.toString().trim()];
-    }
+    try {
+      if (!Hive.isBoxOpen(settingsBoxName)) return [];
+      final raw = settingsBox.get('customApiKeys');
+      if (raw is List && raw.isNotEmpty) {
+        final list = raw
+            .map((e) => e.toString().trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+        if (list.isNotEmpty) return list;
+      }
+      final single = customApiKey;
+      if (single != null) return [single];
+    } catch (_) {}
     return [];
   }
 
@@ -201,15 +247,18 @@ class KashifStorage {
   }
 
   static String? get customApiKey {
-    final single = settingsBox.get('customApiKey');
-    if (single != null && single.toString().trim().isNotEmpty) {
-      return single.toString().trim();
-    }
-    final raw = settingsBox.get('customApiKeys');
-    if (raw is List && raw.isNotEmpty) {
-      final first = raw.first.toString().trim();
-      if (first.isNotEmpty) return first;
-    }
+    try {
+      if (!Hive.isBoxOpen(settingsBoxName)) return null;
+      final single = settingsBox.get('customApiKey');
+      if (single != null && single.toString().trim().isNotEmpty) {
+        return single.toString().trim();
+      }
+      final raw = settingsBox.get('customApiKeys');
+      if (raw is List && raw.isNotEmpty) {
+        final first = raw.first.toString().trim();
+        if (first.isNotEmpty) return first;
+      }
+    } catch (_) {}
     return null;
   }
 
@@ -273,8 +322,14 @@ class KashifStorage {
   static Future<void> setTechnicianName(String name) async =>
       await settingsBox.put('technicianName', name);
 
-  static String get themeMode =>
-      settingsBox.get('themeMode', defaultValue: 'system') as String;
+  static String get themeMode {
+    try {
+      if (Hive.isBoxOpen(settingsBoxName)) {
+        return settingsBox.get('themeMode', defaultValue: 'system') as String;
+      }
+    } catch (_) {}
+    return 'system';
+  }
   static Future<void> setThemeMode(String mode) async =>
       await settingsBox.put('themeMode', mode);
 
@@ -343,21 +398,39 @@ class KashifStorage {
   static Future<void> setApinexModel(String model) async =>
       await settingsBox.put('apinexModel', model.trim());
 
-  static bool get isApinexAutoFailoverEnabled =>
-      settingsBox.get('isApinexAutoFailoverEnabled', defaultValue: true) as bool;
+  static bool get isApinexAutoFailoverEnabled {
+    try {
+      if (Hive.isBoxOpen(settingsBoxName)) {
+        return settingsBox.get('isApinexAutoFailoverEnabled', defaultValue: true) as bool;
+      }
+    } catch (_) {}
+    return true;
+  }
 
   static Future<void> setApinexAutoFailoverEnabled(bool enabled) async =>
       await settingsBox.put('isApinexAutoFailoverEnabled', enabled);
 
-  static bool get useApinexAsPrimary =>
-      settingsBox.get('useApinexAsPrimary', defaultValue: false) as bool;
+  static bool get useApinexAsPrimary {
+    try {
+      if (Hive.isBoxOpen(settingsBoxName)) {
+        return settingsBox.get('useApinexAsPrimary', defaultValue: false) as bool;
+      }
+    } catch (_) {}
+    return false;
+  }
 
   static Future<void> setUseApinexAsPrimary(bool val) async =>
       await settingsBox.put('useApinexAsPrimary', val);
 
   // Ultra Token Saver Mode
-  static bool get isTokenSaverEnabled =>
-      settingsBox.get('isTokenSaverEnabled', defaultValue: true) as bool;
+  static bool get isTokenSaverEnabled {
+    try {
+      if (Hive.isBoxOpen(settingsBoxName)) {
+        return settingsBox.get('isTokenSaverEnabled', defaultValue: true) as bool;
+      }
+    } catch (_) {}
+    return true;
+  }
 
   static Future<void> setTokenSaverEnabled(bool val) async =>
       await settingsBox.put('isTokenSaverEnabled', val);

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/checklist_step.dart';
 import '../models/diagnostic_report.dart';
@@ -112,7 +113,13 @@ class OfflineReportService {
   /// Loads the offline DTC dictionary from assets/data/offline_dtc.json.
   /// Call once at startup (before runApp); until then the offline base is empty.
   static Future<void> load() async {
-    loadFromJsonString(await rootBundle.loadString('assets/data/offline_dtc.json'));
+    try {
+      final json = await rootBundle.loadString('assets/data/offline_dtc.json');
+      loadFromJsonString(json);
+    } catch (e, stack) {
+      // Non-fatal: app can still function using online API
+      debugPrint('Warning: could not load offline DTC dictionary: $e\n$stack');
+    }
   }
 
   static void loadFromJsonString(String json) {
