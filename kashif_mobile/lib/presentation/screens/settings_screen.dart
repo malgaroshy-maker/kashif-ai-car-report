@@ -8,6 +8,7 @@ import '../../core/network/key_pool_manager.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../providers/settings_provider.dart';
+import '../../data/storage/hive_storage.dart';
 import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
 
@@ -16,34 +17,34 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
   static const List<Map<String, String>> apinexFreeModels = [
     {
-      'id': 'free/deepseek-v4.1-flash',
-      'name': 'DeepSeek V4.1 Flash (مجاني • فائق السرعة ⚡ • موصى به)',
-      'desc': 'سرعة استجابة فورية (3-8 ثوانٍ) وتفادي مهلة السيرفر 524 مع معالجة دقيقة (1M Context)',
+      'id': 'free/qwen-3.8-max',
+      'name': 'Qwen 3.8 Max (مجاني • فائق السرعة 1.8 ثانية ⚡ • موصى به)',
+      'desc': 'أسرع نموذج مجاني تم اختباره (1.8s)، كفاءة عالية في تشخيص أعطال السيارات بالعربية',
     },
     {
       'id': 'free/glm-5.3-flash',
-      'name': 'GLM-5.3 Flash (مجاني • سرعة فائقة)',
-      'desc': 'استجابة فورية وسريعة جداً في قراءة وتحليل الأعطال (1M Context)',
+      'name': 'GLM-5.3 Flash (مجاني • سريع جداً 2.6 ثانية ⚡)',
+      'desc': 'استجابة فائقة السرعة مع دقة هندسية في تفسير أكواد OBD-II وحساسات المحرك',
+    },
+    {
+      'id': 'free/deepseek-v4.1-flash',
+      'name': 'DeepSeek V4.1 Flash (مجاني • مستقر ومجرب 3.1 ثانية)',
+      'desc': 'النموذج الشهير المعتمد لتشخيص الأعطال وقراءة أكواد الفحص بدون اشتراك',
     },
     {
       'id': 'free/deepseek-v4-pro-0813',
-      'name': 'DeepSeek V4 Pro (مجاني • استدلال دقيق)',
-      'desc': 'استدلال منطقي متقدم لأعطال السيارات الشديدة والمتشابكة (1M Context)',
-    },
-    {
-      'id': 'free/mimo-v2.6-pro',
-      'name': 'Mimo V2.6 Pro (مجاني • استنتاج احترافي)',
-      'desc': 'معالجة فنية متطورة وصياغة تقارير موثوقة (1M Context)',
+      'name': 'DeepSeek V4 Pro (مجاني • استدلال احترافي عميق)',
+      'desc': 'استدلال منطقي متقدم لأعطال السيارات الشديدة والمتشابكة والأنظمة الهجينة',
     },
     {
       'id': 'free/gpt-6-luna',
-      'name': 'GPT-6 Luna (مجاني • قد يستغرق دقائق)',
-      'desc': 'نموذج ثقيل قد يتعرض لمهلة السيرفر (Cloudflare 524) في التقارير الكبيرة',
+      'name': 'GPT-6 Luna (مجاني • صياغة تقارير شاملة)',
+      'desc': 'تحليل تفصيلي شامل للأعطال مع مقارنات دقيقة لحساسات الأكسجين والعادم',
     },
     {
       'id': 'custom',
-      'name': 'نموذج آخر (كتابة يدوية)',
-      'desc': 'أدخل اسم أي موديل متاح في حسابك أو السيرفر',
+      'name': 'نموذج آخر (كتابة يدوية مخصصة)',
+      'desc': 'أدخل اسم أي موديل متاح على حسابك في سيرفر APInex',
     },
   ];
 
@@ -596,6 +597,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final message = res['message']?.toString() ?? '';
     final models = (res['availableModels'] as List<dynamic>?)
             ?.map((e) => e.toString())
+            .where((m) => m.startsWith('free/'))
             .toList() ??
         [];
 
@@ -1910,10 +1912,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 _apinexModelController.text = val;
                               }
                             });
-                            if (val != 'custom') {
+                            final modelToSave = val != 'custom'
+                                ? val
+                                : _apinexModelController.text.trim();
+                            if (modelToSave.isNotEmpty) {
                               ref
                                   .read(settingsProvider.notifier)
-                                  .updateApinexSettings(model: val);
+                                  .updateApinexSettings(model: modelToSave);
+                              KashifStorage.setApinexModel(modelToSave);
                             }
                           }
                         },
@@ -1923,6 +1929,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   const SizedBox(height: 12),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
                         child: Column(
@@ -1940,16 +1947,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               controller: _apinexModelController,
                               style: KashifTypography.mono(fontSize: 12),
                               onChanged: (val) {
+                                final clean = val.trim();
                                 final match = SettingsScreen.apinexFreeModels
-                                    .any((m) => m['id'] == val.trim());
+                                    .any((m) => m['id'] == clean);
                                 setState(() {
                                   _selectedModelPreset = match
-                                      ? val.trim()
+                                      ? clean
                                       : 'custom';
                                 });
+                                if (clean.isNotEmpty) {
+                                  ref
+                                      .read(settingsProvider.notifier)
+                                      .updateApinexSettings(model: clean);
+                                  KashifStorage.setApinexModel(clean);
+                                }
                               },
                               decoration: InputDecoration(
-                                hintText: 'free/gpt-6-luna',
+                                hintText: 'free/gemini-3.8-flash',
                                 filled: true,
                                 fillColor: isDark
                                     ? KashifColors.darkBoard
@@ -1966,47 +1980,91 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 18),
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: isDark
-                                  ? KashifColors.goldPrimary
-                                  : KashifColors.royalBlue,
-                            ),
-                            foregroundColor: isDark
-                                ? KashifColors.goldLight
-                                : KashifColors.royalBlue,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                      const SizedBox(width: 8),
+                      // Quick Apply/Save Button
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
                           ),
-                          onPressed:
-                              _isTestingApinex ? null : _testApinexConnection,
-                          icon: _isTestingApinex
-                              ? const SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        onPressed: () {
+                          final selected = _apinexModelController.text.trim();
+                          if (selected.isNotEmpty) {
+                            ref
+                                .read(settingsProvider.notifier)
+                                .updateApinexSettings(model: selected);
+                            KashifStorage.setApinexModel(selected);
+                            final messenger = ScaffoldMessenger.of(context);
+                            messenger.clearSnackBars();
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'تم حفظ وتفعيل النموذج بنجاح: $selected ✅',
+                                  style: KashifTypography.arabic(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                )
-                              : const Icon(
-                                  Icons.network_check_rounded,
-                                  size: 16,
                                 ),
-                          label: Text(
-                            'فحص الاتصال',
-                            style: KashifTypography.arabic(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                backgroundColor: const Color(0xFF065F46),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.check_rounded, size: 16),
+                        label: Text(
+                          'تفعيل',
+                          style: KashifTypography.arabic(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: isDark
+                                ? KashifColors.goldPrimary
+                                : KashifColors.royalBlue,
+                          ),
+                          foregroundColor: isDark
+                              ? KashifColors.goldLight
+                              : KashifColors.royalBlue,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        onPressed:
+                            _isTestingApinex ? null : _testApinexConnection,
+                        icon: _isTestingApinex
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.network_check_rounded,
+                                size: 16,
+                              ),
+                        label: Text(
+                          'فحص',
+                          style: KashifTypography.arabic(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

@@ -382,16 +382,15 @@ class KashifStorage {
 
   static String get apinexModel {
     try {
-      final m = settingsBox.get('apinexModel', defaultValue: 'free/deepseek-v4.1-flash') as String;
-      final clean = m.trim();
-      // Auto-migrate legacy/slow gpt-6-luna which causes Cloudflare 524 timeouts to ultra-fast deepseek-v4.1-flash
-      if (clean == 'free/gpt-6-luna' || clean.isEmpty) {
-        settingsBox.put('apinexModel', 'free/deepseek-v4.1-flash');
-        return 'free/deepseek-v4.1-flash';
+      if (Hive.isBoxOpen(settingsBoxName)) {
+        final m = settingsBox.get('apinexModel', defaultValue: 'free/qwen-3.8-max');
+        if (m is String && m.trim().isNotEmpty) {
+          return m.trim();
+        }
       }
-      return clean;
+      return 'free/qwen-3.8-max';
     } catch (_) {
-      return 'free/deepseek-v4.1-flash';
+      return 'free/qwen-3.8-max';
     }
   }
 

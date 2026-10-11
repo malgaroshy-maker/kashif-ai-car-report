@@ -8,7 +8,7 @@ import '../../data/storage/hive_storage.dart';
 class ApinexClient {
   static const String directBaseUrl = 'https://api.apinex.bond/v1';
   static const String defaultApiKey = 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
-  static const String defaultModel = 'free/deepseek-v4.1-flash';
+  static const String defaultModel = 'free/qwen-3.8-max';
 
   static String get defaultBaseUrl {
     if (kIsWeb) {

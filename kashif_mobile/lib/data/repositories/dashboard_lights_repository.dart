@@ -7,14 +7,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 1,
       id: 'front_fog_lights',
-      nameArabic: 'ضوء الضباب (أمامي)',
+      nameArabic: 'كشافات الضباب',
       nameEnglish: 'Front Fog Lights Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'FOG_FR',
       icon: Icons.wb_cloudy_rounded,
       meaningArabic:
-          'مصابيح الضباب الأمامية قيد التشغيل لإنارة الطريق في الأجواء المغبرة والضباب.',
+          'مصابيح وكشافات الضباب الأمامية قيد التشغيل لإنارة الطريق في الأجواء المغبرة والضباب.',
       commonCauses: ['تشغيل سويتش مصابيح الضباب يدوياً أو تلقائياً'],
       actionRequired:
           'حالة تشغيلية عادية. أطفئها عند وضوح الرؤية لتوفير استهلاك اللمبات والبطارية.',
@@ -26,14 +26,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 2,
       id: 'steering_eps',
-      nameArabic: 'ضوء تحذير التوجيه المعزز (دومان / ستيرنج EPS)',
+      nameArabic: 'الباور ستيرنج',
       nameEnglish: 'Power Steering System Warning',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'EPS',
       icon: Icons.sports_motorsports_rounded,
       meaningArabic:
-          'تعطل موطور المساعدة الكهربائية أو منظومة الهيدروليك في ستيرسو ودومان السيارة.',
+          'تعطل موطور المساعدة الكهربائية أو منظومة الهيدروليك في ستيرسو ودومان السيارة (الباور ستيرنج).',
       commonCauses: [
         'احتراق فيوز التوجيه الكهربائي العريض (EPS Fuse)',
         'عطل في حساس زاوية التوجيه (Steering Angle Sensor)',
@@ -49,7 +49,7 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 3,
       id: 'rear_fog_light',
-      nameArabic: 'ضوء الضباب (خلفي)',
+      nameArabic: 'ضوء الضباب الخلفي',
       nameEnglish: 'Rear Fog Light Active',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
@@ -68,14 +68,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 4,
       id: 'washer_fluid',
-      nameArabic: 'انخفاض سائل مساحات الزجاج',
+      nameArabic: 'ماء المساحات',
       nameEnglish: 'Low Washer Fluid Level',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'WASHER',
       icon: Icons.shower_rounded,
       meaningArabic:
-          'انخفاض مستوى الماء في قربة رشاشات الزجاج الأمامي أو الخلفي.',
+          'انخفاض مستوى ماء المساحات في قربة رشاشات الزجاج الأمامي أو الخلفي.',
       commonCauses: ['نفاد ماء المساحات نتيجة الاستخدام المتكرر أو تسريب بالقربة'],
       actionRequired:
           'افتح الكبوت وأعد تعبئة قربة المساحات بالماء مع سائل تنظيف الزجاج.',
@@ -87,14 +87,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 5,
       id: 'brake_pads',
-      nameArabic: 'تنبيه تآكل باطنيات ديسكو الفرامل',
+      nameArabic: 'ضوء المماشات يعني باطني (تآكل باطنيات الفرامل)',
       nameEnglish: 'Brake Pad Wear Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'PAD_WEAR',
       icon: Icons.disc_full_rounded,
       meaningArabic:
-          'سماكة باطنيات الفرامل وصلت للحد الأدنى واقتربت من ملامسة ديسكوات العجلات.',
+          'سماكة باطنيات (فحمات / قماشات) الفرامل وصلت للحد الأدنى واقتربت من ملامسة ديسكوات العجلات.',
       commonCauses: [
         'تآكل مادة الاحتكاك في باطنيات الديسكو',
         'انقطاع أو تلف سلك حساس التآكل المثبت على الباطنيات',
@@ -109,14 +109,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 6,
       id: 'cruise_control',
-      nameArabic: 'مثبت السرعة نشط (Cruise Control)',
+      nameArabic: 'مثبت السرعة',
       nameEnglish: 'Cruise Control System Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'CRUISE',
       icon: Icons.speed_rounded,
       meaningArabic:
-          'نظام تثبيت السرعة التلقائي قيد العمل ومضبوط على سرعة السير الحالية.',
+          'نظام تثبيت السرعة التلقائي (Cruise Control) قيد العمل ومضبوط على سرعة السير الحالية.',
       commonCauses: ['الضغط على زر SET / CRUISE في المقود'],
       actionRequired:
           'حالة تشغيلية طبيعية. يلغى التثبيت فور لمس دواسة الفرامل.',
@@ -128,14 +128,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 7,
       id: 'turn_signals',
-      nameArabic: 'إشارات الانعطاف (فليشر / كودرو)',
+      nameArabic: 'لمبة الاتجاهات (يمين / يسار)',
       nameEnglish: 'Turn Signals / Direction Indicators',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'TURN_SIG',
       icon: Icons.compare_arrows_rounded,
       meaningArabic:
-          'إشارات تغيير الاتجاه أو الفليشر الرباعي في حالة تشغيل ووميض.',
+          'إشارات وتنبيهات الاتجاهات (يمين / يسار) أو الفليشر الرباعي قيد الوميض.',
       commonCauses: [
         'تحريك ذراع الإشارة يميناً أو يساراً، أو الضغط على زر الفليشر الرباعي',
       ],
@@ -171,14 +171,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 9,
       id: 'winter_mode',
-      nameArabic: 'وضع الشتاء والطقس البارد (Winter Mode)',
+      nameArabic: 'وضعية الشتاء',
       nameEnglish: 'Winter Mode / Low Traction Program',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'WINTER',
       icon: Icons.ac_unit_rounded,
       meaningArabic:
-          'تم تفعيل برنامج الشتاء في كمبيو السيارة لتقليل عزم الانطلاق ومنع انزلاق العجلات على الجليد أو الطين.',
+          'وضعية وبرنامج الشتاء في كمبيو السيارة مفعلة لتقليل عزم الانطلاق ومنع انزلاق العجلات على الجليد أو الوحل.',
       commonCauses: [
         'الضغط على زر W بجانب عصا الكمبيو أو انخفاض درجة الحرارة الخارجية',
       ],
@@ -192,7 +192,7 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 10,
       id: 'info_message',
-      nameArabic: 'مؤشر معلومات الشاشة (Info Message)',
+      nameArabic: 'مؤشر المعلومات',
       nameEnglish: 'Information Message Indicator',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
@@ -211,14 +211,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 11,
       id: 'glow_dpf',
-      nameArabic: 'شمعات تسخين الديزل (Glow Plug)',
+      nameArabic: 'مؤشر الاشعال / سيارات الديزل',
       nameEnglish: 'Diesel Glow Plug Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'GLOW_PLUG',
       icon: Icons.waves_rounded,
       meaningArabic:
-          'شمعات التسخين لمحرك الديزل قيد الإحماء، أو وجود خلل في دائرة شمعات التسخين إذا استمرت بعد التشغيل.',
+          'شمعات الإشعال والتسخين لمحرك الديزل قيد الإحماء، أو وجود خلل في دائرة شمعات التسخين إذا استمرت بعد التشغيل.',
       commonCauses: [
         'انتظار إحماء غرف الاحتراق قبل تشغيل الموتورينو',
         'تلف إحدى شمعات تسخين الديزل أو ريليه التحكم الخاص بها',
@@ -233,14 +233,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 12,
       id: 'frost_warning',
-      nameArabic: 'تحذير الجليد والحرارة المنخفضة',
+      nameArabic: 'مؤشر التجمد / الصفيح',
       nameEnglish: 'Frost / Icy Road Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'FROST',
       icon: Icons.severe_cold_rounded,
       meaningArabic:
-          'درجة الحرارة الخارجية انخفضت تحت 4 درجات مئوية واحتمال وجود صقيع أو جليد بالطريق.',
+          'مؤشر انخفاض الحرارة واحتمال التجمد والصفيح أو الجليد على الطريق (أقل من 4 درجات مئوية).',
       commonCauses: ['انخفاض حرارة الجو الخارجية المسجلة بحساس المرآة'],
       actionRequired:
           'قد بحذر وخفف السرعة في المنعطفات والجسور لتجنب انزلاق القومّات على الصقيع.',
@@ -252,14 +252,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 13,
       id: 'ignition_key_warning',
-      nameArabic: 'مفتاح الإشعال / الإيموبلايزر (Immobilizer)',
+      nameArabic: 'مؤشر تحذيري لمفتاح التشغيل',
       nameEnglish: 'Ignition Key / Immobilizer Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'KEY_IMMO',
       icon: Icons.key_rounded,
       meaningArabic:
-          'كمبيوتر السيارة لم يتعرف على شفرة مفتاح التشغيل أو وجود خلل بمنظومة الحماية ضد السرقة.',
+          'مؤشر تحذيري لمفتاح التشغيل: كمبيوتر السيارة لم يتعرف على شفرة المفتاح أو وجود خلل بمنظومة الإيموبلايزر والحماية ضد السرقة.',
       commonCauses: [
         'تلف شفرة المفتاح أو ضعف حلقة الهوائي بقفل السويتش',
         'عدم مطابقة كود المفتاح مع كمبيوتر المحرك (ECU)',
@@ -274,14 +274,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 14,
       id: 'key_not_detected',
-      nameArabic: 'المفتاح الذكي غير موجود بالسيارة',
+      nameArabic: 'المفتاح غير موجود بالسيارة (السيارات المزودة بالبصمة)',
       nameEnglish: 'Smart Key Not Detected',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'KEY_ABSENT',
       icon: Icons.key_off_rounded,
       meaningArabic:
-          'السيارة بنظام البصمة ولم يتم رصد ريموت المفتاح داخل المقصورة أثناء التشغيل أو القيادة.',
+          'المفتاح غير موجود بالسيارة للسيارات المزودة بالبصمة (لم يتم رصد ريموت المفتاح داخل المقصورة أثناء التشغيل أو القيادة).',
       commonCauses: [
         'المفتاح خارج السيارة أو في جيب شخص غادر المركبة',
         'نفاد حجر (بطارية) الريموت',
@@ -297,14 +297,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 15,
       id: 'key_fob_battery',
-      nameArabic: 'بطارية الريموت منخفضة',
+      nameArabic: 'بطارية ضعيفة / مفتاح البصمة',
       nameEnglish: 'Key Fob Battery Low',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'KEY_BATT',
       icon: Icons.battery_charging_full_rounded,
       meaningArabic:
-          'حجر (بطارية) ريموت المفتاح الذكي ضعيفة وتوشك على النفاد.',
+          'بطارية ضعيفة في مفتاح البصمة والريموت وتوشك على النفاد.',
       commonCauses: ['استهلاك شحنة بطارية الريموت بعد فترة استخدام طويلة'],
       actionRequired:
           'قم بفتح الريموت واستبدال بطارية الزر (غالباً CR2032) لتفادي صعوبة فتح وتشغيل السيارة.',
@@ -316,14 +316,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 16,
       id: 'distance_collision_warning',
-      nameArabic: 'تحذير مسافة الأمان والرادار',
+      nameArabic: 'مؤشر المسافة / السيارات المزودة بالرادار',
       nameEnglish: 'Distance Warning / Collision Alert',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'COLLISION',
       icon: Icons.car_crash_rounded,
       meaningArabic:
-          'اقتراب خطر وسريع من السيارة التي أمامك، أو اتساخ رادار الصدام الأمامي.',
+          'مؤشر المسافة للسيارات المزودة بالرادار: اقتراب خطر وسريع من السيارة التي أمامك، أو اتساخ رادار الصدام الأمامي.',
       commonCauses: [
         'عدم ترك مسافة أمان كافية مع المركبة الأمامية',
         'تراكم الطين أو الغبار على رادار الصدام الأمامي أو كاميرا الزجاج',
@@ -338,14 +338,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 17,
       id: 'press_clutch',
-      nameArabic: 'اضغط دواسة الدبرياج (الكلتش)',
+      nameArabic: 'دواسة الكلتش',
       nameEnglish: 'Press Clutch Pedal Indicator',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'CLUTCH_PED',
       icon: Icons.do_not_step_rounded,
       meaningArabic:
-          'تنبيه يطلب الضغط بالكامل على دواسة الدبرياج (الكلتش) ليسمح كمبيوتر السيارة بتشغيل المحرك.',
+          'تنبيه الضغط على دواسة الكلتش (الدبرياج) ليسمح كمبيوتر السيارة بتشغيل المحرك.',
       commonCauses: ['نظام أمان يمنع دوران الموتورينو إلا عند فصل الكلتش'],
       actionRequired:
           'اضغط دواسة الكلتش حتى النهاية ثم اضغط زر أو سويتش التشغيل.',
@@ -357,14 +357,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 18,
       id: 'press_brake',
-      nameArabic: 'اضغط دواسة الفرامل',
+      nameArabic: 'دواسة البريك',
       nameEnglish: 'Press Brake Pedal Indicator',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'BRAKE_PED',
       icon: Icons.pan_tool_alt_rounded,
       meaningArabic:
-          'مؤشر يطلب الضغط على دواسة الفرامل لتحرير عصا الكمبيو من وضع (P) أو لبدء التشغيل.',
+          'مؤشر وتنبيه الضغط على دواسة البريك (الفرامل) لتحرير عصا الكمبيو من وضع (P) أو لبدء التشغيل.',
       commonCauses: ['قفل أمان كمبيو الأوتوماتيك والتشغيل'],
       actionRequired:
           'اضغط على دواسة الفرامل قبل تحريك عصا الكمبيو أو الضغط على زر البصمة.',
@@ -376,14 +376,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 19,
       id: 'steering_lock',
-      nameArabic: 'قفل دومان / ستيرنج التوجيه',
+      nameArabic: 'قفل الستيرنج',
       nameEnglish: 'Steering Column Lock Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'STR_LOCK',
       icon: Icons.lock_rounded,
       meaningArabic:
-          'خلل في قفل الستيرسو الكهربائي (ESL) أو صعوبة فك القفل الميكانيكي للمقود.',
+          'تحذير قفل الستيرنج (دومان التوجيه): خلل في قفل المقود الكهربائي (ESL) أو صعوبة فك القفل الميكانيكي للمقود.',
       commonCauses: [
         'ضغط العجلات على الرصيف مما يشد قفل الستيرسو',
         'تلف موطور قفل عمود التوجيه الإلكتروني (ELV/ESL)',
@@ -398,14 +398,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 20,
       id: 'high_beam',
-      nameArabic: 'الضوء العالي (High Beam)',
+      nameArabic: 'الضوء العالي',
       nameEnglish: 'High Beam Headlights Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'HIGH_BEAM',
       icon: Icons.highlight_rounded,
       meaningArabic:
-          'الفنارات الأمامية للسيارة مشتغلة على وضع الضوء العالي الكاشف.',
+          'الفنارات والمصابيح الأمامية للسيارة مشتغلة على وضع الضوء العالي الكاشف.',
       commonCauses: ['دفع ذراع الإضاءة بالستيرسو للأمام'],
       actionRequired:
           'قم بخفض الضوء للواطي عند وجود سيارات قادمة في الاتجاه المعاكس.',
@@ -417,14 +417,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 21,
       id: 'tpms_pressure',
-      nameArabic: 'انخفاض ضغط هواء القومّات (TPMS)',
+      nameArabic: 'مؤشر ضغط الاطارات',
       nameEnglish: 'Tire Pressure Monitoring Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'TPMS',
       icon: Icons.tire_repair_rounded,
       meaningArabic:
-          'إحدى قومّات (عجلات) السيارة تعاني من نقص واضح في ضغط الهواء.',
+          'مؤشر ضغط الإطارات (TPMS): إحدى إطارات وقومّات السيارة تعاني من نقص واضح في ضغط الهواء.',
       commonCauses: [
         'وجود مسمار أو تسريب بطيء بهواء القومة',
         'تغير درجة حرارة الجو أو ضعف بطارية حساس البلف الداخلي',
@@ -439,14 +439,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 22,
       id: 'side_lights',
-      nameArabic: 'ضوء الموقف والأنوار الجانبية',
+      nameArabic: 'مؤشر الاضاءة الجانبية',
       nameEnglish: 'Side / Parking Lights Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'SIDE_LGT',
       icon: Icons.light_mode_rounded,
       meaningArabic:
-          'أنوار الموقف والإنارة الصغيرة الجانبية (السمول لايت) قيد التشغيل.',
+          'مؤشر الإضاءة الجانبية وأنوار الموقف (السمول لايت) قيد التشغيل.',
       commonCauses: ['تدوير مفتاح الإضاءة للتكة الأولى'],
       actionRequired:
           'حالة تشغيلية عادية. أطفئها عند ركن السيارة لمنع تفريغ شحن البطارية.',
@@ -458,14 +458,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 23,
       id: 'bulb_failure',
-      nameArabic: 'عطل في أحد المصابيح الخارجية',
+      nameArabic: 'فشل بالاضاءة الخارجية',
       nameEnglish: 'Exterior Light Bulb Failure',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'BULB_FAIL',
       icon: Icons.lightbulb_rounded,
       meaningArabic:
-          'كمبيوتر الإضاءة رصد احتراق لمبة خارجية (فنار، إشارة، فرامل، أو لمبة اللوحة).',
+          'فشل واحتراق بالإضاءة الخارجية: كمبيوتر الإضاءة رصد احتراق لمبة خارجية (فنار، إشارة، فرامل، أو لوحة).',
       commonCauses: [
         'احتراق فتيلة إحدى اللمبات الخارجية',
         'تركيب لمبات LED تجارية بدون مقاومة كانباس (Canbus error)',
@@ -480,14 +480,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 24,
       id: 'brake_system',
-      nameArabic: 'تحذير منظومة الفرامل وزيت البريك (!)',
+      nameArabic: 'تحذير / لمبة البريك',
       nameEnglish: 'Brake System Warning',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'BRAKE_SYS',
       icon: Icons.error_rounded,
       meaningArabic:
-          'نقص حاد في مستوى زيت الفرامل أو هبوط الضغط الهيدروليكي بمنظومة الفرامل.',
+          'تحذير لمبة البريك (!): نقص حاد في مستوى زيت الفرامل أو هبوط الضغط الهيدروليكي بمنظومة الفرامل.',
       commonCauses: [
         'تسريب في أنابيب زيت الفرامل أو بستم العجلات',
         'تآكل باطنيات الديسكو لحد أفرغ مخزون العلبة',
@@ -503,14 +503,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 25,
       id: 'dpf_filter',
-      nameArabic: 'فيلترو المرميطة DPF ديزل',
+      nameArabic: 'تحذير / فلتر الديزل',
       nameEnglish: 'Diesel Particulate Filter (DPF) Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'DPF_FILT',
       icon: Icons.filter_alt_rounded,
       meaningArabic:
-          'انسداد أو تراكم السخام والكربون في فيلترو جزيئات المرميطة (DPF) بمحركات الديزل.',
+          'تحذير فلتر الديزل (DPF): انسداد وتراكم السخام والكربون في فلتر جزيئات المرميطة بمحركات الديزل.',
       commonCauses: [
         'كثرة المشاوير القصيرة داخل المدينة دون إتاحة فرصة للتنظيف الذاتي',
         'خلل في حساس الضغط التفاضلي لمرميطة الديزل',
@@ -525,14 +525,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 26,
       id: 'trailer_hitch',
-      nameArabic: 'قفل سحب المقطورة',
+      nameArabic: 'نظام ربط المقطورة للشاحنات',
       nameEnglish: 'Trailer Hitch / Towbar Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'TOW_HITCH',
       icon: Icons.rv_hookup_rounded,
       meaningArabic:
-          'قفل وصلة سحب المقطورة الخلفية غير مغلق بإحكام أو وجود عطل في فيش توصيلات المقطورة الكهربائية.',
+          'نظام ربط المقطورة للشاحنات والسيارات: قفل وصلة سحب المقطورة الخلفية غير مقفل بإحكام أو عطل بتوصيلات المقطورة.',
       commonCauses: [
         'عدم تثبيت هوك السحب الخلفي بالشكل الصحيح',
         'تماس أو خلل في فيشة إضاءة العربة المجرورة',
@@ -547,14 +547,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 27,
       id: 'air_suspension',
-      nameArabic: 'عطل التعليق الهوائي / الهيدروليكي',
+      nameArabic: 'نظام الهيدروليك',
       nameEnglish: 'Air Suspension Fault',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'AIR_SUSP',
       icon: Icons.height_rounded,
       meaningArabic:
-          'خلل في كمبروسر أو بالونات الهواء بمنظومة التعليق الهوائي وانخفاض مستوى ارتفاع السيارة.',
+          'عطل نظام الهيدروليك والتعليق الهوائي: خلل في كمبروسر أو بالونات الهواء وانخفاض مستوى ارتفاع السيارة.',
       commonCauses: [
         'تنسيم أو ثقب في بالونة الهواء الخاصة بالتعليق',
         'تلف كمبروسر الهواء أو بلف توزيع الارتفاع',
@@ -570,14 +570,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 28,
       id: 'lane_departure',
-      nameArabic: 'تحذير الخروج عن المسار',
+      nameArabic: 'نظام التوجيه - للمسارات',
       nameEnglish: 'Lane Departure Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'LANE_DEP',
       icon: Icons.add_road_rounded,
       meaningArabic:
-          'السيارة انحرفت عن مسار الطريق بدون تشغيل إشارة الانعطاف، أو تعطل كاميرا تتبع المسار.',
+          'نظام التوجيه للمسارات وتحذير الخروج عن المسار: انحراف عن مسار الطريق دون تشغيل الإشارة أو تعطل كاميرا التتبع.',
       commonCauses: [
         'تجاوز الخطوط البيضاء دون استخدام إشارة الستيرسو',
         'اتساخ كاميرا التتبع المثبتة أعلى الزجاج الأمامي',
@@ -592,14 +592,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 29,
       id: 'catalytic_converter',
-      nameArabic: 'سخونة علبة البيئة بالمرميطة',
+      nameArabic: 'نظام تحويل التدفيل',
       nameEnglish: 'Catalytic Converter Overheating',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'CAT_CONV',
       icon: Icons.local_fire_department_rounded,
       meaningArabic:
-          'ارتفاع خطير في حرارة علبة البيئة (دبة التلوث) بالمرميطة نتيجة وصول بنزين نيء غير محترق إليها.',
+          'نظام تحويل التدفيل وسخونة علبة البيئة بالمرميطة: ارتفاع حرارة علبة التلوث نتيجة وصول وقود غير محترق إليها.',
       commonCauses: [
         'فطفطة قوية في الشمعات أو البوبينات (Misfire) تسرب الوقود للمرميطة',
         'انسداد شديد في حجر البيئة وتجمع الكربون',
@@ -614,14 +614,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 30,
       id: 'seatbelt_warning',
-      nameArabic: 'تذكير ربط حزام الأمان',
+      nameArabic: 'حزام الامان',
       nameEnglish: 'Seatbelt Reminder',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'SEATBELT',
       icon: Icons.airline_seat_recline_normal_rounded,
       meaningArabic:
-          'السائق أو أحد الركاب لم يقم بربط حزام الأمان أثناء حركة السيارة.',
+          'تنبيه حزام الأمان: السائق أو أحد الركاب لم يقم بربط حزام الأمان أثناء حركة السيارة.',
       commonCauses: [
         'عدم إدخال لسان حزام الأمان في القفل',
         'وضع حقائب أو حمولة ثقيلة على مقعد الراكب تحفز حساس الوزن',
@@ -635,14 +635,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 31,
       id: 'parking_brake',
-      nameArabic: 'فرملة اليد / الجلنط مشدودة',
+      nameArabic: 'لمبة البريك اليدوي / الجلنط',
       nameEnglish: 'Parking Brake Applied',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'PARK_BRK',
       icon: Icons.pause_circle_filled_rounded,
       meaningArabic:
-          'فرملة اليد (الجلنط / البريك) مشدودة ومفعلة حالياً لمنع حركة السيارة.',
+          'لمبة البريك اليدوي / الجلنط مشدودة ومفعلة حالياً لمنع حركة السيارة.',
       commonCauses: [
         'فرملة اليد مرفوعة باليد أو مضغوطة بالقدم أو مفعلة إلكترونياً (EPB)',
         'عطل في حساس سويتش فرملة اليد يجعله عالقاً',
@@ -657,14 +657,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 32,
       id: 'battery_charge',
-      nameArabic: 'عطل منظومة الشحن والدينمو والبطارية',
+      nameArabic: 'مؤشر البطارية',
       nameEnglish: 'Alternator / Battery Charging Fault',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'BATTERY',
       icon: Icons.battery_alert_rounded,
       meaningArabic:
-          'دينمو الشحن لا يولد الكهرباء المطلوبة والمحرك والأنظمة تعمل على طاقة البطارية المخزونة فقط.',
+          'مؤشر البطارية والدينمو: دينمو الشحن لا يولد الكهرباء المطلوبة والسيارة تعمل على البطارية فقط.',
       commonCauses: [
         'انقطاع أو ارتخاء قايش الدينمو والمحرك الخارجي',
         'تلف فحمات أو ريليه منظم شحن الدينمو',
@@ -680,14 +680,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 33,
       id: 'parking_sensors',
-      nameArabic: 'حساسات ركن واصطفاف السيارة',
+      nameArabic: 'حساسات الاصطدام',
       nameEnglish: 'Parking Distance Sensors',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'PARK_SENS',
       icon: Icons.sensors_rounded,
       meaningArabic:
-          'حساسات الصدام الخلفي أو الأمامي تعمل للمساعدة في صف وركن السيارة، أو معطلة إذا كانت ثابتة بإنذار.',
+          'حساسات الاصطدام والركن بالصدام تعمل للمساعدة في صف وركن وتفادي الحواجز، أو معطلة إذا كانت ثابتة بإنذار.',
       commonCauses: [
         'الرجوع للخلف والاقتراب من عائق أو جدار',
         'تراكم الأوساخ أو الطين على أحد حساسات الصدام',
@@ -702,14 +702,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 34,
       id: 'service_due',
-      nameArabic: 'موعد السيرفيس والصيانة الدورية',
+      nameArabic: 'مؤشر الخدمة والصيانة',
       nameEnglish: 'Service Due / Maintenance Required',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'SERVICE',
       icon: Icons.build_rounded,
       meaningArabic:
-          'انتهت المسافة أو المدة المحددة لتبديل زيت المحرك والفلاتر وحان موعد الصيانة الدورية.',
+          'مؤشر الخدمة والصيانة: انتهت المسافة أو المدة المحددة لتبديل زيت المحرك والفلاتر وحان موعد السيرفيس الدوري.',
       commonCauses: [
         'تجاوز المسافة المحددة للزيت المبرمجة بالكمبيوتر (مثل 5,000 أو 10,000 كم)',
       ],
@@ -723,14 +723,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 35,
       id: 'adaptive_headlights',
-      nameArabic: 'نظام الإضاءة التكيفي AFS',
+      nameArabic: 'نظام تحريك الابوار (يمين - يسار)',
       nameEnglish: 'Adaptive Front Lighting System (AFS)',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'AFS_LIGHT',
       icon: Icons.auto_awesome_rounded,
       meaningArabic:
-          'عطل في موطور توجيه عدسات الفنارات التي تلتف مع حركة الدومان لإنارة المنعطفات.',
+          'نظام تحريك الأضواء (يمين - يسار): عطل في موطور توجيه عدسات الفنارات التي تلتف مع حركة الدومان لإنارة المنعطفات.',
       commonCauses: [
         'عطل في موطور توجيه العدسة داخل الفنار',
         'خلل في حساس زاوية المقود أو حساس ميزان الإضاءة بالهيكل',
@@ -745,14 +745,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 36,
       id: 'headlight_leveling',
-      nameArabic: 'ميزان وزاوية ارتفاع الفنارات',
+      nameArabic: 'تحريك الدوار (أعلى - أسفل)',
       nameEnglish: 'Headlight Range Control',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'HEAD_LVL',
       icon: Icons.swap_vert_rounded,
       meaningArabic:
-          'عطل في موطور ضبط زاوية ارتفاع الضوء التلقائي حسب حمولة السيارة الخلفية.',
+          'تحريك الأضواء والدوار (أعلى - أسفل): عطل في موطور ضبط زاوية ارتفاع الضوء التلقائي حسب حمولة السيارة الخلفية.',
       commonCauses: [
         'عطل حساس ميزان الارتفاع المثبت على المزاطوريات الخلفية',
         'تلف موطور الميزان الكهربائي داخل جرم الفنار',
@@ -767,14 +767,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 37,
       id: 'rear_spoiler',
-      nameArabic: 'جناح / سبويلر خلفي معطل',
+      nameArabic: 'تنبيه اللحاج الخلفي / السبويلر',
       nameEnglish: 'Rear Spoiler Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'SPOILER',
       icon: Icons.flight_takeoff_rounded,
       meaningArabic:
-          'الجناح (السبويلر) الخلفي الكهربائي المتحرك لم يفتح أو لم يغلق بالوضع الصحيح عند السرعات العالية.',
+          'تنبيه الجناح الخلفي / السبويلر: الجناح الخلفي الكهربائي المتحرك لم يفتح أو لم يغلق بالوضع الصحيح عند السرعات العالية.',
       commonCauses: [
         'عطل في موطور فتح وقفل السبويلر',
         'وجود تراب أو عائق ميكانيكي يمنع حركة الجناح الخلفي',
@@ -789,14 +789,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 38,
       id: 'convertible_roof',
-      nameArabic: 'سقف الكابريوليه المتحرك',
+      nameArabic: 'مؤشر السقف المتحرك',
       nameEnglish: 'Convertible Roof Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'ROOF_OPEN',
       icon: Icons.roofing_rounded,
       meaningArabic:
-          'سقف السيارة القابل للطي غير مقفل بإحكام أو واجه عطلاً أثناء الفتح والإغلاق.',
+          'مؤشر السقف المتحرك: سقف السيارة القابل للطي غير مقفل بإحكام أو واجه عطلاً أثناء الفتح والإغلاق.',
       commonCauses: [
         'عدم اكتمال دورة إغلاق وربط السقف بالزجاج الأمامي',
         'انخفاض ضغط بومبة هيدروليك السقف أو عطل ميكرو-سويتش الأمان',
@@ -811,14 +811,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 39,
       id: 'airbag_srs',
-      nameArabic: 'عطل الوسائد الهوائية (الإيرباق SRS)',
+      nameArabic: 'لمبة الايرباق',
       nameEnglish: 'Airbag (SRS) Fault Warning',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'AIRBAG',
       icon: Icons.airline_seat_recline_extra_rounded,
       meaningArabic:
-          'كمبيوتر الوسائد الهوائية رصد خللاً في الدائرة والوسائد لن تفتح عند وقوع حادث اصطدام.',
+          'لمبة الإيرباق والوسائد الهوائية (SRS): رصد خلل في الدائرة والوسائد لن تفتح عند وقوع حادث اصطدام.',
       commonCauses: [
         'تلف شريط الستيرسو الحلزوني (Clockspring)',
         'ارتخاء فيش الحساسات الموجودة تحت كراسي السائق والراكب',
@@ -834,14 +834,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 40,
       id: 'handbrake_fault',
-      nameArabic: 'عطل في فرملة اليد الكهربائية',
+      nameArabic: 'تحذيرية / الهاند بريك',
       nameEnglish: 'Electric Parking Brake Fault',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'EPB_FAULT',
       icon: Icons.handyman_rounded,
       meaningArabic:
-          'خلل في موطورات أو كمبيوتر منظومة فرملة اليد الكهربائية (EPB).',
+          'تحذيرية الهاند بريك: خلل في موطورات أو كمبيوتر منظومة فرملة اليد الكهربائية (EPB).',
       commonCauses: [
         'عطل موطور كاليبر الفرامل الكهربائي في العجلات الخلفية',
         'عطل في زر سويتش البريك الكهربائي بالكونسول',
@@ -856,14 +856,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 41,
       id: 'water_in_fuel',
-      nameArabic: 'وجود ماء في فيلترو الوقود',
+      nameArabic: 'تحذيرية - ماء في فلتر الوقود',
       nameEnglish: 'Water in Fuel Filter Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'WATER_FUEL',
       icon: Icons.water_drop_outlined,
       meaningArabic:
-          'تراكم الماء المكثف في أسفل فيلترو المازوت (الديزل) أو البنزين وتجاوزه الحد المسموح.',
+          'تحذيرية وجود ماء في فلتر الوقود: تراكم الماء المكثف في أسفل فلتر الديزل أو البنزين وتجاوزه الحد المسموح.',
       commonCauses: [
         'تعبئة وقود رديء يحتوي على نسبة ماء من المحطة',
         'تكاثف الرطوبة داخل خزان الوقود في الشتاء',
@@ -878,14 +878,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 42,
       id: 'passenger_airbag_off',
-      nameArabic: 'إيقاف تشغيل وسادة الراكب الهوائية',
+      nameArabic: 'لمبة تعطيل الايرباق',
       nameEnglish: 'Passenger Airbag Deactivated',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'AIRBAG_OFF',
       icon: Icons.person_off_rounded,
       meaningArabic:
-          'وسادة الهواء للراكب الأمامي مفصولة يدوياً بالمفتاح (مخصصة عند وضع كرسي أطفال بالجهة الأمامية).',
+          'لمبة تعطيل الإيرباق: وسادة الهواء للراكب الأمامي مفصولة يدوياً بالمفتاح (مخصصة عند وضع كرسي أطفال بالجهة الأمامية).',
       commonCauses: [
         'إيقاف الوسادة عبر سويتش المفتاح الجانبي بباب الراكب أو الطبلون',
       ],
@@ -899,14 +899,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 43,
       id: 'mechanical_fault',
-      nameArabic: 'عطل ميكانيكي عام (مفتاح صيانة)',
+      nameArabic: 'لمبة اعطال ميكانيكية',
       nameEnglish: 'General Mechanical / Powertrain Fault',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'MECH_FAULT',
       icon: Icons.construction_rounded,
       meaningArabic:
-          'كمبيوتر السيارة رصد عطلاً عاماً في أحد أنظمة الحركة والميكانيكا يستدعي الفحص بجهاز التشخيص.',
+          'لمبة أعطال ميكانيكية عامة (مفتاح صيانة): كمبيوتر السيارة رصد خللاً في أحد أنظمة الحركة أو الميكانيكا.',
       commonCauses: [
         'عطل في أحد حساسات المحرك أو كمبيو السيارة',
         'خلل كهربائي في دائرة التحكم الإلكتروني بالدواسة',
@@ -921,14 +921,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 44,
       id: 'low_beam',
-      nameArabic: 'الضوء الواطي (الفنارات العادية)',
+      nameArabic: 'لمبة الكشافات',
       nameEnglish: 'Low Beam Headlights Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'LOW_BEAM',
       icon: Icons.light_mode_outlined,
       meaningArabic:
-          'الفنارات الأمامية بالضوء الواطي النظامي مشتغلة لإنارة الطريق العادية ليلاً.',
+          'لمبة الكشافات والفنارات العادية (الضوء الواطي) مشتغلة لإنارة الطريق.',
       commonCauses: [
         'تشغيل الإنارة يدوياً أو عبر الحساس التلقائي (AUTO)',
       ],
@@ -941,14 +941,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 45,
       id: 'air_filter_clogged',
-      nameArabic: 'انسداد فيلترو الهواء',
+      nameArabic: 'لمبة فلتر هواء',
       nameEnglish: 'Engine Air Filter Clogged',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'AIR_FILT',
       icon: Icons.air_rounded,
       meaningArabic:
-          'فيلترو هواء المحرك مشبع بالغبار والأتربة ويخنق تنفس واحتراق المحرك.',
+          'لمبة فلتر هواء المحرك: الفلتر مسدود ومشبع بالأتربة والغبار ويخنق تنفس واحتراق المحرك.',
       commonCauses: [
         'تراكم الغبار والرمال في فيلترو الهواء نتيجة السير في طرق ترابية',
         'انتهاء العمر الافتراضي لفيلترو الهواء',
@@ -963,14 +963,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 46,
       id: 'eco_mode',
-      nameArabic: 'مؤشر وضع توفير الوقود (ECO)',
+      nameArabic: 'مؤشر القيادة الاقتصادية',
       nameEnglish: 'Eco Driving Mode',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'ECO',
       icon: Icons.eco_rounded,
       meaningArabic:
-          'أسلوب القيادة الحالي اقتصادي ومثالي لتوفير استهلاك الوقود وحماية البيئة.',
+          'مؤشر القيادة الاقتصادية (ECO): أسلوب القيادة الحالي اقتصادي ومثالي لتوفير استهلاك الوقود وحماية البيئة.',
       commonCauses: [
         'الضغط الهادئ والمتزن على دواسة البنزين وسلاسة تبديل الكمبيو',
       ],
@@ -984,14 +984,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 47,
       id: 'hill_descent',
-      nameArabic: 'نظام المساعدة على نزول المنحدرات (DAC)',
+      nameArabic: 'النظام المساعد لنزول المرتفعات',
       nameEnglish: 'Hill Descent Control (DAC)',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'HDC_DAC',
       icon: Icons.downhill_skiing_rounded,
       meaningArabic:
-          'نظام التحكم التلقائي بسرعة النزول في المنحدرات الشديدة قيد العمل عبر الفرملة الذاتية للعجلات.',
+          'النظام المساعد لنزول المرتفعات والمنحدرات (DAC / HDC): نظام التحكم التلقائي بسرعة النزول قيد العمل عبر الفرملة الذاتية.',
       commonCauses: [
         'الضغط على زر النزول من المنحدرات (DAC / HDC) عند النزول في عقبة أو منزلق',
       ],
@@ -1005,14 +1005,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 48,
       id: 'coolant_temp',
-      nameArabic: 'ارتفاع حرارة المحرك وسائل التبريد',
+      nameArabic: 'لمبة تحذير الحرارة',
       nameEnglish: 'Engine Coolant Temperature High',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'TEMP_HIGH',
       icon: Icons.thermostat_rounded,
       meaningArabic:
-          'سائل تبريد المحرك تجاوز درجة الغليان الآمنة والمحرك في حالة سخونة مفرطة.',
+          'لمبة تحذير الحرارة: سائل تبريد المحرك تجاوز درجة الغليان الآمنة والمحرك في حالة سخونة مفرطة وخطيرة.',
       commonCauses: [
         'تسريب مية الرداتوري أو انقطاع أحد المناكوطيات (التوبوات)',
         'توقف مروحة تبريد الرداتوري (فيوز أو موطور المروحة)',
@@ -1029,14 +1029,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 49,
       id: 'abs_system_red',
-      nameArabic: 'عطل منظومة مانع انغلاق الفرامل (ABS)',
+      nameArabic: 'لمبة نظام ABS',
       nameEnglish: 'ABS Anti-Lock Braking System Warning',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'ABS',
       icon: Icons.car_crash_rounded,
       meaningArabic:
-          'نظام الـ ABS لمنع انغلاق العجلات والتزحلق عند التوقف المفاجئ معطل كلياً.',
+          'لمبة نظام مانع انغلاق الفرامل (ABS): نظام الـ ABS لمنع انغلاق العجلات والتزحلق عند التوقف المفاجئ معطل كلياً.',
       commonCauses: [
         'تلف أو اتساخ حساس سرعة دوران العجلات (Wheel Speed Sensor)',
         'انقطاع أسلاك الحساس عند منطقة المزاطوريات والبراتشوات',
@@ -1053,14 +1053,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 50,
       id: 'fuel_filter_restriction',
-      nameArabic: 'انسداد فيلترو الديزل / الوقود',
+      nameArabic: 'لمبة فلتر البنزين',
       nameEnglish: 'Fuel Filter Restriction / Clogged',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'FUEL_FILT',
       icon: Icons.filter_rounded,
       meaningArabic:
-          'انسداد فيلترو الوقود يسبب تقطيعاً وضعفاً في وصول البنزين أو الديزل للبخاخات.',
+          'لمبة فلتر البنزين والوقود: انسداد فلتر الوقود يسبب تقطيعاً وضعفاً في وصول البنزين أو الديزل للبخاخات.',
       commonCauses: [
         'تراكم الشوائب والرواسب من وقود المحطات داخل الفيلترو',
         'عدم استبدال فيلترو الوقود منذ مسافة طويلة',
@@ -1075,14 +1075,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 51,
       id: 'door_ajar',
-      nameArabic: 'أحد أبواب السيارة مفتوح',
+      nameArabic: 'لمبة أبواب السيارة',
       nameEnglish: 'Door Ajar Warning',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'DOOR_OPEN',
       icon: Icons.sensor_door_rounded,
       meaningArabic:
-          'أحد أبواب السيارة الجانبية غير محكم الإغلاق ويهدد بفتحه أثناء السير.',
+          'لمبة أبواب السيارة مفتوحة: أحد أبواب السيارة الجانبية غير محكم الإغلاق ويهدد بفتحه أثناء السير.',
       commonCauses: [
         'عدم إغلاق الباب بقوة كافية',
         'عطل في سويتش حساس قفل الباب الداخلي',
@@ -1097,14 +1097,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 52,
       id: 'hood_open',
-      nameArabic: 'غطاء المحرك (الكبوت) مفتوح',
+      nameArabic: 'لمبة غطاء المحرك',
       nameEnglish: 'Engine Hood / Bonnet Open',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'HOOD_OPEN',
       icon: Icons.directions_car_rounded,
       meaningArabic:
-          'غطاء المحرك الأمامي (الكبوت) غير مقفل باللسان الثانوي ويهدد بالطيران على الزجاج.',
+          'لمبة غطاء المحرك (الكبوت مفتوح): غطاء المحرك الأمامي غير مقفل باللسان الثانوي ويهدد بالتطاير على الزجاج.',
       commonCauses: [
         'نسيان إغلاق الكبوت بعد فحص الزيت أو الماء',
         'عطل أو ارتخاء سلك وسوستة قفل الكبوت',
@@ -1119,14 +1119,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 53,
       id: 'low_fuel',
-      nameArabic: 'انخفاض مستوى الوقود بالتانكي',
+      nameArabic: 'لمبة مستوى الوقود',
       nameEnglish: 'Low Fuel Level Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'LOW_FUEL',
       icon: Icons.local_gas_station_rounded,
       meaningArabic:
-          'الوقود في خزان السيارة وصل لمستوى الاحتياطي الأخير (أقل من 50 كم سير).',
+          'لمبة مستوى الوقود منخفض: الوقود في خزان السيارة وصل لمستوى الاحتياطي الأخير (أقل من 50 كم سير).',
       commonCauses: ['استهلاك الوقود والاقتراب من قاع التانكي'],
       actionRequired:
           'توجه لأقرب محطة وقود لتعبئة التانكي لتفادي سحب بومبة الوقود للرواسب وتسخينها في القاع.',
@@ -1138,14 +1138,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 54,
       id: 'trans_temp',
-      nameArabic: 'عطل أو سخونة كمبيو الأوتوماتيك',
+      nameArabic: 'لمبة الجير الاتوماتيك',
       nameEnglish: 'Automatic Transmission Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'AT_FAULT',
       icon: Icons.settings_rounded,
       meaningArabic:
-          'ارتفاع حرارة زيت الكمبيو الأوتوماتيك أو رصد خلل في البلوف الكهربائية (Solenoids).',
+          'لمبة الجير الأوتوماتيك (سخونة أو عطل الكمبيو): ارتفاع حرارة زيت الجير أو رصد خلل في البلوف الكهربائية (Solenoids).',
       commonCauses: [
         'نقص أو اهتراء زيت الكمبيو وعدم تغييره مع الفيلترو',
         'سحب أحمال ثقيلة أو القيادة في رمال صحراوية شاقة',
@@ -1161,14 +1161,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 55,
       id: 'speed_limiter',
-      nameArabic: 'محدد السرعة القصوى نشط',
+      nameArabic: 'لمبة محدد السرعة القصوى',
       nameEnglish: 'Speed Limiter Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'SPD_LIMIT',
       icon: Icons.speed_outlined,
       meaningArabic:
-          'نظام تحديد السرعة (Speed Limiter) مفعل ويمنع تجاوز السرعة المضبوطة حتى لو ضغطت دواسة الوقود.',
+          'لمبة محدد السرعة القصوى: نظام تحديد السرعة (Speed Limiter) مفعل ويمنع تجاوز السرعة المضبوطة.',
       commonCauses: ['ضبط السرعة القصوى عبر أزرار عجلة القيادة'],
       actionRequired:
           'حالة عادية. لإلغاء التحديد اضغط زر LIM أو ادعس دواسة الوقود للآخر (Kick-down).',
@@ -1180,14 +1180,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 56,
       id: 'suspension_dampers',
-      nameArabic: 'عطل في المزاطوريات والتعليق',
+      nameArabic: 'لمبة المساعدات',
       nameEnglish: 'Suspension Dampers Fault',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'DAMPERS',
       icon: Icons.airline_seat_legroom_extra_rounded,
       meaningArabic:
-          'خلل في المنظومة الإلكترونية للتحكم في قساوة وليونة المزاطوريات (المساعدات).',
+          'لمبة المساعدات والمزاطوريات: خلل في المنظومة الإلكترونية للتحكم في قساوة وليونة المساعدات (المزاطوريات).',
       commonCauses: [
         'عطل في بلوف المزاطوريات الإلكترونية التكيفية',
         'انقطاع سلك حساس اهتزاز هيكل المركبة',
@@ -1202,14 +1202,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 57,
       id: 'oil_pressure',
-      nameArabic: 'انخفاض خطير في ضغط زيت المحرك (إبريق الزيت)',
+      nameArabic: 'مستوى الزيت منخفض',
       nameEnglish: 'Low Engine Oil Pressure',
       severity: LightSeverity.criticalRed,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'OIL_PRESS',
       icon: Icons.water_drop_rounded,
       meaningArabic:
-          'انخفاض شديد وخطير في ضغط الزيت اللازم لتزييت بساتين ومحاور وكامات المحرك.',
+          'مستوى وضغط الزيت منخفض (إبريق الزيت): انخفاض شديد وخطير في ضغط الزيت اللازم لتزييت بساتين ومحاور وكامات المحرك.',
       commonCauses: [
         'نقص حاد في مستوى الزيت بسبب تسريب أو حرق داخلي',
         'تلف أو انكسار بومبة الزيت',
@@ -1226,14 +1226,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 58,
       id: 'windshield_defrost',
-      nameArabic: 'إزالة الضباب عن الزجاج الأمامي',
+      nameArabic: 'لمبة مانع الضباب والتجمد / زجاج أمامي',
       nameEnglish: 'Windshield Defrost / Demist Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'DEFROST_F',
       icon: Icons.air_outlined,
       meaningArabic:
-          'توجيه هواء المكيف بكامل قوته نحو الزجاج الأمامي لطرد البخار والضباب وتوضيح الرؤية.',
+          'لمبة مانع الضباب والتجمد للزجاج الأمامي: توجيه هواء المكيف بكامل قوته لطرد البخار والجليد وتوضيح الرؤية.',
       commonCauses: ['الضغط على زر ديفروست الزجاج الأمامي بالمكيف'],
       actionRequired:
           'حالة طبيعية لتنقية الرؤية. يمكن إطفاؤه بعد جفاف الزجاج.',
@@ -1245,14 +1245,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 59,
       id: 'trunk_open',
-      nameArabic: 'الشنطة الخلفية مفتوحة',
+      nameArabic: 'لمبة الصندوق الخلفي',
       nameEnglish: 'Trunk / Boot Lid Open',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'TRUNK_OPN',
       icon: Icons.lock_open_rounded,
       meaningArabic:
-          'باب الشنطة الخلفية (صندوق الأمتعة) غير مقفل بإحكام.',
+          'لمبة الصندوق الخلفي والشنطة مفتوحة: باب صندوق الأمتعة غير مقفل بإحكام.',
       commonCauses: [
         'عدم إغلاق باب الصندوق بالكامل',
         'عطل في حساس كالون قفل الشنطة الخلفية',
@@ -1267,14 +1267,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 60,
       id: 'esp_tcs',
-      nameArabic: 'عطل مانع الانزلاق والتماسك (ESP / TCS)',
+      nameArabic: 'نظام مانع الانزلاق',
       nameEnglish: 'Electronic Stability Program (ESP / TCS)',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'ESP_TCS',
       icon: Icons.alt_route_rounded,
       meaningArabic:
-          'نظام التحكم في تماسك الإطارات والثبات الإلكتروني للمركبة غير متاح حالياً.',
+          'نظام مانع الانزلاق والثبات الإلكتروني (ESP / TCS): نظام التحكم في تماسك الإطارات غير متاح حالياً.',
       commonCauses: [
         'عطل في أحد حساسات الـ ABS المرتبطة بالعجلات',
         'عدم معايرة حساس زاوية الدومان (الستيرسو) بعد وزن الأذرعة',
@@ -1290,14 +1290,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 61,
       id: 'rain_sensor',
-      nameArabic: 'حساس المطر قيد التشغيل',
+      nameArabic: 'حساس المطر',
       nameEnglish: 'Rain Sensor Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'RAIN_ACT',
       icon: Icons.water_drop_rounded,
       meaningArabic:
-          'نظام الاستشعار التلقائي للمطر على الزجاج الأمامي مشغل ويعمل بانتظام.',
+          'حساس المطر نشط: نظام الاستشعار التلقائي للمطر على الزجاج الأمامي مشغل ويعمل بانتظام.',
       commonCauses: ['وضع ذراع المساحات على خيار التشغيل التلقائي (AUTO)'],
       actionRequired:
           'حالة تشغيلية عادية تؤكد استعداد المساحات للعمل فور هطول المطر.',
@@ -1309,14 +1309,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 62,
       id: 'check_engine',
-      nameArabic: 'فحص المحرك (Check Engine / MIL)',
+      nameArabic: 'لمبة المحرك / check engine',
       nameEnglish: 'Check Engine / Malfunction Indicator Lamp',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.driveCarefully,
       symbolCode: 'CHECK_ENG',
       icon: Icons.electric_bolt_rounded,
       meaningArabic:
-          'كمبيوتر السيارة رصد خللاً في أحد أنظمة الاحتراق، الوقود، الحساسات، أو الانبعاثات.',
+          'لمبة المحرك / check engine: كمبيوتر السيارة رصد خللاً في أحد أنظمة الاحتراق، الوقود، الحساسات، أو الانبعاثات.',
       commonCauses: [
         'عطل في حساس المرميطة (O2 Sensor) أو حساس الهواء (MAF)',
         'تلف بوبينات الإشعال أو الشمعات ووجود فطفطة (Misfire)',
@@ -1341,14 +1341,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 63,
       id: 'rear_defrost',
-      nameArabic: 'نظام إزالة الضباب وتدفئة الزجاج الخلفي',
+      nameArabic: 'إزالة الضباب والمقيع ( الشباك الخلفي )',
       nameEnglish: 'Rear Window Defroster Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'DEFROST_R',
       icon: Icons.waves_outlined,
       meaningArabic:
-          'خطوط التدفئة الكهربائية بالزجاج الخلفي مشتعلة لإذابة الجليد والضباب.',
+          'إزالة الضباب والمقيع (الشباك الخلفي): خطوط التدفئة الكهربائية بالزجاج الخلفي مشتعلة لإذابة الجليد والضباب.',
       commonCauses: ['الضغط على زر تسخين وتذويب ضباب الزجاج الخلفي'],
       actionRequired:
           'حالة طبيعية، يفضل إطفاؤه بعد صفاء الرؤية لتخفيف الحمل الكهربائي على الدينمو.',
@@ -1360,14 +1360,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 64,
       id: 'auto_wipers',
-      nameArabic: 'مساحات الزجاج التلقائية نشطة',
+      nameArabic: 'نظام تشغيل المساحات الاتوماتيكي',
       nameEnglish: 'Automatic Windshield Wipers Active',
       severity: LightSeverity.infoGreenBlue,
       canDrive: CanDriveStatus.normal,
       symbolCode: 'AUTO_WIPE',
       icon: Icons.water_rounded,
       meaningArabic:
-          'المساحات الأمامية تعمل تلقائياً بحسب كمية قطرات الماء المستشعرة على الزجاج.',
+          'نظام تشغيل المساحات الأوتوماتيكي: المساحات الأمامية تعمل تلقائياً بحسب كمية قطرات الماء المستشعرة على الزجاج.',
       commonCauses: ['هطول المطر وتفعيل وضع AUTO للمساحات'],
       actionRequired:
           'حالة تشغيلية طبيعية وآمنة تزيد وضوح الرؤية دون انشغال السائق.',
