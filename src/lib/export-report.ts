@@ -62,7 +62,7 @@ export function shareReportToWhatsApp(report: KashifDiagnosticReport): void {
       if (!engineText.includes('بسطوني') && engineSpecs.cylinders) {
         engineText += ` - ${engineSpecs.cylinders} بسطوني`;
       }
-      if (engineSpecs.fuelType && engineSpecs.fuelType !== 'غير محدد') {
+      if (engineSpecs.fuelType && (engineSpecs.fuelType as string) !== 'غير محدد') {
         engineText += ` • ${engineSpecs.fuelType}`;
       }
     }

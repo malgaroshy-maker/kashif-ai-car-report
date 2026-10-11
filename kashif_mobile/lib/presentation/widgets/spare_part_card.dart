@@ -4,13 +4,15 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/spare_part.dart';
+import '../../data/models/vehicle_info.dart';
 import '../../data/repositories/part_number_resolver.dart';
 import 'fuse_cell.dart';
 
 class SparePartCard extends StatelessWidget {
   final SparePartItem part;
+  final VehicleInfo? vehicle;
 
-  const SparePartCard({super.key, required this.part});
+  const SparePartCard({super.key, required this.part, this.vehicle});
 
   void _showImageDialog(BuildContext context, String imageUrl) {
     showDialog(
@@ -79,7 +81,7 @@ class SparePartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final p = PartNumberResolver.enrich(part);
+    final p = PartNumberResolver.enrich(part, vehicle: vehicle);
     final hasImage = p.partImageUrl != null && p.partImageUrl!.isNotEmpty;
 
     return FuseCell(
@@ -323,7 +325,7 @@ class SparePartCard extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'تم نسخ رقم القطعة OEM: ${p.oemPartNumber}',
+                          'تم نسخ رقم القطعة: ${p.oemPartNumber}',
                         ),
                         duration: const Duration(seconds: 1),
                       ),
@@ -370,14 +372,31 @@ class SparePartCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Direct Google Search Action
+                // Verification Badge
+                if (!p.oemPartNumber!.contains('VIN') && !p.oemPartNumber!.contains('مطابقة'))
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1B281B),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0xFF388E3C), width: 0.6),
+                    ),
+                    child: Text(
+                      '✓ كود مصنع موثق',
+                      style: KashifTypography.arabic(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF81C784),
+                      ),
+                    ),
+                  ),
+                // Direct Catalog / EPC Search Action
                 InkWell(
                   borderRadius: BorderRadius.circular(6),
                   onTap: () async {
-                    final query = '${p.oemPartNumber!} ${p.partNameEnglish}'.trim();
-                    final uri = Uri.parse(
-                      'https://www.google.com/search?q=${Uri.encodeComponent(query)}',
-                    );
+                    final targetUrl = p.catalogSearchUrl ??
+                        PartNumberResolver.generateCatalogSearchUrl(vehicle: vehicle, part: p);
+                    final uri = Uri.parse(targetUrl);
                     try {
                       if (await canLaunchUrl(uri)) {
                         await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -413,7 +432,7 @@ class SparePartCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'بحث في Google 🔍',
+                          'كتالوج القطع / EPC 🔍',
                           style: KashifTypography.arabic(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,

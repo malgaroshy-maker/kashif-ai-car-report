@@ -6,6 +6,7 @@ import '../../core/network/apinex_client.dart';
 import '../../core/utils/ediag_pdf_parser.dart';
 import '../../data/models/diagnostic_report.dart';
 import '../../data/repositories/offline_report_service.dart';
+import '../../data/repositories/part_number_resolver.dart';
 import '../../data/storage/hive_storage.dart';
 
 class ReportState {
@@ -95,6 +96,49 @@ class ReportNotifier extends StateNotifier<ReportState> {
     state = state.copyWith(canFallbackToOffline: false);
   }
 
+  Future<DiagnosticReport> _enrichReportParts(DiagnosticReport report) async {
+    if (report.spareParts.isEmpty) return report;
+    try {
+      final enrichedParts = await PartNumberResolver.enrichListAsync(
+        report.spareParts,
+        vehicle: report.vehicle,
+        apiClient: _apiClient,
+      );
+      return report.copyWith(spareParts: enrichedParts);
+    } catch (_) {
+      return report;
+    }
+  }
+
+  Future<void> _commitReport({
+    required String fp,
+    required DiagnosticReport report,
+    String? notice,
+    Uint8List? lastScannedBytes,
+    String? lastScannedFileName,
+    bool lastScannedIsPdf = false,
+    String? lastManualCodes,
+    String? lastManualVin,
+  }) async {
+    final enrichedReport = await _enrichReportParts(report);
+    await KashifStorage.cacheReportByFingerprint(fp, enrichedReport);
+    state = state.copyWith(
+      isLoading: false,
+      report: enrichedReport,
+      isFromLocalCache: false,
+      cacheNotice: notice,
+      clearNotice: notice == null,
+      lastScannedBytes: lastScannedBytes,
+      lastScannedFileName: lastScannedFileName,
+      lastScannedIsPdf: lastScannedIsPdf,
+      lastManualCodes: lastManualCodes,
+      lastManualVin: lastManualVin,
+      clearError: true,
+      canFallbackToOffline: false,
+      progressText: '',
+    );
+  }
+
   String _formatFriendlyError(dynamic e) {
     final str = e.toString();
     if (str.contains('524') || str.contains('status code of 524')) {
@@ -181,18 +225,13 @@ class ReportNotifier extends StateNotifier<ReportState> {
           model: extracted.model,
           year: extracted.year,
         );
-        await KashifStorage.cacheReportByFingerprint(fp, apReport);
-        await KashifStorage.saveReport(apReport);
-        state = state.copyWith(
-          isLoading: false,
+        await _commitReport(
+          fp: fp,
           report: apReport,
-          isFromLocalCache: false,
-          cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
+          notice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
           lastScannedBytes: bytes,
           lastScannedFileName: fileName,
           lastScannedIsPdf: true,
-          clearError: true,
-          canFallbackToOffline: false,
         );
         return;
       } catch (apError) {
@@ -206,18 +245,12 @@ class ReportNotifier extends StateNotifier<ReportState> {
               fileName,
               customApiKey: customKey,
             );
-            await KashifStorage.cacheReportByFingerprint(fp, report);
-            await KashifStorage.saveReport(report);
-            state = state.copyWith(
-              isLoading: false,
+            await _commitReport(
+              fp: fp,
               report: report,
-              isFromLocalCache: false,
-              clearNotice: true,
               lastScannedBytes: bytes,
               lastScannedFileName: fileName,
               lastScannedIsPdf: true,
-              clearError: true,
-              canFallbackToOffline: false,
             );
             return;
           } catch (geminiError) {
@@ -271,16 +304,12 @@ class ReportNotifier extends StateNotifier<ReportState> {
         fileName,
         customApiKey: apiKey,
       );
-      await KashifStorage.cacheReportByFingerprint(fp, report);
-      await KashifStorage.saveReport(report);
-      state = state.copyWith(
-        isLoading: false,
+      await _commitReport(
+        fp: fp,
         report: report,
-        progressText: '',
-        isFromLocalCache: false,
-        clearNotice: true,
-        clearError: true,
-        canFallbackToOffline: false,
+        lastScannedBytes: bytes,
+        lastScannedFileName: fileName,
+        lastScannedIsPdf: true,
       );
     } catch (geminiError) {
       // Automatic failover to APInex if enabled
@@ -301,19 +330,13 @@ class ReportNotifier extends StateNotifier<ReportState> {
             model: extracted.model,
             year: extracted.year,
           );
-          await KashifStorage.cacheReportByFingerprint(fp, apReport);
-          await KashifStorage.saveReport(apReport);
-          state = state.copyWith(
-            isLoading: false,
+          await _commitReport(
+            fp: fp,
             report: apReport,
-            isFromLocalCache: false,
-            cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
+            notice: '⚡ تم التشخيص بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
             lastScannedBytes: bytes,
             lastScannedFileName: fileName,
             lastScannedIsPdf: true,
-            clearError: true,
-            canFallbackToOffline: false,
-            progressText: '',
           );
           return;
         } catch (apError) {
@@ -386,18 +409,13 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
       try {
         final apReport = await _apinexClient.analyzeImage(bytes, fileName);
-        await KashifStorage.cacheReportByFingerprint(fp, apReport);
-        await KashifStorage.saveReport(apReport);
-        state = state.copyWith(
-          isLoading: false,
+        await _commitReport(
+          fp: fp,
           report: apReport,
-          isFromLocalCache: false,
-          cacheNotice: '⚡ تم فحص الشاشة بنجاح عبر محرك APInex ($activeModel)',
+          notice: '⚡ تم فحص الشاشة بنجاح عبر محرك APInex ($activeModel)',
           lastScannedBytes: bytes,
           lastScannedFileName: fileName,
           lastScannedIsPdf: false,
-          clearError: true,
-          canFallbackToOffline: false,
         );
         return;
       } catch (apError) {
@@ -411,16 +429,12 @@ class ReportNotifier extends StateNotifier<ReportState> {
               fileName,
               customApiKey: customKey,
             );
-            await KashifStorage.cacheReportByFingerprint(fp, report);
-            await KashifStorage.saveReport(report);
-            state = state.copyWith(
-              isLoading: false,
+            await _commitReport(
+              fp: fp,
               report: report,
-              progressText: '',
-              isFromLocalCache: false,
-              clearNotice: true,
-              clearError: true,
-              canFallbackToOffline: false,
+              lastScannedBytes: bytes,
+              lastScannedFileName: fileName,
+              lastScannedIsPdf: false,
             );
             return;
           } catch (geminiError) {
@@ -473,16 +487,12 @@ class ReportNotifier extends StateNotifier<ReportState> {
         fileName,
         customApiKey: apiKey,
       );
-      await KashifStorage.cacheReportByFingerprint(fp, report);
-      await KashifStorage.saveReport(report);
-      state = state.copyWith(
-        isLoading: false,
+      await _commitReport(
+        fp: fp,
         report: report,
-        progressText: '',
-        isFromLocalCache: false,
-        clearNotice: true,
-        clearError: true,
-        canFallbackToOffline: false,
+        lastScannedBytes: bytes,
+        lastScannedFileName: fileName,
+        lastScannedIsPdf: false,
       );
     } catch (geminiError) {
       if (KashifStorage.isApinexAutoFailoverEnabled) {
@@ -492,19 +502,13 @@ class ReportNotifier extends StateNotifier<ReportState> {
             progressText: 'جاري فحص الشاشة عبر محرك APInex ($activeModel)...',
           );
           final apReport = await _apinexClient.analyzeImage(bytes, fileName);
-          await KashifStorage.cacheReportByFingerprint(fp, apReport);
-          await KashifStorage.saveReport(apReport);
-          state = state.copyWith(
-            isLoading: false,
+          await _commitReport(
+            fp: fp,
             report: apReport,
-            isFromLocalCache: false,
-            cacheNotice: '⚡ تم فحص الشاشة بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
+            notice: '⚡ تم فحص الشاشة بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
             lastScannedBytes: bytes,
             lastScannedFileName: fileName,
             lastScannedIsPdf: false,
-            clearError: true,
-            canFallbackToOffline: false,
-            progressText: '',
           );
           return;
         } catch (apError) {
@@ -574,17 +578,12 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
       try {
         final apReport = await _apinexClient.analyzeManualCodes(codes, vin: vin);
-        await KashifStorage.cacheReportByFingerprint(fp, apReport);
-        await KashifStorage.saveReport(apReport);
-        state = state.copyWith(
-          isLoading: false,
+        await _commitReport(
+          fp: fp,
           report: apReport,
-          isFromLocalCache: false,
-          cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
+          notice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
           lastManualCodes: codes,
           lastManualVin: vin,
-          clearError: true,
-          canFallbackToOffline: false,
         );
         return;
       } catch (apError) {
@@ -597,16 +596,11 @@ class ReportNotifier extends StateNotifier<ReportState> {
               vin: vin,
               customApiKey: customKey,
             );
-            await KashifStorage.cacheReportByFingerprint(fp, report);
-            await KashifStorage.saveReport(report);
-            state = state.copyWith(
-              isLoading: false,
+            await _commitReport(
+              fp: fp,
               report: report,
-              isFromLocalCache: false,
               lastManualCodes: codes,
               lastManualVin: vin,
-              clearError: true,
-              canFallbackToOffline: false,
             );
             return;
           } catch (geminiError) {
@@ -656,16 +650,11 @@ class ReportNotifier extends StateNotifier<ReportState> {
         vin: vin,
         customApiKey: apiKey,
       );
-      await KashifStorage.cacheReportByFingerprint(fp, report);
-      await KashifStorage.saveReport(report);
-      state = state.copyWith(
-        isLoading: false,
+      await _commitReport(
+        fp: fp,
         report: report,
-        progressText: '',
-        isFromLocalCache: false,
-        clearNotice: true,
-        clearError: true,
-        canFallbackToOffline: false,
+        lastManualCodes: codes,
+        lastManualVin: vin,
       );
     } catch (geminiError) {
       if (KashifStorage.isApinexAutoFailoverEnabled) {
@@ -675,18 +664,12 @@ class ReportNotifier extends StateNotifier<ReportState> {
             progressText: 'جاري تشخيص الأكواد عبر محرك APInex ($activeModel)...',
           );
           final apReport = await _apinexClient.analyzeManualCodes(codes, vin: vin);
-          await KashifStorage.cacheReportByFingerprint(fp, apReport);
-          await KashifStorage.saveReport(apReport);
-          state = state.copyWith(
-            isLoading: false,
+          await _commitReport(
+            fp: fp,
             report: apReport,
-            isFromLocalCache: false,
-            cacheNotice: '⚡ تم التشخيص بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
+            notice: '⚡ تم التشخيص بنجاح عبر محرك الذكاء البديل (APInex • $activeModel)',
             lastManualCodes: codes,
             lastManualVin: vin,
-            clearError: true,
-            canFallbackToOffline: false,
-            progressText: '',
           );
           return;
         } catch (apError) {

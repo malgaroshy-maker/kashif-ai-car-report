@@ -34,6 +34,8 @@ class SparePartItem {
   final String? systemCategory;
   final String? partImageUrl;
   final String? replacementUrgency;
+  final String? catalogSearchUrl;
+  final String? confidence;
 
   SparePartItem({
     required this.id,
@@ -47,6 +49,8 @@ class SparePartItem {
     this.systemCategory,
     this.partImageUrl,
     this.replacementUrgency,
+    this.catalogSearchUrl,
+    this.confidence,
   });
 
   String get diagramCategory => systemCategory ?? '';
@@ -78,6 +82,8 @@ class SparePartItem {
       partImageUrl: json['partImageUrl'] as String?,
       replacementUrgency:
           json['replacementUrgency'] as String? ?? json['urgency'] as String?,
+      catalogSearchUrl: json['catalogSearchUrl'] as String?,
+      confidence: json['confidence'] as String?,
     );
   }
 
@@ -93,5 +99,7 @@ class SparePartItem {
     'systemCategory': systemCategory,
     'partImageUrl': partImageUrl,
     'replacementUrgency': replacementUrgency,
+    'catalogSearchUrl': catalogSearchUrl,
+    'confidence': confidence,
   };
 }

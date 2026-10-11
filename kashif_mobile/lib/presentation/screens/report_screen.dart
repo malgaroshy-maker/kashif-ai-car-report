@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/diagnostic_report.dart';
+import '../../data/models/vehicle_info.dart';
 import '../../data/models/fault_code.dart';
 import '../../data/models/spare_part.dart';
 import '../../data/models/checklist_step.dart';
@@ -129,7 +130,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       if (sectionsConfig.includeSpareParts)
         (
           tab: Tab(text: 'قطع الغيار (${report.spareParts.length})'),
-          view: _buildPartsList(report.spareParts, isDark),
+          view: _buildPartsList(report.spareParts, isDark, vehicle: report.vehicle),
         ),
       if (sectionsConfig.includeProbabilitiesTable)
         (
@@ -967,7 +968,11 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     );
   }
 
-  Widget _buildPartsList(List<SparePartItem> parts, bool isDark) {
+  Widget _buildPartsList(
+    List<SparePartItem> parts,
+    bool isDark, {
+    VehicleInfo? vehicle,
+  }) {
     if (parts.isEmpty) {
       return Center(
         child: Text(
@@ -981,7 +986,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       padding: const EdgeInsets.all(12),
       itemCount: parts.length,
       itemBuilder: (context, index) {
-        return SparePartCard(part: parts[index]);
+        return SparePartCard(part: parts[index], vehicle: vehicle);
       },
     );
   }

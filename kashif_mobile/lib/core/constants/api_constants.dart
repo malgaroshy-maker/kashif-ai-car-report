@@ -5,6 +5,7 @@ class ApiConstants {
   static const String modelsEndpoint = '$baseUrl/api/models';
   static const String partsImageEndpoint = '$baseUrl/api/parts-image';
   static const String partPhotoEndpoint = '$baseUrl/api/part-photo';
+  static const String resolvePartsEndpoint = '$baseUrl/api/resolve-parts';
 
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 90);

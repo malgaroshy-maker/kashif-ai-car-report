@@ -6,15 +6,18 @@ import '../models/report_sections_config.dart';
 class KashifStorage {
   static const String reportsBoxName = 'kashif_reports';
   static const String settingsBoxName = 'kashif_settings';
+  static const String partsCacheBoxName = 'kashif_parts_cache';
 
   static Future<void> init() async {
     await Hive.initFlutter();
     await Hive.openBox<Map>(reportsBoxName);
     await Hive.openBox(settingsBoxName);
+    await Hive.openBox<Map>(partsCacheBoxName);
   }
 
   static Box<Map> get reportsBox => Hive.box<Map>(reportsBoxName);
   static Box get settingsBox => Hive.box(settingsBoxName);
+  static Box<Map> get partsCacheBox => Hive.box<Map>(partsCacheBoxName);
 
   /// Computes a deterministic 32-bit FNV-1a fingerprint for byte buffers (safe for Web/JS & Native)
   static String computeFingerprint(Uint8List bytes) {
@@ -50,6 +53,26 @@ class KashifStorage {
     try {
       await saveReport(report);
       await settingsBox.put('fp_$fp', report.reportId);
+    } catch (_) {}
+  }
+
+  /// Retrieves cached resolved part data if available
+  static Map<String, dynamic>? getCachedPart(String key) {
+    try {
+      if (Hive.isBoxOpen(partsCacheBoxName)) {
+        final map = partsCacheBox.get(key);
+        if (map != null) return _deepConvertMap(map);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Saves resolved part data to local persistent Hive cache
+  static Future<void> cachePart(String key, Map<String, dynamic> data) async {
+    try {
+      if (Hive.isBoxOpen(partsCacheBoxName)) {
+        await partsCacheBox.put(key, data);
+      }
     } catch (_) {}
   }
 

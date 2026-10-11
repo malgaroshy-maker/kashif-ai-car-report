@@ -6,6 +6,8 @@ import '../constants/api_constants.dart';
 import 'api_exceptions.dart';
 import 'key_pool_manager.dart';
 import '../../data/models/diagnostic_report.dart';
+import '../../data/models/vehicle_info.dart';
+import '../../data/models/spare_part.dart';
 import '../../data/storage/hive_storage.dart';
 
 class KashifApiClient {
@@ -344,6 +346,83 @@ class KashifApiClient {
     } catch (e) {
       return {'success': false, 'message': 'خطأ أثناء التحقق: $e'};
     }
+  }
+
+  /// Resolves genuine OEM and aftermarket part numbers for a vehicle dynamically
+  Future<List<SparePartItem>> resolveParts({
+    required VehicleInfo vehicle,
+    required List<SparePartItem> parts,
+  }) async {
+    if (parts.isEmpty) return [];
+
+    try {
+      final payload = {
+        'vehicle': vehicle.toJson(),
+        'parts': parts.map((p) => {
+          'id': p.id,
+          'partNameLibyan': p.partNameLibyan,
+          'partNameStandardArabic': p.partNameStandardArabic,
+          'partNameEnglish': p.partNameEnglish,
+          'relatedCode': p.relatedCode,
+          'existingOem': p.oemPartNumber,
+        }).toList(),
+      };
+
+      final response = await _dio.post(
+        ApiConstants.resolvePartsEndpoint,
+        data: payload,
+        options: Options(
+          sendTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 25),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        if (data is Map && data['success'] == true && data['parts'] is List) {
+          final returnedList = (data['parts'] as List).cast<Map>();
+          final resolvedMap = {for (var item in returnedList) item['id'].toString(): Map<String, dynamic>.from(item)};
+
+          return parts.map((original) {
+            final res = resolvedMap[original.id];
+            if (res == null) return original;
+
+            final oem = res['oemPartNumber'] as String? ?? original.oemPartNumber;
+            final replacements = (res['aftermarketReplacements'] as List<dynamic>?)
+                    ?.map((e) => e.toString())
+                    .toList() ??
+                original.aftermarketReplacements;
+
+            PriceRangeLYD? price = original.estimatedPriceRangeLYD;
+            if (res['estimatedPriceRangeLYD'] is Map) {
+              price = PriceRangeLYD.fromJson(
+                Map<String, dynamic>.from(res['estimatedPriceRangeLYD'] as Map),
+              );
+            }
+
+            return SparePartItem(
+              id: original.id,
+              relatedCode: original.relatedCode,
+              partNameLibyan: original.partNameLibyan,
+              partNameStandardArabic: original.partNameStandardArabic,
+              partNameEnglish: original.partNameEnglish,
+              oemPartNumber: oem,
+              aftermarketReplacements: replacements,
+              estimatedPriceRangeLYD: price,
+              systemCategory: original.systemCategory,
+              partImageUrl: original.partImageUrl,
+              replacementUrgency: original.replacementUrgency,
+              catalogSearchUrl: res['catalogSearchUrl'] as String?,
+              confidence: res['confidence'] as String?,
+            );
+          }).toList();
+        }
+      }
+    } catch (e) {
+      dev.log('[KashifApiClient] resolveParts failed: $e');
+    }
+
+    return parts;
   }
 
   DiagnosticReport _handleReportResponse(Response response) {

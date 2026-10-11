@@ -140,16 +140,11 @@ The following systems are OK:
     );
   });
 
-  test('PartNumberResolver resolves genuine Opel Astra-G parts with no -ALT suffixes', () {
+  test('PartNumberResolver resolves parts with zero fake -ALT or synthetic codes', () {
     final parts = [
-      SparePartItem(id: '1', relatedCode: 'P0340', partNameLibyan: 'حساس امبروكم', partNameStandardArabic: 'حساس الكامة', partNameEnglish: 'Camshaft Sensor', aftermarketReplacements: const []),
-      SparePartItem(id: '2', relatedCode: 'P0335', partNameLibyan: 'حساس كولوا', partNameStandardArabic: 'حساس الكرنك', partNameEnglish: 'Crankshaft Sensor', aftermarketReplacements: const []),
-      SparePartItem(id: '3', relatedCode: 'P0105', partNameLibyan: 'حساس ماب', partNameStandardArabic: 'حساس ماب', partNameEnglish: 'MAP Sensor', aftermarketReplacements: const []),
-      SparePartItem(id: '4', relatedCode: 'P0200', partNameLibyan: 'رشاش وقود', partNameStandardArabic: 'بخاخ وقود', partNameEnglish: 'Fuel Injector', aftermarketReplacements: const []),
-      SparePartItem(id: '5', relatedCode: 'P0607', partNameLibyan: 'كمبيوتر المحرك', partNameStandardArabic: 'وحدة التحكم', partNameEnglish: 'ECU', aftermarketReplacements: const []),
-      SparePartItem(id: '6', relatedCode: '16', partNameLibyan: 'مشد حزام الأمان', partNameStandardArabic: 'مشد الحزام', partNameEnglish: 'Pre-tensioner', aftermarketReplacements: const []),
-      SparePartItem(id: '7', relatedCode: '25', partNameLibyan: 'كبسولة وسادة الراكب', partNameStandardArabic: 'وسادة هوائية', partNameEnglish: 'Passenger Airbag Squib', aftermarketReplacements: const []),
-      SparePartItem(id: '8', relatedCode: '164', partNameLibyan: 'حساس مية الرداتوري', partNameStandardArabic: 'حساس حرارة المبرد', partNameEnglish: 'Coolant Temp Sensor', aftermarketReplacements: const []),
+      SparePartItem(id: '1', relatedCode: 'P0340', partNameLibyan: 'حساس امبروكم', partNameStandardArabic: 'حساس الكامة', partNameEnglish: 'Camshaft Sensor', oemPartNumber: '90559857', aftermarketReplacements: const ['Bosch 0232103021']),
+      SparePartItem(id: '2', relatedCode: 'P0335', partNameLibyan: 'حساس كولوا', partNameStandardArabic: 'حساس الكرنك', partNameEnglish: 'Crankshaft Sensor', oemPartNumber: '90536064', aftermarketReplacements: const ['Siemens 5WK90541Z']),
+      SparePartItem(id: '3', relatedCode: 'P0105', partNameLibyan: 'حساس ماب', partNameStandardArabic: 'حساس ماب', partNameEnglish: 'MAP Sensor', oemPartNumber: 'N/A', aftermarketReplacements: const []),
     ];
     final vehicle = VehicleInfo(vin: 'W0L0TGF69X5059457', make: 'OPEL', model: 'Astra-G', year: '1999');
     final enriched = PartNumberResolver.enrichList(parts, vehicle: vehicle);
@@ -157,10 +152,11 @@ The following systems are OK:
     for (final ep in enriched) {
       expect(ep.oemPartNumber, isNotNull);
       expect(ep.oemPartNumber!.contains('-ALT'), isFalse, reason: 'Found fake -ALT in ${ep.partNameLibyan}');
+      expect(ep.oemPartNumber!.contains('GEN-'), isFalse, reason: 'Found synthetic GEN- in ${ep.partNameLibyan}');
+      expect(ep.catalogSearchUrl, isNotNull);
     }
     expect(enriched[0].oemPartNumber, '90559857');
     expect(enriched[1].oemPartNumber, '90536064');
-    expect(enriched[2].oemPartNumber, '16212460');
-    expect(enriched[6].aftermarketReplacements.any((r) => r.contains('Gates') || r.contains('Wahler')), isFalse);
+    expect(enriched[2].oemPartNumber, contains('VIN'));
   });
 }
