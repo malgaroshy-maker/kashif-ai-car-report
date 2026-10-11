@@ -43,6 +43,13 @@
    - شات ذكي يقدم نصائح ميكانيكية وخطوات فحص عملية باللهجة الليبية الفنية.
 8. **تطبيق الهاتف الذكي المخصص لورش الصيانة (Flow Cars Mobile App):**
    - تطبيق أصيل مبني بـ Flutter يدعم أندرويد و iOS، متوفر في مجلد [`kashif_mobile`](kashif_mobile/README.md).
+   - حزمة الإصدار المخصصة لهواتف 64-bit و Poco X7 Pro (HyperOS) متوفرة في `APK_OUTPUT/kashif_poco_x7_pro.apk`.
+   - **أدلة التوثيق المتخصصة للنسخة المحمولة:**
+     - 🚀 [دليل الأسطى وفني الورشة السريع](kashif_mobile/docs/WORKSHOP_QUICK_START.md)
+     - 🏗️ [المعمارية البرمجية وهندسة النظام](kashif_mobile/docs/ARCHITECTURE.md)
+     - ⚙️ [محرك أرقام قطع الغيار الشامل (Universal OEM Resolver)](kashif_mobile/docs/PART_NUMBER_RESOLVER.md)
+     - 📱 [دليل البناء والنشر وحل مشاكل Poco X7 Pro](kashif_mobile/docs/BUILD_AND_DEPLOYMENT.md)
+     - 🇱🇾 [محرك اللهجة الليبية والتشغيل غير المتصل](kashif_mobile/docs/LIBYAN_TERMS_AND_OFFLINE_ENGINE.md)
    - مسح مباشر لشاشات أجهزة الفحص عبر الكاميرا (Camera OCR) وأجهزة Launch و Autel و Ediag و ThinkDiag.
    - تكامل كامل مع بوابات الذكاء الاصطناعي (APInex متعدد النماذج و Google Gemini).
    - محرك تعريب وتدقيق صارم للمصطلحات الليبية المعتمدة (كمبيو، بومبة، باطنيات، سمياص، براتشوات، مزاطوريات، شمعات، بوبينات).
