@@ -1376,6 +1376,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ref
                           .read(settingsProvider.notifier)
                           .updateApinexSettings(asPrimary: true);
+                      if (_apinexKeyController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              '⚠️ تم اختيار APInex كمحرك أساسي. تأكد من إدخال مفتاحك من apinex.bond أدناه ليعمل الفحص.',
+                            ),
+                            backgroundColor: Colors.orange,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     },
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
@@ -1688,6 +1700,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _apinexKeyController.text.trim().isNotEmpty
+                              ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                              : Colors.amber.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: _apinexKeyController.text.trim().isNotEmpty
+                                ? const Color(0xFF10B981)
+                                : Colors.amber.shade700,
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          _apinexKeyController.text.trim().isNotEmpty
+                              ? '✅ مضبوط ومحفوظ'
+                              : '⚠️ غير مدخل (مطلوب)',
+                          style: KashifTypography.arabic(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            color: _apinexKeyController.text.trim().isNotEmpty
+                                ? const Color(0xFF10B981)
+                                : Colors.amber.shade800,
+                          ),
+                        ),
+                      ),
                       const Spacer(),
                       InkWell(
                         onTap: _clearApinexKey,
@@ -1728,6 +1768,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     controller: _apinexKeyController,
                     obscureText: _obscureApinexKey,
                     style: KashifTypography.mono(fontSize: 12),
+                    onChanged: (val) {
+                      final clean = val.trim();
+                      ref.read(settingsProvider.notifier).updateApinexSettings(key: clean);
+                      KashifStorage.setApinexApiKey(clean);
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       hintText: 'sk-apx... (أدخل مفتاحك الشخصي من apinex.bond)',
                       filled: true,
@@ -1789,15 +1835,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                             tooltip: 'لصق',
                             onPressed: () async {
+                              final messenger = ScaffoldMessenger.of(context);
                               final data = await Clipboard.getData(
                                 Clipboard.kTextPlain,
                               );
                               if (data?.text != null &&
                                   data!.text!.trim().isNotEmpty) {
-                                setState(() {
-                                  _apinexKeyController.text =
-                                      data.text!.trim();
-                                });
+                                final clean = data.text!.trim();
+                                if (mounted) {
+                                  setState(() {
+                                    _apinexKeyController.text = clean;
+                                  });
+                                }
+                                ref.read(settingsProvider.notifier).updateApinexSettings(key: clean);
+                                await KashifStorage.setApinexApiKey(clean);
+                                messenger.clearSnackBars();
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تم لصق وحفظ مفتاح APInex بنجاح ✅'),
+                                    backgroundColor: Color(0xFF065F46),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               }
                             },
                           ),
@@ -2046,17 +2105,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         onPressed: () {
                           final selected = _apinexModelController.text.trim();
+                          final key = _apinexKeyController.text.trim();
+                          ref
+                              .read(settingsProvider.notifier)
+                              .updateApinexSettings(
+                                model: selected.isNotEmpty ? selected : null,
+                                key: key,
+                              );
                           if (selected.isNotEmpty) {
-                            ref
-                                .read(settingsProvider.notifier)
-                                .updateApinexSettings(model: selected);
                             KashifStorage.setApinexModel(selected);
-                            final messenger = ScaffoldMessenger.of(context);
-                            messenger.clearSnackBars();
+                          }
+                          KashifStorage.setApinexApiKey(key);
+
+                          final messenger = ScaffoldMessenger.of(context);
+                          messenger.clearSnackBars();
+                          if (key.isEmpty) {
                             messenger.showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'تم حفظ وتفعيل النموذج بنجاح: $selected ✅',
+                                  'تم حفظ النموذج ($selected) ✅ ولكن تنبيه: لم يتم إدخال مفتاح APInex بعد! يرجى لصق مفتاحك من apinex.bond لتفعيل الفحص.',
+                                  style: KashifTypography.arabic(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                backgroundColor: Colors.orange.shade800,
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
+                          } else {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'تم حفظ وتفعيل النموذج ($selected) والمفتاح بنجاح ✅',
                                   style: KashifTypography.arabic(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,

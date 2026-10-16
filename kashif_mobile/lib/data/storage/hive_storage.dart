@@ -371,13 +371,7 @@ class KashifStorage {
     try {
       if (Hive.isBoxOpen(settingsBoxName)) {
         final key = settingsBox.get('apinexApiKey', defaultValue: '') as String?;
-        final clean = key?.trim() ?? '';
-        // Automatically sanitize if the old suspended key was stored
-        if (clean.startsWith('sk-apxa56a82e') && clean.endsWith('cbf19')) {
-          settingsBox.put('apinexApiKey', '');
-          return '';
-        }
-        return clean;
+        return key?.trim() ?? '';
       }
       return '';
     } catch (_) {

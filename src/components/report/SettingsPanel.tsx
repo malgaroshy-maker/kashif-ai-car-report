@@ -85,13 +85,6 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const workshopAddress = draftWorkshopAddress ?? storedWorkshopAddress;
   const techName = draftTechName ?? storedTechName;
 
-  // Auto-sanitize legacy leaked key if found in browser localStorage
-  React.useEffect(() => {
-    if (storedApinexKey && storedApinexKey.startsWith("sk-apxa56a82e") && storedApinexKey.endsWith("cbf19")) {
-      removeLocal(STORAGE_KEYS.apinexApiKey);
-      setDraftApinexKey("");
-    }
-  }, [storedApinexKey]);
 
   React.useEffect(() => {
     const controller = new AbortController();
