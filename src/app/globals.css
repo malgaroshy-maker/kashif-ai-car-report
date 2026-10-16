@@ -23,6 +23,13 @@
   --color-rib: var(--rib);
   --color-rib-lit: var(--rib-lit);
 
+  --color-royal-blue: var(--royal-blue);
+  --color-royal-blue-light: var(--royal-blue-light);
+  --color-royal-blue-electric: var(--royal-blue-electric);
+  --color-gold-primary: var(--gold-primary);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+
   --color-amp-10-tab: var(--amp-10-tab);
   --color-amp-10-ink: var(--amp-10-ink);
   --color-amp-20-tab: var(--amp-20-tab);
@@ -46,41 +53,47 @@
 :root {
   color-scheme: light;
 
-  /* The lid. Pale grey moulded ABS, with the silkscreened panels printed on it. */
-  --board: #d5d7cf;
-  --board-sunk: #c2c5bc;
-  --cell: #f4f4f0;
+  /* Brand Signature: Royal Blue & Luxury Gold */
+  --royal-blue: #15489d;
+  --royal-blue-light: #2563eb;
+  --royal-blue-electric: #38bdf8;
+  --gold-primary: #d4af37;
+  --gold-light: #f5c84c;
+  --gold-dark: #a67c1e;
+
+  /* The Royal Daylight Lid (matching mobile Light Theme) */
+  --board: #f0f4fa;
+  --board-sunk: #e2ecf8;
+  --cell: #ffffff;
+  --cell-subtle: #f5f8fd;
 
   /* Silkscreen ink */
-  --ink: #1a1d19;
-  --ink-2: #4c524a;
-  --ink-3: #525956;
+  --ink: #0b1938;
+  --ink-2: #4c658d;
+  --ink-3: #6b82a6;
 
-  /* Moulded ribs: the dark groove and the lit crest. This pair IS the depth. */
-  --rib: #a9ada5;
-  --rib-lit: #eceee7;
+  /* Moulded ribs: dark groove and lit crest */
+  --rib: #cad8ec;
+  --rib-lit: #ffffff;
 
-  /* ISO/DIN 72581-3 blade fuse colours.
-     -tab = the fuse's own plastic, used for tabs, marks and fills.
-     -ink = the same hue pushed to a text-safe contrast against --cell. */
+  /* ISO/DIN 72581-3 blade fuse colours */
   --amp-10-tab: #de3b2f; /* 10A red    — حرج */
   --amp-10-ink: #a81f15;
   --amp-20-tab: #f2c200; /* 20A yellow — متوسط */
-  --amp-20-ink: #7a5500;
+  --amp-20-ink: #a67c1e;
   --amp-30-tab: #2e9e5b; /* 30A green  — سليم */
   --amp-30-ink: #125b2f;
   --amp-25-tab: #c8cbc5; /* 25A clear  — ذاكرة */
   --amp-25-ink: #565c59;
-  --amp-15-tab: #2e7fc4; /* 15A blue   — the one interactive ink */
-  --amp-15-ink: #0f5288;
+  --amp-15-tab: #15489d; /* 15A Royal Blue — interactive ink */
+  --amp-15-ink: #103b8f;
 
   --lift: 0 6px 18px -6px rgb(12 14 12 / 0.42);
 
-  /* Behind a sheet. Dark enough that the board reads as out of reach, light
-     enough that the reader can still see which report they left open. */
-  --scrim: rgb(26 29 25 / 0.5);
+  /* Behind a sheet */
+  --scrim: rgb(7 14 30 / 0.6);
 
-  /* Type. One body size carries the whole board; rank is weight, case and rule. */
+  /* Type */
   --t-label: 0.6875rem;
   --t-plate: 0.75rem;
   --t-body: 0.9375rem;
@@ -91,7 +104,7 @@
   --lh-tight: 1.25;
   --lh-body: 1.6;
 
-  /* Space, on a 4px module — a fuse box is a grid of fixed pitches. */
+  /* Space, on a 4px module */
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
@@ -119,65 +132,85 @@
   }
 }
 
-/* The canonical lid: charcoal ABS, off-white silkscreen. */
+/* The canonical lid: Royal Midnight Bay (matching mobile Dark Theme) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --board: #17191a;
-    --board-sunk: #0e1011;
-    --cell: #212426;
+    /* Brand Signature Colors */
+    --royal-blue: #15489d;
+    --royal-blue-light: #2563eb;
+    --royal-blue-electric: #38bdf8;
+    --gold-primary: #d4af37;
+    --gold-light: #f5c84c;
+    --gold-dark: #a67c1e;
 
-    --ink: #edeeea;
-    --ink-2: #a3a9a5;
-    --ink-3: #8b928e;
+    /* Royal Midnight Bay */
+    --board: #070e1e;
+    --board-sunk: #040812;
+    --cell: #0e1c38;
+    --cell-subtle: #15274d;
 
-    --rib: #0b0d0e;
-    --rib-lit: #363b3d;
+    --ink: #f8fafc;
+    --ink-2: #8ea6ce;
+    --ink-3: #627b9f;
 
-    --amp-10-tab: #f0554a;
-    --amp-10-ink: #ff9188;
-    --amp-20-tab: #f5cb1e;
-    --amp-20-ink: #f0c94f;
-    --amp-30-tab: #3fbe73;
-    --amp-30-ink: #63d795;
-    --amp-25-tab: #8e948f;
-    --amp-25-ink: #b0b6b2;
-    --amp-15-tab: #4a9bdd;
-    --amp-15-ink: #82c0f0;
+    --rib: #1d3564;
+    --rib-lit: #1c3462;
 
-    --lift: 0 8px 22px -6px rgb(0 0 0 / 0.7);
-  --scrim: rgb(0 0 0 / 0.62);
+    --amp-10-tab: #de3b2f;
+    --amp-10-ink: #ff6b5e;
+    --amp-20-tab: #f2c200;
+    --amp-20-ink: #f5c84c;
+    --amp-30-tab: #2e9e5b;
+    --amp-30-ink: #4ade80;
+    --amp-25-tab: #c8cbc5;
+    --amp-25-ink: #9ca3af;
+    --amp-15-tab: #38bdf8;
+    --amp-15-ink: #38bdf8;
+
+    --lift: 0 8px 24px -6px rgb(0 0 0 / 0.8);
+    --scrim: rgb(0 0 0 / 0.75);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --board: #17191a;
-  --board-sunk: #0e1011;
-  --cell: #212426;
+  /* Brand Signature Colors */
+  --royal-blue: #15489d;
+  --royal-blue-light: #2563eb;
+  --royal-blue-electric: #38bdf8;
+  --gold-primary: #d4af37;
+  --gold-light: #f5c84c;
+  --gold-dark: #a67c1e;
 
-  --ink: #edeeea;
-  --ink-2: #a3a9a5;
-  --ink-3: #8b928e;
+  /* Royal Midnight Bay */
+  --board: #070e1e;
+  --board-sunk: #040812;
+  --cell: #0e1c38;
+  --cell-subtle: #15274d;
 
-  --rib: #0b0d0e;
-  --rib-lit: #363b3d;
+  --ink: #f8fafc;
+  --ink-2: #8ea6ce;
+  --ink-3: #627b9f;
 
-  --amp-10-tab: #f0554a;
-  --amp-10-ink: #ff9188;
-  --amp-20-tab: #f5cb1e;
-  --amp-20-ink: #f0c94f;
-  --amp-30-tab: #3fbe73;
-  --amp-30-ink: #63d795;
-  --amp-25-tab: #8e948f;
-  --amp-25-ink: #b0b6b2;
-  --amp-15-tab: #4a9bdd;
-  --amp-15-ink: #82c0f0;
+  --rib: #1d3564;
+  --rib-lit: #1c3462;
 
-  --lift: 0 8px 22px -6px rgb(0 0 0 / 0.7);
-  --scrim: rgb(0 0 0 / 0.62);
+  --amp-10-tab: #de3b2f;
+  --amp-10-ink: #ff6b5e;
+  --amp-20-tab: #f2c200;
+  --amp-20-ink: #f5c84c;
+  --amp-30-tab: #2e9e5b;
+  --amp-30-ink: #4ade80;
+  --amp-25-tab: #c8cbc5;
+  --amp-25-ink: #9ca3af;
+  --amp-15-tab: #38bdf8;
+  --amp-15-ink: #38bdf8;
+
+  --lift: 0 8px 24px -6px rgb(0 0 0 / 0.8);
+  --scrim: rgb(0 0 0 / 0.75);
 }
 
 /* ------------------------------------------------------------------ base -- */

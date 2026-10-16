@@ -1138,14 +1138,14 @@ class DashboardLightsRepository {
     DashboardLightItem(
       number: 54,
       id: 'trans_temp',
-      nameArabic: 'لمبة الجير الاتوماتيك',
+      nameArabic: 'لمبة الكمبيو الأوتوماتيك',
       nameEnglish: 'Automatic Transmission Warning',
       severity: LightSeverity.warningAmber,
       canDrive: CanDriveStatus.stopImmediately,
       symbolCode: 'AT_FAULT',
       icon: Icons.settings_rounded,
       meaningArabic:
-          'لمبة الجير الأوتوماتيك (سخونة أو عطل الكمبيو): ارتفاع حرارة زيت الجير أو رصد خلل في البلوف الكهربائية (Solenoids).',
+          'لمبة الكمبيو الأوتوماتيك (سخونة أو عطل الكمبيو): ارتفاع حرارة زيت الكمبيو أو رصد خلل في البلوف الكهربائية (Solenoids).',
       commonCauses: [
         'نقص أو اهتراء زيت الكمبيو وعدم تغييره مع الفيلترو',
         'سحب أحمال ثقيلة أو القيادة في رمال صحراوية شاقة',

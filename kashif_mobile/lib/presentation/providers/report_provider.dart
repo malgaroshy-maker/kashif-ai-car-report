@@ -395,20 +395,35 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
     // APInex as Primary
     if (KashifStorage.useApinexAsPrimary) {
-      final activeModel = KashifStorage.apinexModel;
-      state = state.copyWith(
-        isLoading: true,
-        progressText: 'جاري فحص شاشة جهاز الفحص عبر APInex ($activeModel)...',
-        clearError: true,
-        clearNotice: true,
-        canFallbackToOffline: false,
-        lastScannedBytes: bytes,
-        lastScannedFileName: fileName,
-        lastScannedIsPdf: false,
-      );
+      final apinexKey = KashifStorage.apinexApiKey;
+      if (apinexKey.isEmpty) {
+        final customKey = KashifStorage.customApiKey;
+        if (customKey == null || customKey.isEmpty) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage:
+                '⚠️ لم يتم إدخال مفتاح API في الإعدادات.\nيرجى إدخال مفتاح APInex أو Google Gemini من شاشة الإعدادات لبدء الفحص.',
+            canFallbackToOffline: true,
+            progressText: '',
+          );
+          return;
+        }
+        // Fall through to Gemini execution below
+      } else {
+        final activeModel = KashifStorage.apinexModel;
+        state = state.copyWith(
+          isLoading: true,
+          progressText: 'جاري فحص شاشة جهاز الفحص عبر APInex ($activeModel)...',
+          clearError: true,
+          clearNotice: true,
+          canFallbackToOffline: false,
+          lastScannedBytes: bytes,
+          lastScannedFileName: fileName,
+          lastScannedIsPdf: false,
+        );
 
-      try {
-        final apReport = await _apinexClient.analyzeImage(bytes, fileName);
+        try {
+          final apReport = await _apinexClient.analyzeImage(bytes, fileName);
         await _commitReport(
           fp: fp,
           report: apReport,
@@ -465,6 +480,7 @@ class ReportNotifier extends StateNotifier<ReportState> {
         return;
       }
     }
+  }
 
     // Gemini as Primary
     state = state.copyWith(
@@ -495,7 +511,7 @@ class ReportNotifier extends StateNotifier<ReportState> {
         lastScannedIsPdf: false,
       );
     } catch (geminiError) {
-      if (KashifStorage.isApinexAutoFailoverEnabled) {
+      if (KashifStorage.isApinexAutoFailoverEnabled && KashifStorage.apinexApiKey.isNotEmpty) {
         try {
           final activeModel = KashifStorage.apinexModel;
           state = state.copyWith(
@@ -565,68 +581,84 @@ class ReportNotifier extends StateNotifier<ReportState> {
 
     // 1. APInex as Primary
     if (KashifStorage.useApinexAsPrimary) {
-      final activeModel = KashifStorage.apinexModel;
-      state = state.copyWith(
-        isLoading: true,
-        progressText: 'جاري تشخيص الأكواد عبر محرك APInex ($activeModel)...',
-        clearError: true,
-        clearNotice: true,
-        canFallbackToOffline: false,
-        lastManualCodes: codes,
-        lastManualVin: vin,
-      );
-
-      try {
-        final apReport = await _apinexClient.analyzeManualCodes(codes, vin: vin);
-        await _commitReport(
-          fp: fp,
-          report: apReport,
-          notice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
-          lastManualCodes: codes,
-          lastManualVin: vin,
-        );
-        return;
-      } catch (apError) {
+      final apinexKey = KashifStorage.apinexApiKey;
+      if (apinexKey.isEmpty) {
         final customKey = KashifStorage.customApiKey;
-        if (customKey?.isNotEmpty == true) {
-          try {
-            state = state.copyWith(progressText: 'تحويل إلى محرك Gemini...');
-            final report = await _apiClient.analyzeManual(
-              codes: codes,
-              vin: vin,
-              customApiKey: customKey,
-            );
-            await _commitReport(
-              fp: fp,
-              report: report,
-              lastManualCodes: codes,
-              lastManualVin: vin,
-            );
-            return;
-          } catch (geminiError) {
-            state = state.copyWith(
-              isLoading: false,
-              errorMessage:
-                  'تعذر الفحص عبر APInex: ${_formatFriendlyError(apError)}\nوفشل التحويل لـ Gemini: ${_formatFriendlyError(geminiError)}',
-              canFallbackToOffline: true,
-              progressText: '',
-              lastManualCodes: codes,
-              lastManualVin: vin,
-            );
-            return;
-          }
+        if (customKey == null || customKey.isEmpty) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage:
+                '⚠️ لم يتم إدخال مفتاح API في الإعدادات.\nيرجى إدخال مفتاح APInex أو Google Gemini من شاشة الإعدادات لبدء تشخيص الأكواد.',
+            canFallbackToOffline: true,
+            progressText: '',
+          );
+          return;
         }
-
+        // Fall through to Gemini execution below
+      } else {
+        final activeModel = KashifStorage.apinexModel;
         state = state.copyWith(
-          isLoading: false,
-          errorMessage:
-              'تعذر الفحص عبر APInex (${_formatFriendlyError(apError)}).\nلم يتم إدخال مفتاح Google Gemini في الإعدادات لتفعيل التحويل التلقائي.',
-          canFallbackToOffline: true,
-          progressText: '',
+          isLoading: true,
+          progressText: 'جاري تشخيص الأكواد عبر محرك APInex ($activeModel)...',
+          clearError: true,
+          clearNotice: true,
+          canFallbackToOffline: false,
           lastManualCodes: codes,
           lastManualVin: vin,
         );
-        return;
+
+        try {
+          final apReport = await _apinexClient.analyzeManualCodes(codes, vin: vin);
+          await _commitReport(
+            fp: fp,
+            report: apReport,
+            notice: '⚡ تم التشخيص بنجاح عبر محرك APInex ($activeModel)',
+            lastManualCodes: codes,
+            lastManualVin: vin,
+          );
+          return;
+        } catch (apError) {
+          final customKey = KashifStorage.customApiKey;
+          if (customKey?.isNotEmpty == true) {
+            try {
+              state = state.copyWith(progressText: 'تحويل إلى محرك Gemini...');
+              final report = await _apiClient.analyzeManual(
+                codes: codes,
+                vin: vin,
+                customApiKey: customKey,
+              );
+              await _commitReport(
+                fp: fp,
+                report: report,
+                lastManualCodes: codes,
+                lastManualVin: vin,
+              );
+              return;
+            } catch (geminiError) {
+              state = state.copyWith(
+                isLoading: false,
+                errorMessage:
+                    'تعذر الفحص عبر APInex: ${_formatFriendlyError(apError)}\nوفشل التحويل لـ Gemini: ${_formatFriendlyError(geminiError)}',
+                canFallbackToOffline: true,
+                progressText: '',
+                lastManualCodes: codes,
+                lastManualVin: vin,
+              );
+              return;
+            }
+          }
+
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage:
+                'تعذر الفحص عبر APInex (${_formatFriendlyError(apError)}).\nلم يتم إدخال مفتاح Google Gemini في الإعدادات لتفعيل التحويل التلقائي.',
+            canFallbackToOffline: true,
+            progressText: '',
+            lastManualCodes: codes,
+            lastManualVin: vin,
+          );
+          return;
+        }
       }
     }
 
@@ -657,7 +689,7 @@ class ReportNotifier extends StateNotifier<ReportState> {
         lastManualVin: vin,
       );
     } catch (geminiError) {
-      if (KashifStorage.isApinexAutoFailoverEnabled) {
+      if (KashifStorage.isApinexAutoFailoverEnabled && KashifStorage.apinexApiKey.isNotEmpty) {
         try {
           final activeModel = KashifStorage.apinexModel;
           state = state.copyWith(

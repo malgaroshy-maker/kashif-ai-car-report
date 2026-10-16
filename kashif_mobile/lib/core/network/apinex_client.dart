@@ -7,7 +7,7 @@ import '../../data/storage/hive_storage.dart';
 
 class ApinexClient {
   static const String directBaseUrl = 'https://api.apinex.bond/v1';
-  static const String defaultApiKey = 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
+  static const String defaultApiKey = '';
   static const String defaultModel = 'free/qwen-3.8-max';
 
   static String get defaultBaseUrl {
@@ -35,15 +35,13 @@ class ApinexClient {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
                   if (!kIsWeb)
-                    'User-Agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'User-Agent': 'KashifMobile/1.0.0 (Diagnostics; Mobile)',
                 },
               ),
             );
 
   String get _activeApiKey {
-    final key = KashifStorage.apinexApiKey;
-    return (key.isNotEmpty) ? key : defaultApiKey;
+    return KashifStorage.apinexApiKey.trim();
   }
 
   String get _activeModel {
@@ -59,7 +57,10 @@ class ApinexClient {
   }
 
   Future<Response> _postRequest(dynamic data, {String? keyOverride}) async {
-    final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride : _activeApiKey;
+    final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride.trim() : _activeApiKey;
+    if (key.isEmpty) {
+      throw Exception('لم يتم ضبط مفتاح APInex في الإعدادات. يرجى إدخال مفتاحك الخاص أولاً.');
+    }
     try {
       return await _dio.post(
         '/chat/completions',
@@ -67,8 +68,7 @@ class ApinexClient {
           headers: {
             'Authorization': 'Bearer $key',
             if (!kIsWeb)
-              'User-Agent':
-                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'User-Agent': 'KashifMobile/1.0.0 (Diagnostics; Mobile)',
           },
         ),
         data: data,
@@ -100,7 +100,10 @@ class ApinexClient {
 
   /// Fetches available models from APInex GET /models
   Future<List<String>> fetchAvailableModels({String? keyOverride}) async {
-    final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride : _activeApiKey;
+    final key = (keyOverride != null && keyOverride.isNotEmpty) ? keyOverride.trim() : _activeApiKey;
+    if (key.isEmpty) {
+      return [];
+    }
     try {
       final res = await _dio.get(
         '/models',
@@ -108,8 +111,7 @@ class ApinexClient {
           headers: {
             'Authorization': 'Bearer $key',
             if (!kIsWeb)
-              'User-Agent':
-                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'User-Agent': 'KashifMobile/1.0.0 (Diagnostics; Mobile)',
           },
         ),
       );
@@ -154,11 +156,20 @@ class ApinexClient {
     String? modelOverride,
   }) async {
     final key = (keyOverride != null && keyOverride.isNotEmpty)
-        ? keyOverride
+        ? keyOverride.trim()
         : _activeApiKey;
     final model = (modelOverride != null && modelOverride.isNotEmpty)
-        ? modelOverride
+        ? modelOverride.trim()
         : _activeModel;
+
+    if (key.isEmpty) {
+      return {
+        'success': false,
+        'stage': 1,
+        'message': '⚠️ لم يتم إدخال مفتاح APInex بعد. يرجى إدخال مفتاحك الخاص من موقع apinex.bond أولاً.',
+        'availableModels': <String>[],
+      };
+    }
 
     List<String> availableModels = [];
 

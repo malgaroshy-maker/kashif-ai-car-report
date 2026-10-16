@@ -17,21 +17,47 @@ export function Masthead({
   onNewScan,
   onOpenSettings,
   onOpenDictionary,
+  onOpenDashboardLights,
+  onOpenFuseMap,
 }: {
   onNewScan?: () => void;
   onOpenSettings: () => void;
   onOpenDictionary: () => void;
+  onOpenDashboardLights?: () => void;
+  onOpenFuseMap?: () => void;
 }) {
   return (
-    <header className="border-b border-[var(--rib)] bg-[var(--board-sunk)]">
+    <header className="border-b border-[var(--rib)] bg-[var(--board-sunk)] shadow-sm">
       <div className="mx-auto flex max-w-[1180px] items-center gap-[var(--s3)] px-[var(--s4)] py-[var(--s3)]">
         <Wordmark />
 
         <span className="flex-1" aria-hidden />
 
+        {onOpenFuseMap && (
+          <button
+            onClick={onOpenFuseMap}
+            className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-600 transition hover:bg-cyan-500/20 dark:text-cyan-400"
+            title="خريطة وبطاقات الفيوزات الأصلية للسيارات (BMW, Toyota, Hyundai...)"
+          >
+            <span>⚡</span>
+            <span>خريطة الفيوزات الأصلية</span>
+          </button>
+        )}
+
+        {onOpenDashboardLights && (
+          <button
+            onClick={onOpenDashboardLights}
+            className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400"
+            title="دليل الـ 64 لمبة تحذيرية في طبلون السيارة"
+          >
+            <span>⚠️</span>
+            <span>لمبات الطبلون (64)</span>
+          </button>
+        )}
+
         <Link
           href="/mobile"
-          className="text-(length:--t-plate) px-3 py-1.5 rounded border border-[var(--rib)] hover:bg-[var(--board)] transition inline-flex items-center gap-1 font-bold text-xs"
+          className="text-(length:--t-plate) px-3 py-1.5 rounded-md border border-[var(--royal-blue-light)]/40 bg-[var(--royal-blue)]/10 text-[var(--royal-blue)] dark:text-[var(--royal-blue-electric)] hover:bg-[var(--royal-blue)]/20 transition inline-flex items-center gap-1 font-bold text-xs"
         >
           <span>📱 تطبيق الهاتف</span>
         </Link>

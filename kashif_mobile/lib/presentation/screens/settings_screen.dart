@@ -80,7 +80,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _techNameController = TextEditingController(text: s.technicianName);
     _phoneController = TextEditingController(text: s.workshopPhone);
     _addressController = TextEditingController(text: s.workshopAddress);
-    final initialKey = s.apinexApiKey.isNotEmpty ? s.apinexApiKey : ApinexClient.defaultApiKey;
+    final initialKey = s.apinexApiKey;
     _apinexKeyController = TextEditingController(text: initialKey);
     final initialModel = s.apinexModel.isNotEmpty ? s.apinexModel : ApinexClient.defaultModel;
     _apinexModelController = TextEditingController(text: initialModel);
@@ -232,27 +232,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  void _restoreDefaultApinexKey() {
+  void _clearApinexKey() {
     setState(() {
-      _apinexKeyController.text = ApinexClient.defaultApiKey;
+      _apinexKeyController.clear();
     });
     ref.read(settingsProvider.notifier).updateApinexSettings(
-      key: ApinexClient.defaultApiKey,
+      key: '',
     );
+    KashifStorage.setApinexApiKey('');
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
     messenger.showSnackBar(
       const SnackBar(
-        content: Text('تمت استعادة مفتاح GPT-6 الافتراضي المعتمد بنجاح ✅'),
-        backgroundColor: Color(0xFF1B5E20),
+        content: Text('تم مسح مفتاح APInex بنجاح ✅'),
         duration: Duration(seconds: 2),
       ),
     );
   }
 
   Future<void> _fetchServerModels() async {
-    setState(() => _isFetchingModels = true);
     final key = _apinexKeyController.text.trim();
+    if (key.isEmpty) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ يرجى إدخال مفتاح APInex أولاً لجلب النماذج المتاحة من السيرفر.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    setState(() => _isFetchingModels = true);
     try {
       final models = await ApinexClient().fetchAvailableModels(keyOverride: key);
       if (mounted) {
@@ -1678,7 +1690,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const Spacer(),
                       InkWell(
-                        onTap: _restoreDefaultApinexKey,
+                        onTap: _clearApinexKey,
                         borderRadius: BorderRadius.circular(4),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -1688,7 +1700,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           child: Row(
                             children: [
                               Icon(
-                                Icons.refresh_rounded,
+                                Icons.delete_outline_rounded,
                                 size: 14,
                                 color: isDark
                                     ? KashifColors.goldLight
@@ -1696,7 +1708,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'استعادة المفتاح الأصلي',
+                                'مسح المفتاح',
                                 style: KashifTypography.arabic(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -1717,7 +1729,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     obscureText: _obscureApinexKey,
                     style: KashifTypography.mono(fontSize: 12),
                     decoration: InputDecoration(
-                      hintText: 'sk-apx...',
+                      hintText: 'sk-apx... (أدخل مفتاحك الشخصي من apinex.bond)',
                       filled: true,
                       fillColor: isDark
                           ? KashifColors.darkBoard
@@ -1791,6 +1803,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF132038)
+                          : const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white12
+                            : Colors.blue.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.security_rounded,
+                          size: 16,
+                          color: isDark ? KashifColors.goldLight : Colors.blue.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'أمان الحساب: الصق مفتاحك الشخصي الخاص من apinex.bond. يُحفظ المفتاح محلياً على هاتفك فقط لتجنب تعليق الحساب.',
+                            style: KashifTypography.arabic(
+                              fontSize: 10,
+                              color: isDark
+                                  ? KashifColors.darkTextMuted
+                                  : KashifColors.lightTextMuted,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 

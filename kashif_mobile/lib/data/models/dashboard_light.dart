@@ -51,6 +51,8 @@ class DashboardLightItem {
     required this.colorValue,
   });
 
+  String get imageAsset => 'assets/lights/light_$number.png';
+
   Map<String, dynamic> toJson() => {
     'number': number,
     'id': id,

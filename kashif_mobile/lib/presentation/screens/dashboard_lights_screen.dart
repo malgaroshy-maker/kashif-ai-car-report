@@ -24,14 +24,11 @@ class DashboardLightsScreen extends StatefulWidget {
 
 class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final TransformationController _transformationController =
-      TransformationController();
   late Set<String> _selectedIds;
   LightSeverity? _selectedSeverity;
   String? _dtcFilter;
   String _searchQuery = '';
   bool _isGridView = false;
-  int _selectedChartIndex = 0; // 0: cluster gauge + legend, 1: 64 icons grid
 
   bool get _isSelectionMode => widget.onLightsSelected != null;
 
@@ -50,7 +47,6 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
   @override
   void dispose() {
     _searchController.dispose();
-    _transformationController.dispose();
     super.dispose();
   }
 
@@ -64,740 +60,347 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
       dtcCode: _dtcFilter,
     );
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            _isSelectionMode
-                ? 'تحديد لمبات الطبلون المضاءة'
-                : 'دليل لمبات طبلون السيارة (64 لمبة)',
-            style: KashifTypography.arabic(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _isSelectionMode
+              ? 'تحديد لمبات الطبلون المضاءة'
+              : 'دليل لمبات طبلون السيارة (64 لمبة)',
+          style: KashifTypography.arabic(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
           ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                _isGridView
-                    ? Icons.view_agenda_rounded
-                    : Icons.grid_view_rounded,
-                color: const Color(0xFFD4AF37),
-              ),
-              tooltip: _isGridView
-                  ? 'عرض القائمة المفصلة'
-                  : 'عرض شبكة الطبلون (64 لمبة)',
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isGridView
+                  ? Icons.view_agenda_rounded
+                  : Icons.grid_view_rounded,
+              color: const Color(0xFFD4AF37),
+            ),
+            tooltip: _isGridView
+                ? 'عرض القائمة المفصلة'
+                : 'عرض شبكة الطبلون (64 لمبة)',
+            onPressed: () {
+              setState(() => _isGridView = !_isGridView);
+            },
+          ),
+          if (_isSelectionMode && _selectedIds.isNotEmpty)
+            TextButton(
               onPressed: () {
-                setState(() => _isGridView = !_isGridView);
+                setState(() => _selectedIds.clear());
               },
-            ),
-            if (_isSelectionMode && _selectedIds.isNotEmpty)
-              TextButton(
-                onPressed: () {
-                  setState(() => _selectedIds.clear());
-                },
-                child: Text(
-                  'مسح التحديد',
-                  style: KashifTypography.arabic(
-                    fontSize: 12,
-                    color: const Color(0xFFE53935),
-                  ),
-                ),
-              ),
-          ],
-          bottom: TabBar(
-            indicatorColor: const Color(0xFFD4AF37),
-            indicatorWeight: 3,
-            labelColor: const Color(0xFFD4AF37),
-            unselectedLabelColor: isDark ? Colors.white60 : Colors.black54,
-            labelStyle: KashifTypography.arabic(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-            ),
-            unselectedLabelStyle: KashifTypography.arabic(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-            ),
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.dashboard_customize_rounded, size: 20),
-                text: 'مخطط الطبلون المصور (64)',
-              ),
-              Tab(
-                icon: Icon(Icons.format_list_bulleted_rounded, size: 20),
-                text: 'دليل وفحص اللمبات',
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: _isSelectionMode
-            ? Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? KashifColors.darkBoard
-                      : KashifColors.lightBoard,
-                  border: Border(
-                    top: BorderSide(
-                      color: isDark
-                          ? KashifColors.darkBorder
-                          : KashifColors.lightBorder,
-                    ),
-                  ),
-                ),
-                child: SafeArea(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      widget.onLightsSelected!(_selectedIds.toList());
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.check_circle_rounded, size: 18),
-                    label: Text(
-                      'تأكيد لمبات الطبلون (${_selectedIds.length}) وإرفاقها بالتقرير',
-                      style: KashifTypography.arabic(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD4AF37),
-                      foregroundColor: const Color(0xFF070E1E),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            : null,
-        body: TabBarView(
-          children: [
-            _buildVisualChartTab(context, isDark),
-            _buildLightsListTab(context, isDark, filteredLights),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Visual Interactive Poster & Infographic Tab
-  Widget _buildVisualChartTab(BuildContext context, bool isDark) {
-    const imagePaths = [
-      'assets/images/dashboard_lights_cluster_diagram.jpg',
-      'assets/images/dashboard_lights_chart_64.jpg',
-    ];
-    final currentImagePath = imagePaths[_selectedChartIndex];
-
-    return Column(
-      children: [
-        // Sub-selector between cluster overview and 64 grid
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-          child: Row(
-            children: [
-              Expanded(
-                child: SegmentedButton<int>(
-                  segments: const [
-                    ButtonSegment<int>(
-                      value: 0,
-                      label: Text(
-                        'لوحة الطبلون والعدادات + الدليل',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      icon: Icon(Icons.speed_rounded, size: 16),
-                    ),
-                    ButtonSegment<int>(
-                      value: 1,
-                      label: Text(
-                        'شبكة الرموز الـ 64 (عالية الدقة)',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      icon: Icon(Icons.grid_on_rounded, size: 16),
-                    ),
-                  ],
-                  selected: {_selectedChartIndex},
-                  onSelectionChanged: (newSet) {
-                    setState(() {
-                      _selectedChartIndex = newSet.first;
-                      _transformationController.value = Matrix4.identity();
-                    });
-                  },
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Gesture guide and controls bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          color: isDark ? const Color(0xFF131D2E) : const Color(0xFFEBF1F7),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.pinch_rounded,
-                size: 16,
-                color: Color(0xFFD4AF37),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'اسحب وكبّر بأصابعك لمعاينة الرموز بدقة',
-                  style: KashifTypography.arabic(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _transformationController.value = Matrix4.identity();
-                  });
-                },
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.restart_alt_rounded,
-                        size: 14,
-                        color: Color(0xFFD4AF37),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        'إعادة الضبط',
-                        style: KashifTypography.arabic(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFD4AF37),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () => _openFullScreenChart(context, currentImagePath),
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.fullscreen_rounded,
-                        size: 16,
-                        color: Color(0xFFD4AF37),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        'ملء الشاشة',
-                        style: KashifTypography.arabic(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFD4AF37),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Zoomable & Pannable Infographic Viewer
-        Expanded(
-          flex: 5,
-          child: Container(
-            color: Colors.black,
-            child: ClipRect(
-              child: InteractiveViewer(
-                transformationController: _transformationController,
-                minScale: 1.0,
-                maxScale: 6.0,
-                boundaryMargin: const EdgeInsets.all(40),
-                child: Center(
-                  child: Image.asset(
-                    currentImagePath,
-                    fit: BoxFit.contain,
-                    errorBuilder: (ctx, err, stack) => Center(
-                      child: Text(
-                        'تعذر تحميل صورة المخطط: $err',
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Interactive lamp picker strip (1..64)
-        Container(
-          height: 120,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-            border: Border(
-              top: BorderSide(
-                color: isDark
-                    ? KashifColors.darkBorder
-                    : KashifColors.lightBorder,
-              ),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.touch_app_rounded,
-                    size: 14,
-                    color: Color(0xFFD4AF37),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'انقر على أي رقم لمبة (1..64) لمعاينة تشخيصها الفوري:',
-                    style: KashifTypography.arabic(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? KashifColors.goldLight
-                          : KashifColors.goldDark,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Expanded(
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: DashboardLightsRepository.allLights.length,
-                  itemBuilder: (context, index) {
-                    final item = DashboardLightsRepository.allLights[index];
-                    final isSelected = _selectedIds.contains(item.id);
-                    final lightColor = Color(item.colorValue);
-
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 6),
-                      child: InkWell(
-                        onTap: () {
-                          if (_isSelectionMode) {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedIds.remove(item.id);
-                              } else {
-                                _selectedIds.add(item.id);
-                              }
-                            });
-                          }
-                          _showLightDetailSheet(context, item, isDark);
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          width: 76,
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFFD4AF37).withValues(alpha: 0.22)
-                                : (isDark
-                                    ? KashifColors.darkCell
-                                    : KashifColors.lightCell),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isSelected
-                                  ? const Color(0xFFD4AF37)
-                                  : lightColor.withValues(alpha: 0.6),
-                              width: isSelected ? 1.8 : 1.0,
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '#${item.number}',
-                                    style: TextStyle(
-                                      fontFamily: 'Courier',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                      color: lightColor,
-                                    ),
-                                  ),
-                                  if (_isSelectionMode && isSelected) ...[
-                                    const SizedBox(width: 2),
-                                    const Icon(
-                                      Icons.check_circle_rounded,
-                                      size: 10,
-                                      color: Color(0xFFD4AF37),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              CarDashboardSymbol(
-                                symbolId: item.id,
-                                color: lightColor,
-                                size: 18,
-                                fallbackIcon: item.icon,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                item.nameArabic,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: KashifTypography.arabic(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      isDark ? Colors.white70 : Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _openFullScreenChart(BuildContext context, String imagePath) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (ctx) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            title: Text(
-              'مخطط إنفوجرافيك الطبلون (64 لمبة)',
-              style: KashifTypography.arabic(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.close_rounded),
-                onPressed: () => Navigator.pop(ctx),
-              ),
-            ],
-          ),
-          body: InteractiveViewer(
-            minScale: 1.0,
-            maxScale: 8.0,
-            boundaryMargin: const EdgeInsets.all(50),
-            child: Center(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// List & Grid of Detailed Diagnostic Lamps
-  Widget _buildLightsListTab(
-    BuildContext context,
-    bool isDark,
-    List<DashboardLightItem> filteredLights,
-  ) {
-    return Column(
-      children: [
-        // Search & Filter header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
-          child: Column(
-            children: [
-              TextField(
-                controller: _searchController,
-                onChanged: (val) {
-                  setState(() {
-                    _searchQuery = val;
-                    _dtcFilter = null;
-                  });
-                },
+              child: Text(
+                'مسح التحديد',
                 style: KashifTypography.arabic(
-                  fontSize: 13,
-                  color: isDark
-                      ? KashifColors.darkTextPrimary
-                      : KashifColors.lightTextPrimary,
+                  fontSize: 12,
+                  color: const Color(0xFFE53935),
                 ),
-                decoration: InputDecoration(
-                  hintText:
-                      'ابحث برقم اللمبة (مثال: 57) أو بالاسم (الزيت، ABS، P0300)...',
-                  hintStyle: KashifTypography.arabic(
-                    fontSize: 12,
+              ),
+            ),
+        ],
+      ),
+      bottomNavigationBar: _isSelectionMode
+          ? Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? KashifColors.darkBoard
+                    : KashifColors.lightBoard,
+                border: Border(
+                  top: BorderSide(
                     color: isDark
-                        ? KashifColors.darkTextMuted
-                        : KashifColors.lightTextMuted,
+                        ? KashifColors.darkBorder
+                        : KashifColors.lightBorder,
                   ),
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, size: 18),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                              _dtcFilter = null;
-                            });
-                          },
-                        )
-                      : null,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  filled: true,
-                  fillColor: isDark
-                      ? KashifColors.darkCell
-                      : KashifColors.lightCell,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? KashifColors.darkBorder
-                          : KashifColors.lightBorder,
+                ),
+              ),
+              child: SafeArea(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    widget.onLightsSelected!(_selectedIds.toList());
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.check_circle_rounded, size: 18),
+                  label: Text(
+                    'تأكيد لمبات الطبلون (${_selectedIds.length}) وإرفاقها بالتقرير',
+                    style: KashifTypography.arabic(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? KashifColors.darkBorder
-                          : KashifColors.lightBorder,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFD4AF37),
+                    foregroundColor: const Color(0xFF070E1E),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-
-              // Severity Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildSeverityChip(
-                      label:
-                          'الكل (${DashboardLightsRepository.allLights.length})',
-                      isSelected:
-                          _selectedSeverity == null && _dtcFilter == null,
-                      onTap: () => setState(() {
-                        _selectedSeverity = null;
-                        _dtcFilter = null;
-                      }),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSeverityChip(
-                      label: 'أحمر (خطر داهم)',
-                      icon: Icons.dangerous_rounded,
-                      color: const Color(0xFFE53935),
-                      isSelected:
-                          _selectedSeverity == LightSeverity.criticalRed,
-                      onTap: () => setState(() {
-                        _selectedSeverity = LightSeverity.criticalRed;
-                      }),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSeverityChip(
-                      label: 'أصفر (تحذير وفحص)',
-                      icon: Icons.warning_amber_rounded,
-                      color: const Color(0xFFFDD835),
-                      isSelected:
-                          _selectedSeverity == LightSeverity.warningAmber,
-                      onTap: () => setState(() {
-                        _selectedSeverity = LightSeverity.warningAmber;
-                      }),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildSeverityChip(
-                      label: 'أخضر/أزرق (أنظمة)',
-                      icon: Icons.check_circle_outline_rounded,
-                      color: const Color(0xFF43A047),
-                      isSelected:
-                          _selectedSeverity == LightSeverity.infoGreenBlue,
-                      onTap: () => setState(() {
-                        _selectedSeverity = LightSeverity.infoGreenBlue;
-                      }),
-                      isDark: isDark,
-                    ),
-                    if (_dtcFilter != null) ...[
-                      const SizedBox(width: 6),
-                      _buildSeverityChip(
-                        label: 'كود: $_dtcFilter',
-                        icon: Icons.bolt_rounded,
-                        color: const Color(0xFFD4AF37),
-                        isSelected: true,
-                        onTap: () => setState(() => _dtcFilter = null),
-                        isDark: isDark,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Instructions Banner if in selection mode
-        if (_isSelectionMode)
+            )
+          : null,
+      body: Column(
+        children: [
+          // Search & Filter header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
-            child: Row(
+            color: isDark ? KashifColors.darkBoard : KashifColors.lightBoard,
+            child: Column(
               children: [
-                const Icon(
-                  Icons.touch_app_rounded,
-                  size: 18,
-                  color: Color(0xFFD4AF37),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'اضغط على أي لمبة مشتعلة في طبلون السيارة لتضمينها في التقرير ومطابقتها مع كود العطل.',
-                    style: KashifTypography.arabic(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
+                TextField(
+                  controller: _searchController,
+                  onChanged: (val) {
+                    setState(() {
+                      _searchQuery = val;
+                      _dtcFilter = null;
+                    });
+                  },
+                  style: KashifTypography.arabic(
+                    fontSize: 13,
+                    color: isDark
+                        ? KashifColors.darkTextPrimary
+                        : KashifColors.lightTextPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    hintText:
+                        'ابحث برقم اللمبة (مثل: 62) أو بالاسم (المحرك، الزيت، ABS)...',
+                    hintStyle: KashifTypography.arabic(
+                      fontSize: 12,
                       color: isDark
-                          ? const Color(0xFFF5C84C)
-                          : const Color(0xFF7A5807),
+                          ? KashifColors.darkTextMuted
+                          : KashifColors.lightTextMuted,
                     ),
+                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _searchQuery = '';
+                                _dtcFilter = null;
+                              });
+                            },
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    filled: true,
+                    fillColor: isDark
+                        ? KashifColors.darkCell
+                        : KashifColors.lightCell,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? KashifColors.darkBorder
+                            : KashifColors.lightBorder,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? KashifColors.darkBorder
+                            : KashifColors.lightBorder,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Severity Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildSeverityChip(
+                        label:
+                            'الكل (${DashboardLightsRepository.allLights.length})',
+                        isSelected:
+                            _selectedSeverity == null && _dtcFilter == null,
+                        onTap: () => setState(() {
+                          _selectedSeverity = null;
+                          _dtcFilter = null;
+                        }),
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 6),
+                      _buildSeverityChip(
+                        label: 'أحمر (خطر داهم)',
+                        icon: Icons.dangerous_rounded,
+                        color: const Color(0xFFE53935),
+                        isSelected:
+                            _selectedSeverity == LightSeverity.criticalRed,
+                        onTap: () => setState(() {
+                          _selectedSeverity = LightSeverity.criticalRed;
+                        }),
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 6),
+                      _buildSeverityChip(
+                        label: 'أصفر (تحذير وفحص)',
+                        icon: Icons.warning_amber_rounded,
+                        color: const Color(0xFFFDD835),
+                        isSelected:
+                            _selectedSeverity == LightSeverity.warningAmber,
+                        onTap: () => setState(() {
+                          _selectedSeverity = LightSeverity.warningAmber;
+                        }),
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 6),
+                      _buildSeverityChip(
+                        label: 'أخضر/أزرق (أنظمة)',
+                        icon: Icons.check_circle_outline_rounded,
+                        color: const Color(0xFF43A047),
+                        isSelected:
+                            _selectedSeverity == LightSeverity.infoGreenBlue,
+                        onTap: () => setState(() {
+                          _selectedSeverity = LightSeverity.infoGreenBlue;
+                        }),
+                        isDark: isDark,
+                      ),
+                      if (_dtcFilter != null) ...[
+                        const SizedBox(width: 6),
+                        _buildSeverityChip(
+                          label: 'كود: $_dtcFilter',
+                          icon: Icons.bolt_rounded,
+                          color: const Color(0xFFD4AF37),
+                          isSelected: true,
+                          onTap: () => setState(() => _dtcFilter = null),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
             ),
           ),
 
-        // Lights list or grid
-        Expanded(
-          child: filteredLights.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline_rounded,
-                          size: 48,
-                          color: isDark
-                              ? KashifColors.darkTextMuted
-                              : KashifColors.lightTextMuted,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'لم يتم العثور على لمبة مطابقة',
-                          style: KashifTypography.arabic(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: isDark
-                                ? KashifColors.darkTextPrimary
-                                : KashifColors.lightTextPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'جرب البحث برقم اللمبة (مثل: 57) أو باسمها (الزيت، الفرامل، ABS، المكينة).',
-                          textAlign: TextAlign.center,
-                          style: KashifTypography.arabic(
-                            fontSize: 11.5,
+          // Instructions Banner if in selection mode
+          if (_isSelectionMode)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.touch_app_rounded,
+                    size: 18,
+                    color: Color(0xFFD4AF37),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'اضغط على أي لمبة مشتعلة في طبلون السيارة لتضمينها في التقرير ومطابقتها مع كود العطل.',
+                      style: KashifTypography.arabic(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFFF5C84C)
+                            : const Color(0xFF7A5807),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // Lights list or grid
+          Expanded(
+            child: filteredLights.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.lightbulb_outline_rounded,
+                            size: 48,
                             color: isDark
                                 ? KashifColors.darkTextMuted
                                 : KashifColors.lightTextMuted,
                           ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'لم يتم العثور على لمبة مطابقة',
+                            style: KashifTypography.arabic(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? KashifColors.darkTextPrimary
+                                  : KashifColors.lightTextPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'جرب البحث برقم اللمبة (مثل: 62) أو باسمها (الزيت، الفرامل، ABS، الكمبيو، المحرك).',
+                            textAlign: TextAlign.center,
+                            style: KashifTypography.arabic(
+                              fontSize: 11.5,
+                              color: isDark
+                                  ? KashifColors.darkTextMuted
+                                  : KashifColors.lightTextMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : _isGridView
+                    ? GridView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
                         ),
-                      ],
-                    ),
-                  ),
-                )
-              : _isGridView
-                  ? GridView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 0.78,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: filteredLights.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredLights[index];
+                          final isSelected = _selectedIds.contains(item.id);
+                          return _buildLightGridCard(
+                            context,
+                            item,
+                            isSelected,
+                            isDark,
+                          );
+                        },
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        itemCount: filteredLights.length,
+                        itemBuilder: (context, index) {
+                          final item = filteredLights[index];
+                          final isSelected = _selectedIds.contains(item.id);
+                          return _buildLightCard(
+                            context,
+                            item,
+                            isSelected,
+                            isDark,
+                          );
+                        },
                       ),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 0.82,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
-                      itemCount: filteredLights.length,
-                      itemBuilder: (context, index) {
-                        final item = filteredLights[index];
-                        final isSelected = _selectedIds.contains(item.id);
-                        return _buildLightGridCard(
-                          context,
-                          item,
-                          isSelected,
-                          isDark,
-                        );
-                      },
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      itemCount: filteredLights.length,
-                      itemBuilder: (context, index) {
-                        final item = filteredLights[index];
-                        final isSelected = _selectedIds.contains(item.id);
-                        return _buildLightCard(
-                          context,
-                          item,
-                          isSelected,
-                          isDark,
-                        );
-                      },
-                    ),
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -906,7 +509,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Top Row: Number badge and selection / symbolCode
+            // Top Row: Number badge and selection
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -954,14 +557,17 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
             ),
             const SizedBox(height: 4),
 
-            // Center Icon with glow
+            // Center Real Icon inside dark automotive pod
             Container(
-              width: 44,
-              height: 44,
+              width: 50,
+              height: 50,
               decoration: BoxDecoration(
-                color: lightColor.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-                border: Border.all(color: lightColor, width: 1.2),
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: lightColor.withValues(alpha: 0.5),
+                  width: 1.2,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: lightColor.withValues(alpha: 0.25),
@@ -969,18 +575,25 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                   ),
                 ],
               ),
+              clipBehavior: Clip.antiAlias,
               child: Center(
-                child: CarDashboardSymbol(
-                  symbolId: item.id,
-                  color: lightColor,
-                  size: 24,
-                  fallbackIcon: item.icon,
+                child: Image.asset(
+                  item.imageAsset,
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.contain,
+                  errorBuilder: (ctx, err, stack) => CarDashboardSymbol(
+                    symbolId: item.id,
+                    color: lightColor,
+                    size: 26,
+                    fallbackIcon: item.icon,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 4),
 
-            // Bottom Name (centered, maxLines: 2)
+            // Bottom Name (centered)
             Text(
               item.nameArabic,
               textAlign: TextAlign.center,
@@ -1029,33 +642,44 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon Frame with colored glow
+              // Real Warning Light Icon in dark automotive cluster bezel
               Container(
-                width: 48,
-                height: 48,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
-                  color: lightColor.withValues(alpha: 0.18),
+                  color: Colors.black,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: lightColor, width: 1.5),
+                  border: Border.all(
+                    color: lightColor.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: lightColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
+                      color: lightColor.withValues(alpha: 0.35),
+                      blurRadius: 6,
+                      spreadRadius: 1,
                     ),
                   ],
                 ),
+                clipBehavior: Clip.antiAlias,
                 child: Center(
-                  child: CarDashboardSymbol(
-                    symbolId: item.id,
-                    color: lightColor,
-                    size: 28,
-                    fallbackIcon: item.icon,
+                  child: Image.asset(
+                    item.imageAsset,
+                    width: 46,
+                    height: 46,
+                    fit: BoxFit.contain,
+                    errorBuilder: (ctx, err, stack) => CarDashboardSymbol(
+                      symbolId: item.id,
+                      color: lightColor,
+                      size: 28,
+                      fallbackIcon: item.icon,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // Title and number
+              // Title, number, and explanation
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1078,7 +702,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                             '#${item.number}',
                             style: TextStyle(
                               fontFamily: 'Courier',
-                              fontSize: 10.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.w900,
                               color: lightColor,
                             ),
@@ -1089,7 +713,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                           child: Text(
                             item.nameArabic,
                             style: KashifTypography.arabic(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               fontWeight: FontWeight.w800,
                               color: isDark
                                   ? KashifColors.darkTextPrimary
@@ -1104,7 +728,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                       item.nameEnglish,
                       style: TextStyle(
                         fontFamily: 'Courier',
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w600,
                         color: isDark
                             ? KashifColors.darkTextMuted
@@ -1134,7 +758,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
               else
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
+                    horizontal: 7,
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
@@ -1148,7 +772,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                     item.symbolCode,
                     style: TextStyle(
                       fontFamily: 'Courier',
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontWeight: FontWeight.w800,
                       color: lightColor,
                     ),
@@ -1156,11 +780,23 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+
+          // Explanation / Meaning from Image 2
+          Text(
+            item.meaningArabic,
+            style: KashifTypography.arabic(
+              fontSize: 12,
+              color: isDark
+                  ? KashifColors.darkTextPrimary
+                  : KashifColors.lightTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
 
           // Can Drive status badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(
               color: canDriveColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(6),
@@ -1175,7 +811,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                       : (item.canDrive == CanDriveStatus.driveCarefully
                             ? Icons.warning_amber_rounded
                             : Icons.check_circle_rounded),
-                  size: 15,
+                  size: 14,
                   color: canDriveColor,
                 ),
                 const SizedBox(width: 6),
@@ -1183,8 +819,8 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                   child: Text(
                     item.canDrive.labelArabic,
                     style: KashifTypography.arabic(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
                       color: canDriveColor,
                     ),
                   ),
@@ -1192,117 +828,107 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // Meaning
-          Text(
-            item.meaningArabic,
-            style: KashifTypography.arabic(
-              fontSize: 12,
-              color: isDark
-                  ? KashifColors.darkTextPrimary
-                  : KashifColors.lightTextPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Action Required Box
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF142019) : const Color(0xFFF0F9F3),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: const Color(0xFF2E9E5B).withValues(alpha: 0.3),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.build_circle_rounded,
-                  size: 16,
-                  color: Color(0xFF2E9E5B),
+          // Bottom Action Row: Details & Causes button + DTCs
+          Row(
+            children: [
+              // Prominent Details Button (التفاصيل والمسببات)
+              InkWell(
+                onTap: () => _showLightDetailSheet(context, item, isDark),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 14,
+                        color: Color(0xFFD4AF37),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'التفاصيل والمسببات',
+                        style: KashifTypography.arabic(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFFD4AF37),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 10,
+                        color: Color(0xFFD4AF37),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 6),
+              ),
+
+              if (item.associatedDTCs.isNotEmpty) ...[
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    item.actionRequired,
-                    style: KashifTypography.arabic(
-                      fontSize: 11,
-                      color: isDark
-                          ? const Color(0xFFC8E6C9)
-                          : const Color(0xFF1B5E20),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: item.associatedDTCs.map((code) {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _dtcFilter = code;
+                                _searchQuery = code;
+                                _searchController.text = code;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E2838)
+                                    : const Color(0xFFEEF3F8),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: const Color(0xFFD4AF37)
+                                      .withValues(alpha: 0.35),
+                                ),
+                              ),
+                              child: Text(
+                                code,
+                                style: const TextStyle(
+                                  fontFamily: 'Courier',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFD4AF37),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-
-          // Associated DTC Codes (if any)
-          if (item.associatedDTCs.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  'أكواد الـ DTC المرتبطة:',
-                  style: KashifTypography.arabic(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? KashifColors.darkTextMuted
-                        : KashifColors.lightTextMuted,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: item.associatedDTCs.map((code) {
-                      return InkWell(
-                        onTap: () {
-                          setState(() {
-                            _dtcFilter = code;
-                            _searchQuery = code;
-                            _searchController.text = code;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF1E2838)
-                                : const Color(0xFFEEF3F8),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: const Color(
-                                0xFFD4AF37,
-                              ).withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Text(
-                            code,
-                            style: const TextStyle(
-                              fontFamily: 'Courier',
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFD4AF37),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );
@@ -1334,26 +960,41 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Header with real icon
               Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 58,
+                    height: 58,
                     decoration: BoxDecoration(
-                      color: lightColor.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: lightColor, width: 1.5),
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: lightColor, width: 1.8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: lightColor.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
                     ),
+                    clipBehavior: Clip.antiAlias,
                     child: Center(
-                      child: CarDashboardSymbol(
-                        symbolId: item.id,
-                        color: lightColor,
-                        size: 28,
-                        fallbackIcon: item.icon,
+                      child: Image.asset(
+                        item.imageAsset,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.contain,
+                        errorBuilder: (ctx2, err, stack) => CarDashboardSymbol(
+                          symbolId: item.id,
+                          color: lightColor,
+                          size: 30,
+                          fallbackIcon: item.icon,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1387,7 +1028,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                               child: Text(
                                 item.nameArabic,
                                 style: KashifTypography.arabic(
-                                  fontSize: 14.5,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w800,
                                   color: isDark
                                       ? KashifColors.darkTextPrimary
@@ -1416,7 +1057,7 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                   ),
                 ],
               ),
-              const Divider(height: 18),
+              const Divider(height: 20),
 
               // Can-Drive status
               Container(
@@ -1432,7 +1073,9 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                     Icon(
                       item.canDrive == CanDriveStatus.stopImmediately
                           ? Icons.dangerous_rounded
-                          : Icons.warning_amber_rounded,
+                          : (item.canDrive == CanDriveStatus.driveCarefully
+                                ? Icons.warning_amber_rounded
+                                : Icons.check_circle_rounded),
                       color: canDriveColor,
                       size: 18,
                     ),
@@ -1450,17 +1093,15 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
 
-              // Meaning
+              // Explanation / Meaning
               Text(
-                'المعنى ودلالة التحذير:',
+                'الشرح ودلالة اللمبة:',
                 style: KashifTypography.arabic(
                   fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? KashifColors.darkTextMuted
-                      : KashifColors.lightTextMuted,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFFD4AF37),
                 ),
               ),
               const SizedBox(height: 4),
@@ -1473,58 +1114,94 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                       : KashifColors.lightTextPrimary,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
 
-              // Common Causes
+              // Common Causes (مسبباتها)
               if (item.commonCauses.isNotEmpty) ...[
-                Text(
-                  'الأسباب الشائعة:',
-                  style: KashifTypography.arabic(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? KashifColors.darkTextMuted
-                        : KashifColors.lightTextMuted,
-                  ),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.help_outline_rounded,
+                      size: 15,
+                      color: Color(0xFFD4AF37),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'مسببات ظهور اللمبة المحتملة:',
+                      style: KashifTypography.arabic(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFFD4AF37),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                ...item.commonCauses.map(
-                  (cause) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('• ', style: TextStyle(fontSize: 14)),
-                        Expanded(
-                          child: Text(
-                            cause,
-                            style: KashifTypography.arabic(
-                              fontSize: 12,
-                              color: isDark
-                                  ? KashifColors.darkTextPrimary
-                                  : KashifColors.lightTextPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF131D2E)
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDark
+                          ? KashifColors.darkBorder
+                          : KashifColors.lightBorder,
                     ),
                   ),
+                  child: Column(
+                    children: item.commonCauses.map(
+                      (cause) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '⚠️ ',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            Expanded(
+                              child: Text(
+                                cause,
+                                style: KashifTypography.arabic(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? KashifColors.darkTextPrimary
+                                      : KashifColors.lightTextPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ).toList(),
+                  ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
               ],
 
-              // Action required
-              Text(
-                'الإجراء الفوري المطلوب:',
-                style: KashifTypography.arabic(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? KashifColors.darkTextMuted
-                      : KashifColors.lightTextMuted,
-                ),
+              // Action required (الإجراء المطلوب)
+              Row(
+                children: [
+                  const Icon(
+                    Icons.build_circle_rounded,
+                    size: 15,
+                    color: Color(0xFF2E9E5B),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'الإجراء الفوري الموصى به:',
+                    style: KashifTypography.arabic(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF2E9E5B),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -1548,9 +1225,9 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
 
               // Associated DTCs
               if (item.associatedDTCs.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 Text(
-                  'أكواد الأعطال المرتبطة (DTC):',
+                  'أكواد الـ DTC المرتبطة:',
                   style: KashifTypography.arabic(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -1562,55 +1239,87 @@ class _DashboardLightsScreenState extends State<DashboardLightsScreen> {
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,
-                  runSpacing: 4,
+                  runSpacing: 6,
                   children: item.associatedDTCs.map((code) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF1E2838)
-                            : const Color(0xFFEEF3F8),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                    return InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() {
+                          _dtcFilter = code;
+                          _searchQuery = code;
+                          _searchController.text = code;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
                         ),
-                      ),
-                      child: Text(
-                        code,
-                        style: const TextStyle(
-                          fontFamily: 'Courier',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFFD4AF37),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E2838)
+                              : const Color(0xFFEEF3F8),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Text(
+                          code,
+                          style: const TextStyle(
+                            fontFamily: 'Courier',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFD4AF37),
+                          ),
                         ),
                       ),
                     );
                   }).toList(),
                 ),
               ],
-              const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD4AF37),
-                  foregroundColor: const Color(0xFF070E1E),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              // Toggle Selection button if in selection mode
+              if (_isSelectionMode) ...[
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      if (_selectedIds.contains(item.id)) {
+                        _selectedIds.remove(item.id);
+                      } else {
+                        _selectedIds.add(item.id);
+                      }
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  icon: Icon(
+                    _selectedIds.contains(item.id)
+                        ? Icons.check_circle_rounded
+                        : Icons.add_circle_outline_rounded,
+                    size: 16,
+                  ),
+                  label: Text(
+                    _selectedIds.contains(item.id)
+                        ? 'إلغاء تحديد هذه اللمبة'
+                        : 'تحديد هذه اللمبة للتقرير',
+                    style: KashifTypography.arabic(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _selectedIds.contains(item.id)
+                        ? const Color(0xFFE53935)
+                        : const Color(0xFFD4AF37),
+                    foregroundColor: _selectedIds.contains(item.id)
+                        ? Colors.white
+                        : const Color(0xFF070E1E),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                 ),
-                child: Text(
-                  'إغلاق',
-                  style: KashifTypography.arabic(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+              ],
             ],
           ),
         ),

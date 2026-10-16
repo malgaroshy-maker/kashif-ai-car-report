@@ -21,6 +21,7 @@ import {
   BookOpen,
   Settings,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import { Intake } from "@/components/report/Intake";
 import { FaultBoard } from "@/components/report/FaultBoard";
@@ -30,6 +31,7 @@ import { HistoryBank } from "@/components/report/HistoryBank";
 import { SettingsPanel } from "@/components/report/SettingsPanel";
 import { DictionaryPanel } from "@/components/report/DictionaryPanel";
 import { AssistantPanel } from "@/components/report/AssistantPanel";
+import { AuthenticFuseCardModal } from "@/components/report/AuthenticFuseCardModal";
 import { KashifDiagnosticReport } from "@/lib/types";
 import { removeLocal, useLocalJson, writeLocal } from "@/lib/local-store";
 
@@ -62,6 +64,7 @@ export default function MobileAppScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [fuseModalOpen, setFuseModalOpen] = useState(false);
 
   const savedReports = useLocalJson<KashifDiagnosticReport[]>(
     HISTORY_KEY,
@@ -235,25 +238,17 @@ export default function MobileAppScreen() {
                 </button>
 
                 {/* 3: حجز موعد / فحص الورشة */}
+                {/* 3: خريطة الفيوزات الأصلية */}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (activeReport) {
-                      setActiveTab("faults");
-                      setTimeout(() => {
-                        document.getElementById("mobile-checklist-section")?.scrollIntoView({ behavior: "smooth" });
-                      }, 200);
-                    } else {
-                      alert("قم بعمل فحص أولاً لعرض خطوات وتوصيات فحص الورشة.");
-                    }
-                  }}
-                  className="rounded-xl bg-[#0e2137] p-4 text-center border border-slate-700/60 hover:border-amber-500/40 hover:bg-[#132d4b] transition flex flex-col items-center justify-center gap-2 group"
+                  onClick={() => setFuseModalOpen(true)}
+                  className="rounded-xl bg-[#0e2137] p-4 text-center border border-slate-700/60 hover:border-cyan-500/40 hover:bg-[#132d4b] transition flex flex-col items-center justify-center gap-2 group"
                 >
-                  <div className="w-11 h-11 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition">
-                    <Calendar className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition">
+                    <Zap className="w-6 h-6" />
                   </div>
-                  <span className="font-semibold text-sm text-slate-200">حجز موعد وفحص</span>
-                  <span className="text-[11px] text-slate-400">خطوات الفحص الفني</span>
+                  <span className="font-semibold text-sm text-slate-200">خريطة الفيوزات</span>
+                  <span className="text-[11px] text-cyan-400">كروت الوكالة الأصلية</span>
                 </button>
 
                 {/* 4: تنبيهات وقاموس الورش */}
@@ -503,6 +498,7 @@ export default function MobileAppScreen() {
         {/* Global Panels */}
         {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
         {dictionaryOpen && <DictionaryPanel onClose={() => setDictionaryOpen(false)} />}
+        {fuseModalOpen && <AuthenticFuseCardModal onClose={() => setFuseModalOpen(false)} />}
         {assistantOpen && activeReport && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-[#0a192f] border border-cyan-500/30 rounded-2xl p-4 max-h-[90vh] overflow-y-auto">

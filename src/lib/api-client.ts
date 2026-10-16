@@ -22,29 +22,82 @@ export const STORAGE_KEYS = {
   apiKey: "kashif_gemini_api_key",
   provider: "kashif_ai_provider",
   model: "kashif_gemini_model",
+  // APInex Engine Settings (matching mobile)
+  apinexApiKey: "kashif_apinex_api_key",
+  apinexModel: "kashif_apinex_model",
+  useApinexAsPrimary: "kashif_use_apinex_as_primary",
+  isApinexAutoFailoverEnabled: "kashif_apinex_auto_failover",
+  isTokenSaverEnabled: "kashif_token_saver_mode",
+  // Workshop Info (matching mobile)
+  workshopName: "kashif_workshop_name",
+  workshopPhone: "kashif_workshop_phone",
+  workshopAddress: "kashif_workshop_address",
+  technicianName: "kashif_technician_name",
 } as const;
 
 export interface ClientSettings {
   apiKey: string;
   provider: string;
   model: string;
+  apinexApiKey: string;
+  apinexModel: string;
+  useApinexAsPrimary: boolean;
+  isApinexAutoFailoverEnabled: boolean;
+  isTokenSaverEnabled: boolean;
+  workshopName: string;
+  workshopPhone: string;
+  workshopAddress: string;
+  technicianName: string;
 }
 
 /** Reads the user's settings. Safe on the server, where there is no storage. */
 export function readSettings(): ClientSettings {
   if (typeof window === "undefined") {
-    return { apiKey: "", provider: "gemini", model: "" };
+    return {
+      apiKey: "",
+      provider: "gemini",
+      model: "",
+      apinexApiKey: "",
+      apinexModel: "free/deepseek-v4.1-flash",
+      useApinexAsPrimary: false,
+      isApinexAutoFailoverEnabled: true,
+      isTokenSaverEnabled: true,
+      workshopName: "",
+      workshopPhone: "",
+      workshopAddress: "",
+      technicianName: "",
+    };
   }
   try {
     return {
       apiKey: localStorage.getItem(STORAGE_KEYS.apiKey) || "",
       provider: localStorage.getItem(STORAGE_KEYS.provider) || "gemini",
       model: localStorage.getItem(STORAGE_KEYS.model) || "",
+      apinexApiKey: localStorage.getItem(STORAGE_KEYS.apinexApiKey) || "",
+      apinexModel: localStorage.getItem(STORAGE_KEYS.apinexModel) || "free/deepseek-v4.1-flash",
+      useApinexAsPrimary: localStorage.getItem(STORAGE_KEYS.useApinexAsPrimary) === "true",
+      isApinexAutoFailoverEnabled: localStorage.getItem(STORAGE_KEYS.isApinexAutoFailoverEnabled) !== "false",
+      isTokenSaverEnabled: localStorage.getItem(STORAGE_KEYS.isTokenSaverEnabled) !== "false",
+      workshopName: localStorage.getItem(STORAGE_KEYS.workshopName) || "",
+      workshopPhone: localStorage.getItem(STORAGE_KEYS.workshopPhone) || "",
+      workshopAddress: localStorage.getItem(STORAGE_KEYS.workshopAddress) || "",
+      technicianName: localStorage.getItem(STORAGE_KEYS.technicianName) || "",
     };
   } catch {
-    // Private browsing, or storage disabled. The app still works; the user is
-    // asked for a key again next time.
-    return { apiKey: "", provider: "gemini", model: "" };
+    return {
+      apiKey: "",
+      provider: "gemini",
+      model: "",
+      apinexApiKey: "",
+      apinexModel: "free/deepseek-v4.1-flash",
+      useApinexAsPrimary: false,
+      isApinexAutoFailoverEnabled: true,
+      isTokenSaverEnabled: true,
+      workshopName: "",
+      workshopPhone: "",
+      workshopAddress: "",
+      technicianName: "",
+    };
   }
 }
 
@@ -52,6 +105,10 @@ function settingsHeaders(s: ClientSettings): Record<string, string> {
   const headers: Record<string, string> = { "x-ai-provider": s.provider };
   if (s.apiKey) headers["x-gemini-api-key"] = s.apiKey;
   if (s.model) headers["x-gemini-model"] = s.model;
+  if (s.apinexApiKey) headers["x-apinex-api-key"] = s.apinexApiKey;
+  if (s.apinexModel) headers["x-apinex-model"] = s.apinexModel;
+  if (s.useApinexAsPrimary) headers["x-use-apinex-primary"] = "true";
+  if (s.isApinexAutoFailoverEnabled) headers["x-apinex-failover"] = "true";
   return headers;
 }
 

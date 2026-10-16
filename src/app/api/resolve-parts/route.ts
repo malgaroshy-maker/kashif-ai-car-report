@@ -195,8 +195,12 @@ async function resolveWithApinex(
   vehicle: any,
   parts: PartInput[]
 ): Promise<Record<string, any>> {
-  const apiKey = process.env.APINEX_API_KEY || "sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19";
+  const apiKey = process.env.APINEX_API_KEY || "";
   const baseUrl = process.env.APINEX_BASE_URL || "https://api.apinex.bond/v1";
+
+  if (!apiKey) {
+    throw new Error("No APINEX_API_KEY configured for parts resolution fallback");
+  }
 
   const prompt = `You are a master automotive parts catalog engineer with direct EPC access.
 Identify the REAL, GENUINE factory OEM part numbers and REAL certified aftermarket manufacturer replacement codes (Bosch, Denso, Delphi, Pierburg, Febi, NGK, Hella) for this vehicle:

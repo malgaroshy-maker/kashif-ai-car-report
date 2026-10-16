@@ -12,6 +12,8 @@ import { HistoryBank } from "@/components/report/HistoryBank";
 import { SettingsPanel } from "@/components/report/SettingsPanel";
 import { DictionaryPanel } from "@/components/report/DictionaryPanel";
 import { AssistantPanel } from "@/components/report/AssistantPanel";
+import { DashboardLightsPanel } from "@/components/report/DashboardLightsPanel";
+import { AuthenticFuseCardModal } from "@/components/report/AuthenticFuseCardModal";
 import { KashifDiagnosticReport } from "@/lib/types";
 import { removeLocal, useLocalJson, writeLocal } from "@/lib/local-store";
 
@@ -73,6 +75,8 @@ export default function HomePage() {
   const [selectedPartId, setSelectedPartId] = useState<string | undefined>();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
+  const [dashboardLightsOpen, setDashboardLightsOpen] = useState(false);
+  const [fuseMapOpen, setFuseMapOpen] = useState(false);
 
   // Read straight from storage during render, so there is no empty first pass
   // and no second one to correct it.
@@ -120,6 +124,8 @@ export default function HomePage() {
         }
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenDictionary={() => setDictionaryOpen(true)}
+        onOpenDashboardLights={() => setDashboardLightsOpen(true)}
+        onOpenFuseMap={() => setFuseMapOpen(true)}
       />
 
       <main id="main" className="mx-auto w-full max-w-[1180px] flex-1 px-[var(--s4)] py-[var(--s5)]">
@@ -169,6 +175,12 @@ export default function HomePage() {
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
       {dictionaryOpen && (
         <DictionaryPanel onClose={() => setDictionaryOpen(false)} />
+      )}
+      {dashboardLightsOpen && (
+        <DashboardLightsPanel onClose={() => setDashboardLightsOpen(false)} />
+      )}
+      {fuseMapOpen && (
+        <AuthenticFuseCardModal onClose={() => setFuseMapOpen(false)} />
       )}
     </div>
   );

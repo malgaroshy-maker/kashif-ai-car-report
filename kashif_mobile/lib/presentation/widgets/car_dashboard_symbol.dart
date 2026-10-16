@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../../data/repositories/dashboard_lights_repository.dart';
 
-/// Renders authentic, true-to-life ISO 7000 / SAE automotive dashboard symbols
+/// Renders authentic, true-to-life automotive dashboard symbols from real cluster assets
 class CarDashboardSymbol extends StatelessWidget {
   final String symbolId;
   final Color color;
   final double size;
+  final int? lightNumber;
   final IconData? fallbackIcon;
 
   const CarDashboardSymbol({
@@ -13,6 +15,7 @@ class CarDashboardSymbol extends StatelessWidget {
     required this.symbolId,
     required this.color,
     this.size = 28.0,
+    this.lightNumber,
     this.fallbackIcon,
   });
 
@@ -41,6 +44,24 @@ class CarDashboardSymbol extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final num = lightNumber ?? DashboardLightsRepository.getById(symbolId)?.number;
+    if (num != null && num >= 1 && num <= 64) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(size * 0.18),
+        child: Image.asset(
+          'assets/lights/light_$num.png',
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (ctx, err, stack) => _buildFallback(context),
+        ),
+      );
+    }
+
+    return _buildFallback(context);
+  }
+
+  Widget _buildFallback(BuildContext context) {
     if (_supportedCustomPainters.contains(symbolId)) {
       return SizedBox(
         width: size,

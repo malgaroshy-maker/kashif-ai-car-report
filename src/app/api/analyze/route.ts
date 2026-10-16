@@ -3,6 +3,7 @@ import { parseScannerPdf } from "@/lib/pdf-parser";
 import { analyzeReportWithGemini, normalizeDiagnosticReport, getKashifSystemInstruction } from "@/lib/gemini";
 import { SAMPLE_BMW_528I, SAMPLE_TOYOTA_COROLLA } from "@/lib/sample-data";
 import { tryAgyPrompt, parseAgyJson } from "@/lib/agy";
+import { callApinexChat, parseApinexJson } from "@/lib/apinex";
 import { KashifError, errorPayload } from "@/lib/errors";
 import { resolveModelId } from "@/lib/models";
 
@@ -36,6 +37,10 @@ export async function POST(req: NextRequest) {
     const userApiKey = req.headers.get("x-gemini-api-key") || undefined;
     const providerHeader = req.headers.get("x-ai-provider") || undefined;
     const headerModel = req.headers.get("x-gemini-model") || undefined;
+    const apinexApiKey = req.headers.get("x-apinex-api-key") || undefined;
+    const apinexModel = req.headers.get("x-apinex-model") || "free/deepseek-v4.1-flash";
+    const useApinexPrimary = req.headers.get("x-use-apinex-primary") === "true";
+    const autoFailover = req.headers.get("x-apinex-failover") !== "false";
 
     // 1. Multipart Form Data (Direct File Upload)
     if (contentType.includes("multipart/form-data")) {
@@ -43,7 +48,7 @@ export async function POST(req: NextRequest) {
       const file = formData.get("file") as File | null;
       const sampleId = formData.get("sampleId") as string | null;
       const formApiKey = (formData.get("apiKey") as string) || userApiKey;
-      const provider = (formData.get("provider") as string) || providerHeader || "gemini";
+      const provider = (formData.get("provider") as string) || providerHeader || (useApinexPrimary ? "apinex" : "gemini");
 
       if (sampleId === "bmw-528i") {
         return NextResponse.json({ success: true, report: demoReport(SAMPLE_BMW_528I) });
@@ -74,10 +79,6 @@ export async function POST(req: NextRequest) {
           if (agyOutput) report = await parseAgyJson(agyOutput);
         }
 
-        // One description of what the scan said, used by both the analysis
-        // and the normaliser. They were built separately and the parser's
-        // own `codesFound` and `scannerTool` were in neither, although it had
-        // been extracting them all along.
         const scanInput = {
           textReport: parsedPdf.rawText,
           codesFound: parsedPdf.codesFound,
@@ -90,12 +91,43 @@ export async function POST(req: NextRequest) {
           },
         };
 
+        // Try APInex if primary
+        if ((provider === "apinex" || useApinexPrimary) && apinexApiKey) {
+          try {
+            const prompt = `تقرير فحص كمبيوتر السيارة المستخرج:\n${parsedPdf.rawText}\n\nبيانات السيارة المكتشفة: ${JSON.stringify(scanInput.vehicleInfo)}\nالأكواد: ${scanInput.codesFound.join(", ")}`;
+            const rawOutput = await callApinexChat({
+              model: apinexModel,
+              prompt,
+              apiKey: apinexApiKey,
+            });
+            report = parseApinexJson(rawOutput);
+          } catch (apErr) {
+            console.warn("[analyze] APInex primary failed, falling back to Gemini:", apErr);
+          }
+        }
+
         if (!report) {
-          report = await analyzeReportWithGemini(
-            scanInput,
-            formApiKey,
-            resolveModelId(formModel)
-          );
+          try {
+            report = await analyzeReportWithGemini(
+              scanInput,
+              formApiKey,
+              resolveModelId(formModel)
+            );
+          } catch (geminiErr: any) {
+            // Auto failover to APInex if quota exceeded or error
+            if (autoFailover && apinexApiKey) {
+              console.warn("[analyze] Gemini failed, auto-failing over to APInex:", geminiErr?.message || geminiErr);
+              const prompt = `تقرير فحص كمبيوتر السيارة المستخرج:\n${parsedPdf.rawText}\n\nبيانات السيارة: ${JSON.stringify(scanInput.vehicleInfo)}\nالأكواد: ${scanInput.codesFound.join(", ")}`;
+              const rawOutput = await callApinexChat({
+                model: apinexModel,
+                prompt,
+                apiKey: apinexApiKey,
+              });
+              report = parseApinexJson(rawOutput);
+            } else {
+              throw geminiErr;
+            }
+          }
         }
 
         report = normalizeDiagnosticReport(report, scanInput);
@@ -140,8 +172,9 @@ export async function POST(req: NextRequest) {
     }
 
     let report: unknown = null;
+    const bodyProvider = body.provider || providerHeader || (useApinexPrimary ? "apinex" : "gemini");
 
-    if (body.provider === "agy" && (body.textReport || body.manualCodes)) {
+    if (bodyProvider === "agy" && (body.textReport || body.manualCodes)) {
       const inputData = body.textReport
         ? `تقرير الفحص:\n${body.textReport}`
         : `الأكواد:\n${body.manualCodes}\nالسيارة: ${JSON.stringify(body.vehicleInfo || {})}`;
@@ -152,26 +185,60 @@ export async function POST(req: NextRequest) {
       if (agyOutput) report = await parseAgyJson(agyOutput);
     }
 
+    // Try APInex if primary
+    if (!report && (bodyProvider === "apinex" || useApinexPrimary) && (body.textReport || body.manualCodes) && apinexApiKey) {
+      try {
+        const inputData = body.textReport
+          ? `تقرير الفحص:\n${body.textReport}`
+          : `الأكواد:\n${body.manualCodes}\nالسيارة: ${JSON.stringify(body.vehicleInfo || {})}`;
+        const rawOutput = await callApinexChat({
+          model: apinexModel,
+          prompt: inputData,
+          apiKey: apinexApiKey,
+        });
+        report = parseApinexJson(rawOutput);
+      } catch (apErr) {
+        console.warn("[analyze] APInex primary failed for JSON request, falling back to Gemini:", apErr);
+      }
+    }
+
     if (!report) {
-      report = await analyzeReportWithGemini(
-        {
-          textReport: body.textReport,
-          manualCodes: body.manualCodes,
-          vehicleInfo: body.vehicleInfo,
-          imageParts: body.imageBase64
-            ? [
-                {
-                  inlineData: {
-                    data: body.imageBase64,
-                    mimeType: body.imageMimeType || "image/jpeg",
+      try {
+        report = await analyzeReportWithGemini(
+          {
+            textReport: body.textReport,
+            manualCodes: body.manualCodes,
+            vehicleInfo: body.vehicleInfo,
+            imageParts: body.imageBase64
+              ? [
+                  {
+                    inlineData: {
+                      data: body.imageBase64,
+                      mimeType: body.imageMimeType || "image/jpeg",
+                    },
                   },
-                },
-              ]
-            : undefined,
-        },
-        activeApiKey,
-        resolveModelId(body.model || headerModel)
-      );
+                ]
+              : undefined,
+          },
+          activeApiKey,
+          resolveModelId(body.model || headerModel)
+        );
+      } catch (geminiErr: any) {
+        if (autoFailover && apinexApiKey && (body.textReport || body.manualCodes)) {
+          console.warn("[analyze] Gemini failed on JSON, auto-failing over to APInex:", geminiErr?.message || geminiErr);
+          const inputData = body.textReport
+            ? `تقرير الفحص:\n${body.textReport}`
+            : `الأكواد:\n${body.manualCodes}\nالسيارة: ${JSON.stringify(body.vehicleInfo || {})}`;
+          const rawOutput = await callApinexChat({
+            model: apinexModel,
+            prompt: inputData,
+            apiKey: apinexApiKey,
+          });
+          report = parseApinexJson(rawOutput);
+        } else {
+          throw geminiErr;
+        }
+      }
     }
 
     report = normalizeDiagnosticReport(report, body);

@@ -145,6 +145,27 @@ function PartCell({
           </ul>
         </div>
       )}
+
+      {/* 1-Tap Google / EPC Catalog Search Link (matching mobile app) */}
+      <div className="mt-[var(--s3)] pt-[var(--s2)] border-t border-[var(--rib)]">
+        <a
+          href={`https://www.google.com/search?q=${encodeURIComponent(
+            `${vehicle?.year || ""} ${vehicle?.make || ""} ${vehicle?.model || ""} ${
+              part.partNameEnglish || part.partNameLibyan || ""
+            } ${
+              part.oemPartNumber && !part.oemPartNumber.includes("VIN") && !part.oemPartNumber.includes("مطابقة")
+                ? part.oemPartNumber
+                : ""
+            } OEM part number`.trim()
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--royal-blue-light)]/40 bg-[var(--royal-blue)]/10 px-3 py-1.5 text-xs font-bold text-[var(--royal-blue-light)] transition hover:bg-[var(--royal-blue)]/20"
+        >
+          <span>🔍</span>
+          <span>فتح كتالوج البحث الفوري (EPC/Google)</span>
+        </a>
+      </div>
     </Cell>
   );
 }

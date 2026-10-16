@@ -366,14 +366,22 @@ class KashifStorage {
     await settingsBox.put('customDictionaryEntries', list);
   }
 
-  // APInex Alternative Engine Settings (DeepSeek / GPT-6)
+  // APInex Alternative Engine Settings (DeepSeek / Qwen / GPT)
   static String get apinexApiKey {
     try {
-      final key = settingsBox.get('apinexApiKey', defaultValue: 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19') as String;
-      final clean = key.trim();
-      return clean.isNotEmpty ? clean : 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
+      if (Hive.isBoxOpen(settingsBoxName)) {
+        final key = settingsBox.get('apinexApiKey', defaultValue: '') as String?;
+        final clean = key?.trim() ?? '';
+        // Automatically sanitize if the old suspended key was stored
+        if (clean.startsWith('sk-apxa56a82e') && clean.endsWith('cbf19')) {
+          settingsBox.put('apinexApiKey', '');
+          return '';
+        }
+        return clean;
+      }
+      return '';
     } catch (_) {
-      return 'sk-apxa56a82ec7f5964869b99a471975271a85475e01e00cbf19';
+      return '';
     }
   }
 
