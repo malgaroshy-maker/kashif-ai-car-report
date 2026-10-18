@@ -8,6 +8,7 @@ import {
   VehicleFuseCard,
   getFuseColor,
 } from "@/lib/fuse-card-data";
+import { FuseMapViewer } from "./FuseMapViewer";
 
 export function AuthenticFuseCardModal({ onClose }: { onClose: () => void }) {
   const [selectedCarId, setSelectedCarId] = useState<string>("bmw_e39");
@@ -200,6 +201,14 @@ export function AuthenticFuseCardModal({ onClose }: { onClose: () => void }) {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           
+          {/* خرائط الفيوزات الحقيقية (صور من الكتالوج) */}
+          {selectedBox.fuseMapImages && selectedBox.fuseMapImages.length > 0 && (
+            <FuseMapViewer
+              images={selectedBox.fuseMapImages}
+              boxNameArabic={selectedBox.boxNameArabic}
+            />
+          )}
+
           {/* Authentic Printed Card (Designed strictly to replicate the physical photo!) */}
           <div className="bg-[#FAF9F6] text-black rounded-xl p-4 sm:p-6 shadow-2xl border-2 border-slate-900 relative">
             

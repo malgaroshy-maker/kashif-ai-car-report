@@ -19,6 +19,24 @@ export interface FuseSlotDetail {
   testingTip?: string;
 }
 
+/**
+ * بيانات صورة خريطة فيوزات حقيقية
+ */
+export interface FuseMapImage {
+  /** رابط الصورة الكامل (URL خارجي) */
+  url: string;
+  /** عنوان الصورة بالعربي (يظهر تحت الصورة) */
+  titleArabic: string;
+  /** وصف مختصر بالعربي */
+  descriptionArabic?: string;
+  /** نوع الصورة - لتصنيف الصور في الكاروسيل */
+  type: "card" | "layout" | "location";
+  /** عرض الصورة الأصلي بالبكسل (اختياري - للـ aspect ratio) */
+  width?: number;
+  /** ارتفاع الصورة الأصلي بالبكسل (اختياري) */
+  height?: number;
+}
+
 export interface VehicleFuseCard {
   boxId: string;
   boxNameArabic: string;
@@ -32,6 +50,8 @@ export interface VehicleFuseCard {
   amperesMap: Record<number, number>;
   equipmentList: EquipmentMapping[];
   slots: Record<number, FuseSlotDetail>;
+  /** صور خرائط الفيوزات الحقيقية لهذا الصندوق */
+  fuseMapImages?: FuseMapImage[];
 }
 
 export interface CarFuseModelData {
