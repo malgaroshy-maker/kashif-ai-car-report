@@ -52,6 +52,10 @@ scratch_models.json
 *.tsbuildinfo
 next-env.d.ts
 
+# python
+__pycache__/
+*.py[cod]
+
 # impeccable working files
 .impeccable/
 
