@@ -6,6 +6,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { STORAGE_KEYS } from "@/lib/api-client";
 import { removeLocal, useLocalString, writeLocal } from "@/lib/local-store";
 import { DEFAULT_MODEL, KNOWN_MODELS, type AvailableModelItem } from "@/lib/models";
+import { DEFAULT_REPORT_SECTIONS, type ReportSectionsConfig } from "@/lib/types";
 
 export const APINEX_FREE_MODELS = [
   {
@@ -46,6 +47,16 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const storedWorkshopPhone = useLocalString(STORAGE_KEYS.workshopPhone, "");
   const storedWorkshopAddress = useLocalString(STORAGE_KEYS.workshopAddress, "");
   const storedTechName = useLocalString(STORAGE_KEYS.technicianName, "");
+  const storedSectionsStr = useLocalString(STORAGE_KEYS.reportSectionsConfig, "");
+  const initialSections: ReportSectionsConfig = React.useMemo(() => {
+    try {
+      if (storedSectionsStr) return JSON.parse(storedSectionsStr);
+    } catch (_) {}
+    return DEFAULT_REPORT_SECTIONS;
+  }, [storedSectionsStr]);
+
+  const [draftSections, setDraftSections] = React.useState<ReportSectionsConfig | null>(null);
+  const sectionsConfig = draftSections ?? initialSections;
 
   // Draft state
   const [draftKey, setDraftKey] = React.useState<string | null>(null);
@@ -132,6 +143,8 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     writeLocal(STORAGE_KEYS.workshopPhone, workshopPhone.trim());
     writeLocal(STORAGE_KEYS.workshopAddress, workshopAddress.trim());
     writeLocal(STORAGE_KEYS.technicianName, techName.trim());
+    writeLocal(STORAGE_KEYS.reportSectionsConfig, JSON.stringify(sectionsConfig));
+    setDraftSections(null);
 
     setDraftKey(null);
     setDraftModel(null);
@@ -504,6 +517,60 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
                 className="w-full rounded border border-[var(--rib)] bg-[var(--board-sunk)] px-3 py-1.5 text-xs text-(color:--ink) outline-none focus:border-[var(--royal-blue)]"
               />
             </div>
+          </div>
+        </section>
+
+        {/* 5. تخصيص ظهور أقسام التقرير والطباعة (Report Sections Visibility) */}
+        <section className="rounded-lg border border-[var(--rib)] bg-[var(--cell)] p-4 space-y-3">
+          <div className="border-b border-[var(--rib)] pb-2.5">
+            <h3 className="font-bold text-sm text-(color:--ink)">
+              تخصيص أقسام التقرير والطباعة (Report Sections)
+            </h3>
+            <p className="text-[11px] text-(color:--ink-2)">
+              تحكم في الأقسام التي تظهر في شاشة التقرير وعلى ملفات PDF المطبوعة والمصدرة
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {[
+              { key: "includeTechnicalAssessment", label: "تقييم الفني العام للسيارة", desc: "نسبة الجاهزية وملخص الفحص الشامل" },
+              { key: "includeFaultsTable", label: "جدول تشخيص وحصر الأعطال", desc: "تفاصيل أكواد الأعطال ومصطلحاتها الليبية" },
+              { key: "includePassedSystems", label: "الأنظمة السليمة بعد الفحص", desc: "قائمة المنظومات التي اجتازت الاختبار بنجاح" },
+              { key: "includeProbabilitiesTable", label: "جدول احتمالات الأعطال المشتركة", desc: "تحليل الأسباب الجذرية المشتركة بين الأكواد" },
+              { key: "includeChecklist", label: "ترتيب الفحص قبل الشراء", desc: "خطوات الفحص العملي والعدة المطلوبة" },
+              { key: "includeSpareParts", label: "دليل قطع الغيار وأرقام OEM", desc: "أسماء القطع والأسعار التقديرية بالدينار الليبي" },
+              { key: "includeTechnicianSignature", label: "اعتماد وتوقيع الفاحص", desc: "صندوق ختم الورشة وتوقيع الفني المعتمد" },
+            ].map((sec) => {
+              const k = sec.key as keyof ReportSectionsConfig;
+              const isChecked = sectionsConfig[k];
+              return (
+                <label
+                  key={sec.key}
+                  className={`flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition ${
+                    isChecked
+                      ? "border-[var(--royal-blue-light)] bg-[var(--royal-blue)]/5"
+                      : "border-[var(--rib)] bg-[var(--board-sunk)] opacity-60"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => {
+                      setDraftSections({
+                        ...sectionsConfig,
+                        [k]: e.target.checked,
+                      });
+                      setSaved(false);
+                    }}
+                    className="mt-0.5 h-4 w-4 rounded accent-[var(--royal-blue)]"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-bold text-(color:--ink) block">{sec.label}</span>
+                    <span className="text-[10px] text-(color:--ink-2) block mt-0.5">{sec.desc}</span>
+                  </div>
+                </label>
+              );
+            })}
           </div>
         </section>
       </div>

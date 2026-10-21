@@ -1,0 +1,3826 @@
+[
+  {
+    "id": "bmw_5_series_e39",
+    "make": "BMW",
+    "makeArabic": "بي إم دبليو",
+    "model": "5 Series (E39)",
+    "modelArabic": "الفئة الخامسة (5 Series E39)",
+    "yearRange": "1995 - 2004 (520i / 523i / 525i / 528i / 530i / 535i / 540i / M5)",
+    "bodyType": "سيدان / تورينغ عريقة",
+    "obdLocation": "تحت الطبلون جهة اليسار (السائق) بجانب مسند القدم، أو فيشة الفحص الدائرية 20-Pin بحوض المحرك لموديلات ما قبل 2001.",
+    "fuseBoxes": [
+      {
+        "id": "bmw_e39_glove_box",
+        "nameArabic": "بطاقة فيوزات درج التابلوه الرسمية (Glove Box Fuse Card)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "في سقف درج التابلوه (صندوق القفازات) أمام الراكب الأمامي، تنزل لأسفل بمفتاحين بلاستيك أبيضين.",
+        "accessInstructions": "افتح درج التابلوه، أدر المفتاحين الأبيضين ربع دورة (90 درجة) لتنزل لوحة الفيوزات بالكامل إلى الأسفل، واسحب كرت المخطط الأبيض من مكانه.",
+        "realisticCoverNote": "البطاقة الأصلية الرسمية لمصنع BMW (Part No. 8 377 849 / E 6957.J) مطبوعة ومترجمة بالكامل للعربية.",
+        "cardPartNumber": "8 377 849 / E 6957.J",
+        "hasPullTab": true,
+        "equipmentMappings": [
+          {
+            "equipmentEnglish": "ABS diesel",
+            "equipmentArabic": "نظام فرامل مانع الانغلاق ABS (محركات الديزل)",
+            "category": "brakes",
+            "fuseNumbers": [
+              17,
+              30
+            ]
+          },
+          {
+            "equipmentEnglish": "ABS gasoline",
+            "equipmentArabic": "نظام فرامل مانع الانغلاق ABS (محركات البنزين)",
+            "category": "brakes",
+            "fuseNumbers": [
+              30,
+              31
+            ]
+          },
+          {
+            "equipmentEnglish": "Air conditioner",
+            "equipmentArabic": "مكيف الهواء والتبريد (A/C)",
+            "category": "comfort",
+            "fuseNumbers": [
+              9,
+              20
+            ]
+          },
+          {
+            "equipmentEnglish": "Airbag",
+            "equipmentArabic": "الوسائد الهوائية (الإيرباج SRS)",
+            "category": "safety",
+            "fuseNumbers": [
+              40,
+              42
+            ]
+          },
+          {
+            "equipmentEnglish": "Anti-glare inside mirror",
+            "equipmentArabic": "مرآة الرؤية الخلفية الداخلية ذات التعتيم التلقائي",
+            "category": "electrical",
+            "fuseNumbers": [
+              21
+            ]
+          },
+          {
+            "equipmentEnglish": "Automatic stability control",
+            "equipmentArabic": "نظام التحكم التلقائي في الثبات (ASC / مانع الانزلاق)",
+            "category": "brakes",
+            "fuseNumbers": [
+              8,
+              17,
+              31
+            ]
+          },
+          {
+            "equipmentEnglish": "Auxiliary fan",
+            "equipmentArabic": "مروحة التبريد الإضافية (المكيف والرديتر)",
+            "category": "cooling",
+            "fuseNumbers": [
+              7,
+              20,
+              22,
+              75
+            ]
+          },
+          {
+            "equipmentEnglish": "Brake light",
+            "equipmentArabic": "أضواء الفرامل الخلفية (الستوب)",
+            "category": "lighting",
+            "fuseNumbers": [
+              41
+            ]
+          },
+          {
+            "equipmentEnglish": "Central locking system",
+            "equipmentArabic": "نظام القفل المركزي للأبواب (السنترلوك)",
+            "category": "body",
+            "fuseNumbers": [
+              6,
+              27,
+              29
+            ]
+          },
+          {
+            "equipmentEnglish": "Charging socket",
+            "equipmentArabic": "مقبس الشحن وولاعة السجائر 12V",
+            "category": "electrical",
+            "fuseNumbers": [
+              39
+            ]
+          },
+          {
+            "equipmentEnglish": "Courtesy mirror illumination",
+            "equipmentArabic": "إضاءة مرايا الشماسات التجميلية",
+            "category": "lighting",
+            "fuseNumbers": [
+              39
+            ]
+          },
+          {
+            "equipmentEnglish": "Diagnosis plug",
+            "equipmentArabic": "فيشة الفحص وتشخيص الأعطال (OBD-II / 20-Pin)",
+            "category": "diagnostics",
+            "fuseNumbers": [
+              15,
+              38
+            ]
+          },
+          {
+            "equipmentEnglish": "Driver seat adjustment",
+            "equipmentArabic": "ضبط مقعد السائق الكهربائي وذاكرة الوضعيات",
+            "category": "comfort",
+            "fuseNumbers": [
+              13,
+              21
+            ]
+          },
+          {
+            "equipmentEnglish": "Electric seat heating",
+            "equipmentArabic": "تدفئة المقاعد الكهربائية",
+            "category": "comfort",
+            "fuseNumbers": [
+              32
+            ]
+          },
+          {
+            "equipmentEnglish": "Engine control",
+            "equipmentArabic": "كمبيوتر وإدارة المحرك (DME / DDE)",
+            "category": "engine",
+            "fuseNumbers": [
+              14,
+              15
+            ]
+          },
+          {
+            "equipmentEnglish": "Fuel pump",
+            "equipmentArabic": "مضخة الوقود (طلمبة / بومبة البنزين)",
+            "category": "engine",
+            "fuseNumbers": [
+              17,
+              31
+            ]
+          },
+          {
+            "equipmentEnglish": "Garage door opener",
+            "equipmentArabic": "وحدة فتح باب المرآب المدمجة",
+            "category": "convenience",
+            "fuseNumbers": [
+              21
+            ]
+          },
+          {
+            "equipmentEnglish": "Headlight cleaning system",
+            "equipmentArabic": "رشاشات وغسيل المصابيح الأمامية",
+            "category": "lighting",
+            "fuseNumbers": [
+              2
+            ]
+          },
+          {
+            "equipmentEnglish": "Heated rear window",
+            "equipmentArabic": "سخان الزجاج الخلفي لإزالة الضباب والجليد",
+            "category": "comfort",
+            "fuseNumbers": [
+              20
+            ]
+          },
+          {
+            "equipmentEnglish": "Heated steering wheel",
+            "equipmentArabic": "تدفئة مقود السيارة (عجلة القيادة)",
+            "category": "comfort",
+            "fuseNumbers": [
+              34
+            ]
+          },
+          {
+            "equipmentEnglish": "Heated washer jets",
+            "equipmentArabic": "سخانات رشاشات ماء المساحات",
+            "category": "comfort",
+            "fuseNumbers": [
+              9
+            ]
+          },
+          {
+            "equipmentEnglish": "Heater",
+            "equipmentArabic": "دفاية المقصورة الداخلية والتكييف",
+            "category": "comfort",
+            "fuseNumbers": [
+              20,
+              23
+            ]
+          },
+          {
+            "equipmentEnglish": "Heater blower",
+            "equipmentArabic": "مروحة ومنفاخ دفاية ومكيف المقصورة (القنفذ)",
+            "category": "comfort",
+            "fuseNumbers": [
+              76
+            ]
+          },
+          {
+            "equipmentEnglish": "Horn",
+            "equipmentArabic": "بوق ومنبه السيارة (الكلاكس / الهرن)",
+            "category": "safety",
+            "fuseNumbers": [
+              3,
+              38
+            ]
+          },
+          {
+            "equipmentEnglish": "Immobilizer",
+            "equipmentArabic": "نظام منع تشغيل المحرك والسرقة (EWS 3)",
+            "category": "security",
+            "fuseNumbers": [
+              12,
+              37
+            ]
+          },
+          {
+            "equipmentEnglish": "Independent heater",
+            "equipmentArabic": "نظام التدفئة المستقل (Webasto)",
+            "category": "comfort",
+            "fuseNumbers": [
+              23
+            ]
+          },
+          {
+            "equipmentEnglish": "Instrument cluster",
+            "equipmentArabic": "طبلون العدادات وشاشة المعلومات (IKE)",
+            "category": "dashboard",
+            "fuseNumbers": [
+              18,
+              24,
+              40
+            ]
+          },
+          {
+            "equipmentEnglish": "Light module",
+            "equipmentArabic": "وحدة التحكم المركزية بالإنارة (LCM)",
+            "category": "lighting",
+            "fuseNumbers": [
+              16,
+              41
+            ]
+          },
+          {
+            "equipmentEnglish": "Multi-function steering wheel",
+            "equipmentArabic": "أزرار التحكم بمقود السيارة (MFL)",
+            "category": "convenience",
+            "fuseNumbers": [
+              44
+            ]
+          },
+          {
+            "equipmentEnglish": "Multi-information display",
+            "equipmentArabic": "شاشة عرض المعلومات المركزية (MID)",
+            "category": "dashboard",
+            "fuseNumbers": [
+              25,
+              44
+            ]
+          },
+          {
+            "equipmentEnglish": "On-board monitor",
+            "equipmentArabic": "شاشة العرض ونظام الملاحة والراديو",
+            "category": "infotainment",
+            "fuseNumbers": [
+              43,
+              56,
+              58
+            ]
+          },
+          {
+            "equipmentEnglish": "Outside mirror adjustment",
+            "equipmentArabic": "تعديل وطي المرايا الجانبية كهربائياً",
+            "category": "body",
+            "fuseNumbers": [
+              6,
+              29
+            ]
+          },
+          {
+            "equipmentEnglish": "Park-Distance-Control",
+            "equipmentArabic": "حساسات المساعدة على الاصطفاف والركن (PDC)",
+            "category": "safety",
+            "fuseNumbers": [
+              21
+            ]
+          },
+          {
+            "equipmentEnglish": "Passenger comp./trunk lighting",
+            "equipmentArabic": "إنارة المقصورة والصالون والشنطة الخلفية",
+            "category": "lighting",
+            "fuseNumbers": [
+              4
+            ]
+          },
+          {
+            "equipmentEnglish": "Passenger seat adjustment",
+            "equipmentArabic": "ضبط مقعد الراكب الأمامي كهربائياً",
+            "category": "comfort",
+            "fuseNumbers": [
+              10
+            ]
+          },
+          {
+            "equipmentEnglish": "Radio",
+            "equipmentArabic": "راديو ومنظومة الصوت بالسيارة",
+            "category": "infotainment",
+            "fuseNumbers": [
+              25,
+              43,
+              44
+            ]
+          },
+          {
+            "equipmentEnglish": "Roller sun blind",
+            "equipmentArabic": "ستارة الزجاج الخلفي الكهربائية",
+            "category": "comfort",
+            "fuseNumbers": [
+              45
+            ]
+          },
+          {
+            "equipmentEnglish": "Servotronic",
+            "equipmentArabic": "نظام التوجيه الهيدروليكي المؤازر (Servotronic)",
+            "category": "steering",
+            "fuseNumbers": [
+              11
+            ]
+          },
+          {
+            "equipmentEnglish": "Shifting gate illumination",
+            "equipmentArabic": "إنارة حارة عصا القير الأوتوماتيك",
+            "category": "lighting",
+            "fuseNumbers": [
+              24,
+              38
+            ]
+          },
+          {
+            "equipmentEnglish": "Sliding/tilt roof",
+            "equipmentArabic": "فتحة السقف الكهربائية (السلايدينغ)",
+            "category": "body",
+            "fuseNumbers": [
+              5
+            ]
+          },
+          {
+            "equipmentEnglish": "Speed control",
+            "equipmentArabic": "مثبت السرعة الإلكتروني (Cruise Control)",
+            "category": "engine",
+            "fuseNumbers": [
+              41
+            ]
+          },
+          {
+            "equipmentEnglish": "Steering column adjustment",
+            "equipmentArabic": "ضبط عمود التوجيه (الستيرنج) كهربائياً",
+            "category": "comfort",
+            "fuseNumbers": [
+              13
+            ]
+          },
+          {
+            "equipmentEnglish": "Telephone",
+            "equipmentArabic": "وحدة وتجهيز هاتف السيارة",
+            "category": "communication",
+            "fuseNumbers": [
+              43,
+              44
+            ]
+          },
+          {
+            "equipmentEnglish": "Thermal sensor",
+            "equipmentArabic": "الحساس الحراري ومستوى الزيت بالمحرك",
+            "category": "engine",
+            "fuseNumbers": [
+              21
+            ]
+          },
+          {
+            "equipmentEnglish": "Tyre pressure control system",
+            "equipmentArabic": "نظام مراقبة ضغط الإطارات (RDC)",
+            "category": "safety",
+            "fuseNumbers": [
+              24
+            ]
+          },
+          {
+            "equipmentEnglish": "Window lift",
+            "equipmentArabic": "زجاج النوافذ الكهربائية (الأبواب الأربعة)",
+            "category": "body",
+            "fuseNumbers": [
+              6,
+              27,
+              29
+            ]
+          },
+          {
+            "equipmentEnglish": "Windscreen washer system",
+            "equipmentArabic": "مضخة رش ماء مساحات الزجاج",
+            "category": "visibility",
+            "fuseNumbers": [
+              2,
+              4
+            ]
+          },
+          {
+            "equipmentEnglish": "Windscreen wiper",
+            "equipmentArabic": "محرك ومساحات الزجاج الأمامي",
+            "category": "visibility",
+            "fuseNumbers": [
+              1
+            ]
+          }
+        ],
+        "slots": [
+          {
+            "slotId": "F1",
+            "label": "WIPER",
+            "nameArabic": "فيوز مساحات الزجاج الأمامية",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي موتور مساحات الزجاج الأمامي وسرعات المسح العادية والسريعة.",
+            "testingTip": "افحص فيوز F1 أولاً عند توقف المساحات قبل استبدال ذراع التوجيه أو محرك المساحات.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "توقف مساحات الزجاج الأمامي عن العمل تماماً"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F2",
+            "label": "H-LP CLEAN",
+            "nameArabic": "فيوز رشاشات وغسيل المصابيح الأمامية والمساحات",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي مضخة رش ماء تنظيف الفوانيس الأمامية والزجاج.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "عدم خروج الماء لكشافات الضباب والمصابيح عند السحب"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F3",
+            "label": "HORN",
+            "nameArabic": "فيوز بوق ومنبه السيارة (الكلاكس / الهرن)",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي بوق التنبيه الصوتي في واجهة السيارة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "المنبه لا يصدر صوتاً نهائياً عند الضغط على وسط المقود"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F4",
+            "label": "INT LT / WASH",
+            "nameArabic": "فيوز إنارة المقصورة والشنطة ورشاشات الزجاج",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي لمبات السقف والشنطة الخلفية وطلمبة ماء الزجاج.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 3,
+            "symptoms": [
+              "انطفاء الإضاءة الترحيبية بالصالون وتعطل رشاشات ماء الزجاج"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F5",
+            "label": "SUNROOF",
+            "nameArabic": "فيوز فتحة السقف الكهربائية (السلايدينغ)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي محرك ومفتاح تحكم فتحة السقف الكهربائية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 4,
+            "symptoms": [
+              "فتحة السقف لا تفتح ولا تقفل ولا تستجيب للزر"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F6",
+            "label": "CENTRAL / WIN",
+            "nameArabic": "فيوز السنترلوك وضبط المرايا وزجاج النوافذ",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي وحدة التحكم بالأبواب العامة والقفل المركزي ومرايا الرؤية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 5,
+            "symptoms": [
+              "تعطل أقفال الأبواب والمرايا الجانبية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F7",
+            "label": "AUX FAN",
+            "nameArabic": "فيوز مروحة التبريد الإضافية (المكيف والرديتر)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي السرعة الأولى لمروحة التبريد الكهربائية أمام رديتر المكيف.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 6,
+            "symptoms": [
+              "ارتفاع حرارة المحرك عند تشغيل المكيف أو في الزحام",
+              "ضعف تبريد مكيف الهواء وقت توقف السيارة"
+            ],
+            "associatedDTCs": [
+              "P0480"
+            ]
+          },
+          {
+            "slotId": "F8",
+            "label": "ASC",
+            "nameArabic": "فيوز نظام التحكم في الثبات (ASC / مانع الانزلاق)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي صمامات ومضخة نظام التحكم في الجر والثبات ومنع الانزلاق.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 7,
+            "symptoms": [
+              "إضاءة لمبة المثلث الصفراء (ASC) في الطبلون باستمرار"
+            ],
+            "associatedDTCs": [
+              "30",
+              "31"
+            ]
+          },
+          {
+            "slotId": "F9",
+            "label": "A/C / JETS",
+            "nameArabic": "فيوز كلتش كمبروسر المكيف وسخانات رشاشات المساحات",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي الكلتش المغناطيسي لضاغط التكييف وسخانات رشاشات ماء الزجاج.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 8,
+            "symptoms": [
+              "المكيف يخرج هواء ساخناً فقط ولا يلقط الكمبروسر"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F10",
+            "label": "PASS SEAT",
+            "nameArabic": "فيوز ضبط مقعد الراكب الأمامي كهربائياً",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي مواتير ضبط وضعيات كرسي الراكب في جميع الاتجاهات.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 9,
+            "symptoms": [
+              "مقعد الراكب لا يتحرك ولا يستجيب لأزرار التقديم والترجيع"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F11",
+            "label": "SERVOTRONIC",
+            "nameArabic": "فيوز نظام مؤازرة التوجيه الهيدروليكي (Servotronic)",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "يتحكم في صمام مساعدة المقود الهيدروليكي لتنعيم حركة المقود عند السرعات المنخفضة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 10,
+            "symptoms": [
+              "ثقل ملحوظ ومفاجئ في حركة مقود السيارة (الدركسيون) عند الركن"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F12",
+            "label": "EWS IMMO",
+            "nameArabic": "فيوز نظام منع تشغيل المحرك والسرقة (EWS 3)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية وحدة EWS المسؤولة عن مطابقة شفرة المفتاح وتشغيل السلف.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 11,
+            "symptoms": [
+              "السيارة لا تدور بالسلف نهائياً (السلف لا يلف والكونتاكت مفتوح)",
+              "فقدان تطابق شفرة المفتاح مع كمبيوتر المحرك DME"
+            ],
+            "associatedDTCs": [
+              "EWS 3.3",
+              "42"
+            ]
+          },
+          {
+            "slotId": "F13",
+            "label": "DRV SEAT / COL",
+            "nameArabic": "فيوز مقعد السائق الكهربائي وضبط عمود التوجيه",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي مواتير ضبط مقعد السائق مع الذاكرة وموتور تعديل الستيرنج.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 12,
+            "symptoms": [
+              "مقعد السائق وعمود التوجيه لا يستجيبان لأزرار الضبط والذاكرة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F14",
+            "label": "DME / ENGINE",
+            "nameArabic": "فيوز كمبيوتر إدارة المحرك (DME / DDE)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "خط التغذية المنظم لكمبيوتر المحرك الرئيسي DME.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 13,
+            "symptoms": [
+              "المحرك يدور بالسلف ولكن قاطع بنزين ونار تماماً"
+            ],
+            "associatedDTCs": [
+              "P0600",
+              "P0606"
+            ]
+          },
+          {
+            "slotId": "F15",
+            "label": "OBD / DME",
+            "nameArabic": "فيوز مدخل الفحص التشخيصي OBD-II ووصلة السكنر",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "تغذية الطرف رقم 16 في فيشة الفحص OBD بجهد 12V وخط إدارة المحرك.",
+            "testingTip": "افحص النقطة 16 في فيشة الـ OBD، إذا كان الجهد صفراً فهذا الفيوز F15 مقطوع.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 14,
+            "symptoms": [
+              "جهاز الفحص (Launch / Autel / INPA) لا يضيء نهائياً ولا يتصل",
+              "رسالة No Communication With Vehicle"
+            ],
+            "associatedDTCs": [
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F16",
+            "label": "LCM LIGHT",
+            "nameArabic": "فيوز وحدة التحكم المركزية بالإنارة (Light Module LCM)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية كمبيوتر أضواء وفوانيس السيارة LCM.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 15,
+            "symptoms": [
+              "تعطل إشارات الانعطاف أو إضاءة المصابيح باستمرار بدون مفتاح"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F17",
+            "label": "ABS / PUMP",
+            "nameArabic": "فيوز فرامل ABS (ديزل) ومضخة الوقود وتحكم الثبات",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية منظومة الفرامل ومضخة البنزين في طرازات محددة من E39.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 16,
+            "symptoms": [
+              "إضاءة لمبة ABS ومضخة الوقود لا تعمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F18",
+            "label": "IKE CLUSTER",
+            "nameArabic": "فيوز عدادات الطبلون وشاشة المعلومات (IKE Cluster)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية شاشات السرعة والـ RPM وشاشة البيانات الميكانيكية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 17,
+            "symptoms": [
+              "انطفاء عدادات الطبلون وتعطل شاشة البكسلات في التابلوه"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F19",
+            "label": "SPARE",
+            "nameArabic": "فيوز احتياطي لتجهيزات إضافية",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "موقع فيوز مخصص للتجهيزات الإضافية والاختيارية بالسيارة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 18,
+            "symptoms": [],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F20",
+            "label": "A/C / HEATER",
+            "nameArabic": "فيوز مكيف الهواء ومروحة التبريد وسخان الزجاج والدفاية",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "يغذي دوائر التحكم بمكيف الهواء ودفاية المقصورة وسخان الزجاج الخلفي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 19,
+            "symptoms": [
+              "تعطل تحكم سرعات المكيف وسخان الزجاج الخلفي"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F75",
+            "label": "AUX FAN MAXI",
+            "nameArabic": "فيوز ماكسي مروحة التبريد الإضافية عالية القدرة (50A)",
+            "ratingAmps": 50.0,
+            "descriptionArabic": "فيوز قدرة عالي لحماية دائرة محرك مروحة التبريد الكبرى أمام الردياتير.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 20,
+            "symptoms": [
+              "توقف المروحة الكهربائية واحتراق فيوز الـ 50A في الأجواء الحارة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F76",
+            "label": "BLOWER MAXI",
+            "nameArabic": "فيوز ماكسي منفاخ ومروحة دفع هواء الدفاية والمكيف (40A)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "فيوز رئيسي لحماية موتور مروحة التكييف الداخلية ومقاومة السرعات الفاينل ستيج (القنفذ).",
+            "testingTip": "في BMW E39، يترافق احتراق هذا الفيوز مع تلف مقاومة المكيف (Final Stage Unit).",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 21,
+            "symptoms": [
+              "مروحة المكيف متوقفة تماماً ولا يخرج أي هواء من الهوايات"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F21",
+            "label": "MIRROR / PDC",
+            "nameArabic": "فيوز مرايا التعتيم ومقعد السائق وحساسات الركن والحساس الحراري",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية وحدة حساسات الركن PDC والمرايا الإلكترونية وحساس الزيت والمقاعد.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "حساسات الاصطفاف تصدر صفيراً مستمراً أو لا تعمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F22",
+            "label": "AUX FAN HIGH",
+            "nameArabic": "فيوز السرعة العالية لمروحة التبريد الإضافية",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي سرعة مروحة التبريد القصوى عند ارتفاع الحرارة أو تشغيل المكيف.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "ارتفاع حرارة المحرك في الصيف والوقوف التام"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F23",
+            "label": "HEATER / WEBASTO",
+            "nameArabic": "فيوز دفاية المقصورة ومنظومة التدفئة المستقلة (Webasto)",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية صمامات المياه الساخنة ونظام التدفئة المستقلة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 2,
+            "symptoms": [
+              "خروج هواء بارد فقط رغم تشغيل الدفاية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F24",
+            "label": "CLUSTER / RDC",
+            "nameArabic": "فيوز العدادات وإنارة عصا القير ومراقبة ضغط الإطارات (RDC)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية إنارة عصا الفتيس الأوتوماتيك وشاشة العدادات وحساسات الإطارات.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 3,
+            "symptoms": [
+              "انطفاء لمبات حارة القير (P R N D) في الكونسول"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F25",
+            "label": "MID / RADIO",
+            "nameArabic": "فيوز شاشة عرض المعلومات (MID) وراديو السيارة",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "تغذية شاشة الراديو وأزرار الكونسول الأوسط وعرض بيانات الرحلة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 4,
+            "symptoms": [
+              "انطفاء شاشة الراديو والساعة والكمبيوتر MID بالكونسول"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F26",
+            "label": "SPARE",
+            "nameArabic": "موقع فيوز فارغ احتياطي",
+            "ratingAmps": 0.0,
+            "descriptionArabic": "موقع غير مستخدم في هذا الطراز.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 5,
+            "symptoms": [],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F27",
+            "label": "CENTRAL / WIN",
+            "nameArabic": "فيوز السنترلوك وزجاج النوافذ الكهربائي",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "تغذية رفع وتنزيل زجاج الأبواب والقفل المركزي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 6,
+            "symptoms": [
+              "النوافذ الكهربائية لا ترتفع ولا تنزل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F28",
+            "label": "SPARE",
+            "nameArabic": "موقع فيوز فارغ احتياطي",
+            "ratingAmps": 0.0,
+            "descriptionArabic": "موقع غير مستخدم في هذا الطراز.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 7,
+            "symptoms": [],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F29",
+            "label": "CENTRAL / MIR",
+            "nameArabic": "فيوز القفل المركزي وضبط المرايا وزجاج الأبواب",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "تغذية مواتير السنتر لوك وزجاج الأبواب الخلفية وضبط المرايا.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 8,
+            "symptoms": [
+              "الأبواب الخلفية لا تفتح ولا تقفل كهربائياً"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F30",
+            "label": "ABS DIESEL/GAS",
+            "nameArabic": "فيوز نظام فرامل ABS ومضخة الهيدروليك (ديزل وبنزين)",
+            "ratingAmps": 25.0,
+            "descriptionArabic": "تغذية مضخة ABS الهيدروليكية ومنظومة التحكم بالفرامل.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 9,
+            "symptoms": [
+              "إضاءة لمبات ABS و Traction و Brake معاً في الطبلون (المثلث الأصفر)",
+              "تعطل عداد السرعة ومؤشر استهلاك الوقود اللحظي"
+            ],
+            "associatedDTCs": [
+              "30",
+              "31",
+              "32"
+            ]
+          },
+          {
+            "slotId": "F31",
+            "label": "FUEL PUMP / ASC",
+            "nameArabic": "فيوز طلمبة (مضخة) البنزين ونظام منع الانزلاق (بنزين)",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "يغذي دائرة مضخة الوقود ومنظومة الثبات ASC في موديلات البنزين.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 10,
+            "symptoms": [
+              "المحرك يدور بالسلف ولكن قاطع بنزين ونار",
+              "توقف مضخة البنزين عن العمل"
+            ],
+            "associatedDTCs": [
+              "P0087"
+            ]
+          },
+          {
+            "slotId": "F32",
+            "label": "SEAT HEATER",
+            "nameArabic": "فيوز تدفئة المقاعد الكهربائية",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "تغذية وسائد التدفئة الحرارية في المقاعد الأمامية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 11,
+            "symptoms": [
+              "أزرار تدفئة الكراسي تومض وتنطفئ ولا تدفئ المقاعد"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F33",
+            "label": "SPARE",
+            "nameArabic": "موقع فيوز فارغ احتياطي",
+            "ratingAmps": 0.0,
+            "descriptionArabic": "موقع غير مستخدم.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 12,
+            "symptoms": [],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F34",
+            "label": "HEATED STEER",
+            "nameArabic": "فيوز تدفئة مقود السيارة (عجلة القيادة)",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية وشائع التسخين في طارة المقود.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 13,
+            "symptoms": [
+              "تدفئة طارة الدركسيون لا تعمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F35",
+            "label": "SPARE",
+            "nameArabic": "موقع فيوز فارغ احتياطي",
+            "ratingAmps": 0.0,
+            "descriptionArabic": "موقع غير مستخدم.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 14,
+            "symptoms": [],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F36",
+            "label": "SPARE",
+            "nameArabic": "موقع فيوز فارغ احتياطي",
+            "ratingAmps": 0.0,
+            "descriptionArabic": "موقع غير مستخدم.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 15,
+            "symptoms": [],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F37",
+            "label": "EWS IMMO 2",
+            "nameArabic": "فيوز حماية نظام منع السرقة والمفتاح المشفر (EWS)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية ثانوية لوحدة الإيموبلايزر EWS لمنع سرقة وتشغيل السيارة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 16,
+            "symptoms": [
+              "المفتاح يدور لكن السلف لا يلف بتاتاً"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F38",
+            "label": "OBD / HORN / SHIFT",
+            "nameArabic": "فيوز فيشة الفحص OBD والبوق وإنارة حارة القير",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية دائرة البوق وإنارة القير الأوتوماتيك وخط فحص الكومبيوتر.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 17,
+            "symptoms": [
+              "تعطل بوق السيارة أو انطفاء إضاءة عصا القير"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F39",
+            "label": "CIG / COURTESY",
+            "nameArabic": "فيوز ولاعة السجائر والشحن وإضاءة مرايا الشماسات",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "تغذية مخرج الشحن 12V وولاعة السجائر ولمبات الشماسات التجميلية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 18,
+            "symptoms": [
+              "شاحن الهاتف لا يعمل في ولاعة التابلوه وانطفاء لمبات الشماسات"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F40",
+            "label": "AIRBAG / CLUST",
+            "nameArabic": "فيوز الوسائد الهوائية (الإيرباج SRS) وطبلون العدادات",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية وحدة تحكم الوسائد الهوائية وحساسات التصادم وعدادات الطبلون.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 19,
+            "symptoms": [
+              "إضاءة لمبة الإيرباج الحمراء SRS في الطبلون"
+            ],
+            "associatedDTCs": [
+              "90",
+              "91"
+            ]
+          },
+          {
+            "slotId": "F41",
+            "label": "BRAKE LT / CRUISE",
+            "nameArabic": "فيوز أضواء الفرامل الخلفية (الستوب) ومثبت السرعة ووحدة الإنارة",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية لمبات الفرامل الخلفية ومفتاح دواسة الفرامل ومثبت السرعة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 20,
+            "symptoms": [
+              "لمبات الفرامل الخلفية لا تضيء عند الضغط على الدواسة وتعطل مثبت السرعة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F42",
+            "label": "AIRBAG SRS",
+            "nameArabic": "فيوز كمبيوتر الوسائد الهوائية (الإيرباج SRS)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية كمبيوتر الإيرباج المركزي ووحدات استشعار المقاعد.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 21,
+            "symptoms": [
+              "إضاءة لمبة الإيرباج SRS الحمراء بشكل دائم"
+            ],
+            "associatedDTCs": [
+              "90"
+            ]
+          },
+          {
+            "slotId": "F43",
+            "label": "MONITOR / RADIO",
+            "nameArabic": "فيوز شاشة العرض المركزية والراديو وهاتف السيارة",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية شاشة التابلوه ونظام الترفيه والراديو.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 22,
+            "symptoms": [
+              "شاشة الراديو والتلفزيون مطفأة بالكامل ولا تفتح"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F44",
+            "label": "MFL / MID / TEL",
+            "nameArabic": "فيوز أزرار مقود السيارة المتعددة وشاشة MID والهاتف والراديو",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "تغذية أزرار المالتي في المقود وشاشة المعلومات المركزية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 23,
+            "symptoms": [
+              "أزرار الصوت ومثبت السرعة على الطارة لا تستجيب"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F45",
+            "label": "SUN BLIND",
+            "nameArabic": "فيوز ستارة الزجاج الخلفي الكهربائية",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "تغذية محرك رفع وخفض الستارة الشمسية الخلفية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 24,
+            "symptoms": [
+              "الستارة الخلفية الكهربائية لا تصعد ولا تنزل"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      },
+      {
+        "id": "bmw_e39_trunk",
+        "nameArabic": "علبة فيوزات الشنطة الخلفية فوق البطارية (Trunk Fuse Carrier)",
+        "locationType": "trunk",
+        "detailedLocationArabic": "في الشنطة الخلفية جهة اليمين، مباشرة فوق البطارية خلف غطاء الفرش المبطن.",
+        "accessInstructions": "أدر مقبض قفل بطانة الشنطة في الجانب الأيمن واسحب الغطاء، ستجد صينية الفيوزات البيضاء وصف الكتاوت فوق البطارية.",
+        "realisticCoverNote": "تحتوي هذه العلبة على فيوزات طرمبة الوقود وسخان الزجاج الخلفي والمقاعد والستارة الكهربائية (الفيوزات من F46 إلى F66).",
+        "cardPartNumber": "Trunk Fuses F46-F66",
+        "hasPullTab": false,
+        "equipmentMappings": [
+          {
+            "equipmentEnglish": "Auxiliary heater",
+            "equipmentArabic": "نظام التدفئة المستقل والإضافي (Webasto)",
+            "category": "comfort",
+            "fuseNumbers": [
+              46
+            ]
+          },
+          {
+            "equipmentEnglish": "Cigarette lighter / Auxiliary socket (rear)",
+            "equipmentArabic": "ولاعة السجائر ومقبس الطاقة الخلفي 12V",
+            "category": "electrical",
+            "fuseNumbers": [
+              47
+            ]
+          },
+          {
+            "equipmentEnglish": "Heated rear window",
+            "equipmentArabic": "سخان الزجاج الخلفي لإزالة الضباب",
+            "category": "comfort",
+            "fuseNumbers": [
+              48,
+              66
+            ]
+          },
+          {
+            "equipmentEnglish": "Air suspension",
+            "equipmentArabic": "نظام التعليق الهوائي والمساعدات (الهايدروليك)",
+            "category": "suspension",
+            "fuseNumbers": [
+              50
+            ]
+          },
+          {
+            "equipmentEnglish": "Central locking (fuel filler flap)",
+            "equipmentArabic": "قفل غطاء خزان الوقود والسنتر لوك الخلفي",
+            "category": "body",
+            "fuseNumbers": [
+              53
+            ]
+          },
+          {
+            "equipmentEnglish": "Fuel pump",
+            "equipmentArabic": "مضخة الوقود الكهربائية (طلمبة / بومبة البنزين)",
+            "category": "engine",
+            "fuseNumbers": [
+              54
+            ]
+          },
+          {
+            "equipmentEnglish": "CD changer / Navigation system",
+            "equipmentArabic": "مشغل الأقراص المدمجة ونظام الملاحة GPS",
+            "category": "infotainment",
+            "fuseNumbers": [
+              56
+            ]
+          },
+          {
+            "equipmentEnglish": "Telephone / TV",
+            "equipmentArabic": "هاتف السيارة وتلفزيون الشاشة",
+            "category": "communication",
+            "fuseNumbers": [
+              57
+            ]
+          },
+          {
+            "equipmentEnglish": "Radio / On-board monitor",
+            "equipmentArabic": "راديو السيارة وشاشة المراقبة المركزية",
+            "category": "infotainment",
+            "fuseNumbers": [
+              58
+            ]
+          },
+          {
+            "equipmentEnglish": "Rear seat adjustment / Trailer coupling",
+            "equipmentArabic": "ضبط المقاعد الخلفية وتوصيلات المقطورة",
+            "category": "comfort",
+            "fuseNumbers": [
+              66
+            ]
+          }
+        ],
+        "slots": [
+          {
+            "slotId": "F46",
+            "label": "AUX HEATER",
+            "nameArabic": "فيوز نظام التدفئة الإضافي والمستقل (Webasto)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي وحدة التدفئة المستقلة في الشتاء.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "دفاية التدفئة المستقلة لا تعمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F47",
+            "label": "REAR POWER",
+            "nameArabic": "فيوز ولاعة السجائر الخلفية ومقبس الطاقة بالشنطة",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي مخرج الطاقة 12V الخلفي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "مقبس الطاقة الخلفي لا يشحن"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F48",
+            "label": "REAR DEF",
+            "nameArabic": "فيوز مروحة وسخان الزجاج الخلفي",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يغذي خط تدفئة الزجاج الخلفي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "الزجاج الخلفي لا يزيل الضباب"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F50",
+            "label": "AIR SUSP",
+            "nameArabic": "فيوز نظام التعليق الهوائي والمساعدات (الهايدروليك)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "يغذي كمبيوتر التحكم بالمساعدات الهيدروليكية الخلفية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 3,
+            "symptoms": [
+              "هبوط مؤخرة السيارة وظهور خطأ Air Suspension"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F53",
+            "label": "CENTRAL LOCK",
+            "nameArabic": "فيوز قفل الشنطة والسنتر لوك وغطاء البنزين",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "يغذي أقفال الأبواب وغطاء خزان الوقود وموتور قفل الشنطة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 4,
+            "symptoms": [
+              "الشنطة لا تفتح بالريموت أو غطاء البنزين لا يقفل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F54",
+            "label": "FUEL PUMP",
+            "nameArabic": "فيوز طرمبة (بومبة) البنزين الرئيسية",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "التغذية الكهربائية المباشرة لمضخة الوقود الغاطسة داخل تانك البنزين.",
+            "testingTip": "افحص هذا الفيوز فوراً مع ريلي طرمبة البنزين الأخضر المجاور له إذا كانت السيارة لا تعمل.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 5,
+            "symptoms": [
+              "السيارة تدور بالسلف طويلاً دون تشغيل (قاطعة ضغط بنزين)",
+              "انطفاء مفاجئ للمحرك أثناء السير دون تقطيع سابق",
+              "عدم سماع صوت أزيز الطرمبة عند فتح السويتش"
+            ],
+            "associatedDTCs": [
+              "P0087",
+              "P0190"
+            ]
+          },
+          {
+            "slotId": "F56",
+            "label": "CD / NAVI",
+            "nameArabic": "فيوز مشغل الأقراص المدمجة وجهاز الملاحة GPS",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "تغذية قارئ خرائط الملاحة ومشغل أسطوانات CD في الشنطة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "شاشة الملاحة تطلب إدخال أسطوانة الـ GPS أو قارئ السيديهات لا يفتح"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F57",
+            "label": "PHONE / TV",
+            "nameArabic": "فيوز وحدة الهاتف وتلفزيون الشاشة",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "يغذي موديول التلفزيون وهاتف السيارة بالشنطة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "تعطل استقبال إشارة التلفزيون أو هاتف السيارة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F58",
+            "label": "AUDIO / AMP",
+            "nameArabic": "فيوز مضخم الصوت والراديو وشاشة الملاحة (DSP Amplifier)",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "يغذي أمبليفاير الصوت ونظام الراديو والتلفاز في الشنطة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 2,
+            "symptoms": [
+              "انقطاع كامل لصوت السماعات والراديو بالرغم من تشغيل الشاشة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F66",
+            "label": "DEFROSTER",
+            "nameArabic": "فيوز سخان الزجاج الخلفي وتعديل المقاعد الخلفية (ماكسي)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يغذي شبكة التسخين الحرارية لإزالة الضباب والجليد عن الزجاج الخلفي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 3,
+            "symptoms": [
+              "عدم تدفئة الزجاج الخلفي وتراكم الضباب"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "R_FP",
+            "label": "PUMP RLY",
+            "nameArabic": "ريلي طرمبة البنزين الأخضر (Fuel Pump Relay)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يقوم بتوصيل جهد البطارية إلى مضخة البنزين بأمر من كمبيوتر DME.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 2,
+            "gridCol": 0,
+            "symptoms": [
+              "عدم اشتغال المحرك بالرغم من سلامة الفيوز F54",
+              "توقف مضخة الوقود عن ضخ البنزين للمسطرة"
+            ],
+            "associatedDTCs": [
+              "P0230"
+            ]
+          },
+          {
+            "slotId": "R_DEF",
+            "label": "DEF RLY",
+            "nameArabic": "ريلي سخان الزجاج الخلفي الأسود",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "ريلي تشغيل خط تسخين زجاج الشنطة الخلفي.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 2,
+            "gridCol": 1,
+            "symptoms": [
+              "تعطل سخان الزجاج"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      },
+      {
+        "id": "bmw_e39_ebox",
+        "nameArabic": "صندوق إلكترونيات المحرك وحزمة فيوزات DME (Underhood E-Box)",
+        "locationType": "special",
+        "detailedLocationArabic": "تحت الكبوت من جهة اليمين (الراكب الأمامي)، أسفل قربة وفلتر تكييف الصالون البلاستيكي مباشرة.",
+        "accessInstructions": "انزع كلبس قربة فلتر هواء المكيف اليمين وافتح الغطاء، ثم فك مسامير ألين (Allen 5mm) الأربعة لغطاء الصندوق الأبيض المحكم ضد الماء.",
+        "realisticCoverNote": "تحتوي على حزمة الفيوزات الخماسية المدمجة (Fuse Pack) المغذية لبخاخات المحرك والكويلات وحساسات الأكسجين، إضافة لكتاوت المحرك الأزرق/السماوي وكتاوت الفانوس.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "EF1",
+            "label": "DME PACK 1",
+            "nameArabic": "فيوز كويلات الإشعال وبخاخات الوقود (حزمة E-Box)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي جميع كويلات شمعات الإشعال ومساطر بخاخات البنزين للمحرك 6 أو 8 سلندر.",
+            "testingTip": "إذا تعطلت جميع الكويلات معاً ولم تعمل بوبينات السيارة، فهذا الفيوز EF1 محترق داخل صندوق الـ E-Box.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك يلف بالسلف طويلاً ولا يدور إطلاقاً (قاطع إشعال وحقن)",
+              "انعدام الشرارة على جميع الكويلات"
+            ],
+            "associatedDTCs": [
+              "P0300",
+              "P0351",
+              "P0201"
+            ]
+          },
+          {
+            "slotId": "EF2",
+            "label": "DME PACK 2",
+            "nameArabic": "فيوز حساسات الشكمان وحساس الكرنك والحرارة",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "تغذية حساسات الأكسجين الأربعة (سخانات اللامبدا) وحساسات حرارة الماء وهواء المحرك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "إضاءة لمبة المحرك Check Engine وتسجيل أعطال سخانات حساسات العادم الأربعة معاً",
+              "استهلاك بنزين مفرط ودخان أسود"
+            ],
+            "associatedDTCs": [
+              "P0135",
+              "P0141",
+              "P0155",
+              "P0161"
+            ]
+          },
+          {
+            "slotId": "EF3",
+            "label": "DME PACK 3",
+            "nameArabic": "فيوز صمامات الفانوس وصمام الهواء الإضافي (VANOS & ICV)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي سولينويدات نظام توقيت الصمامات المتغير VANOS وصمام الـ Idle Control Valve.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "تذبذب واهتزاز شديد في سرعة السلانسيه (Idle RPM)",
+              "ضعف عزم وتسارع السيارة وتكتيم في الدعسة"
+            ],
+            "associatedDTCs": [
+              "P0011",
+              "P0012",
+              "P0505"
+            ]
+          },
+          {
+            "slotId": "EF4",
+            "label": "DME PACK 4",
+            "nameArabic": "فيوز كمبيوتر ناقل الحركة الأوتوماتيكي (AGS / EGS Transmission)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "خط التغذية الرئيسي لكمبيوتر القير الأوتوماتيك وسولينويدات نقل الغيارات (Valves).",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 3,
+            "symptoms": [
+              "دخول القير في وضع الطوارئ والتعليق على الغيار الثالث (Limp Home Mode)",
+              "ظهور رسالة Trans. Failsafe Prog في شاشة الطبلون"
+            ],
+            "associatedDTCs": [
+              "P0700",
+              "P0705"
+            ]
+          },
+          {
+            "slotId": "EF5",
+            "label": "DME PACK 5",
+            "nameArabic": "فيوز ثرموستات الحرارة الكهربائي وحساس الماف (MAF Sensor)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "تغذية سخان ثرموستات الكوع وحساس تدفق الهواء الشامل MAF وصمامات الشفط.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 4,
+            "symptoms": [
+              "سجل عطل Thermostat Characteristic Heating",
+              "خروج قراءة غير طبيعية لحساس الماف وتقطيع بالمحرك"
+            ],
+            "associatedDTCs": [
+              "P0100",
+              "P0128"
+            ]
+          },
+          {
+            "slotId": "R_DME",
+            "label": "DME MAIN RLY",
+            "nameArabic": "ريلي كمبيوتر المحرك الرئيسي الأزرق السماوي (DME Main Relay)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "الكتاوت الأساسي الذي يصحو عند فتح السويتش لتغذية كمبيوتر DME وكافة حساسات المحرك.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك يدور بالسلف ولا يشتغل نهائياً",
+              "فقدان تام للاتصال بالكمبيوتر DME بجهاز الفحص (No Communication)",
+              "عدم إضاءة لمبة EML في الطبلون"
+            ],
+            "associatedDTCs": [
+              "P0685",
+              "U0100"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bmw_e39_footwell_mega",
+        "nameArabic": "صندوق فيوزات الطبلون الكبرى تحت أرضية الموكيت (Footwell Fuse Carrier)",
+        "locationType": "special",
+        "detailedLocationArabic": "أسفل أرضية الراكب الأمامي، تحت موكيت السيارة مباشرة بجانب عتبة الباب.",
+        "accessInstructions": "فك مسامير عتبة الباب البلاستيكية وارفع طبقة الموكيت والإسفنج السميك، ستجد علبة سوداء معدنية مثبتة بمسامير كابلات 13mm.",
+        "realisticCoverNote": "مصهرات براغي نحاسية ضخمة تغذي لوحة التابلوه وصندوق التكييف ومروحة التبريد وموديول الإنارة LCM.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F100",
+            "label": "CABIN MAIN",
+            "nameArabic": "فيوز التغذية الرئيسي لكابينة القيادة والتابلوه (200A)",
+            "ratingAmps": 200.0,
+            "descriptionArabic": "يغذي لوحة فيوزات درج التابلوه العلوية بالكامل.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "انطفاء كامل لجميع أجهزة التابلوه والكونتاكت داخل المقصورة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F101",
+            "label": "IGN SWITCH",
+            "nameArabic": "فيوز سويتش الكونتاكت ومفتاح التشغيل (80A)",
+            "ratingAmps": 80.0,
+            "descriptionArabic": "تغذية قلب مفتاح التشغيل الكهربائي (Ignition Switch).",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "فتح السويتش لا يشغل أي لمبة أو أنظمة في الطبلون"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F102",
+            "label": "HEATER / A/C",
+            "nameArabic": "فيوز مروحة ودفاية المقصورة والمكيف الرئيسي (80A)",
+            "ratingAmps": 80.0,
+            "descriptionArabic": "يغذي خط الطاقة العالي لموتور مروحة التكييف والتدفئة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "توقف كلي وتام لجميع أنظمة التكييف والمروحة الداخلية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F104",
+            "label": "AUX FAN FEED",
+            "nameArabic": "فيوز خط تغذية مروحة التبريد الإضافية (100A)",
+            "ratingAmps": 100.0,
+            "descriptionArabic": "التغذية المباشرة لكتاوت وسرعات مروحة الرديتر الكهربائية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "انقطاع التيار التام عن مروحة المكيف الإضافية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F106",
+            "label": "LCM FEED",
+            "nameArabic": "فيوز تغذية وحدة التحكم المركزية بالأنوار والإنارة (80A)",
+            "ratingAmps": 80.0,
+            "descriptionArabic": "التغذية المباشرة لموديول إنارة فوانيس السيارة LCM.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "انطفاء كافة المصابيح الخارجية والداخلية دفعة واحدة"
+            ],
+            "associatedDTCs": [
+              "LCM 40"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "toyota_corolla_2008_2013",
+    "make": "Toyota",
+    "makeArabic": "تويوتا",
+    "model": "Corolla",
+    "modelArabic": "كورولا (Corolla E140/E150)",
+    "yearRange": "2008 - 2013 (الجيل العاشر E140/E150)",
+    "bodyType": "سيدان",
+    "obdLocation": "تحت المقود مباشرة من جهة اليسار بجانب ذراع فتح الكبوت",
+    "fuseBoxes": [
+      {
+        "id": "corolla_engine_bay",
+        "nameArabic": "علبة فيوزات حوض المحرك الرئيسية (Engine Fuse Box)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في الكبوت من جهة السائق (اليسار)، خلف المصباح الأمامي وبجانب البطارية وقربة ماء المساحات.",
+        "accessInstructions": "اضغط على ألسنة القفل الجانبية الثلاثة للغطاء البلاستيكي الأسود ثم ارفعه للأعلى برفق.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F1",
+            "label": "EFI MAIN",
+            "nameArabic": "فيوز كمبيوتر المحرك الرئيسي ومنظومة الحقن",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي كمبيوتر إدارة المحرك (ECM) ورشاشات الوقود وحساسات العادم.",
+            "testingTip": "افحص النقطتين المعدنيتين للفيوز بلمبة الفحص مع فتح السويتش.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك يدور بالسلف (الموتورينو) لكن لا يعمل نهائياً",
+              "عدم إضاءة لمبة فحص المحرك (Check Engine) في الطبلون عند فتح السويتش",
+              "فقدان الاتصال بجهاز الفحص OBD-II"
+            ],
+            "associatedDTCs": [
+              "P0606",
+              "P0685",
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F2",
+            "label": "H-LP CLR",
+            "nameArabic": "فيوز غسيل ومساحات الكشافات الأمامية",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "دائرة مضخة رشاشات تنظيف المصابيح الأمامية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "عدم خروج الماء لكشافات الضباب الأمامية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F3",
+            "label": "FAN MAIN",
+            "nameArabic": "فيوز مروحة تبريد الرداتوري والمكيف",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي موتور مروحة التبريد الرئيسية خلف رديتر التبريد.",
+            "testingTip": "إذا احترق هذا الفيوز بشكل متكرر، تأكد من عدم ثقل أو حشر مروحة التبريد.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "ارتفاع سريع في حرارة المحرك في الزحام وعند الوقوف",
+              "فصل كمبروسر المكيف بسبب ارتفاع حرارة غاز التبريد",
+              "غليان الماء في القربة الاحتياطية"
+            ],
+            "associatedDTCs": [
+              "P0480",
+              "P0481",
+              "P0217"
+            ]
+          },
+          {
+            "slotId": "F4",
+            "label": "H-LP MAIN",
+            "nameArabic": "فيوز المصابيح الأمامية الرئيسية (كشافات الإضاءة)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي دوائر الإنارة العالية والواطية للمصابيح الأمامية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "انطفاء كامل للمصابيح الأمامية ليلاً مع عمل أنوار السكن الصغيرة",
+              "تعطل الإضاءة العالية والواطية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F5",
+            "label": "HORN",
+            "nameArabic": "فيوز منبه وبوق السيارة (الكلاكس / الهرن)",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "يغذي بوق التنبيه الصوتي في واجهة السيارة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "المنبه لا يصدر صوتاً نهائياً عند الضغط على وسط المقود"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F6",
+            "label": "IGN",
+            "nameArabic": "فيوز منظومة إشعال المحرك وحقن الوقود",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "يغذي كويلات الإشعال وبخاخات البنزين وحساس الكرنك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 2,
+            "symptoms": [
+              "المحرك يدور بالسلف ولكن لا توجد شعلة إشعال (قاطع نار)",
+              "تقطيع واهتزاز شديد ثم انطفاء المحرك فجأة"
+            ],
+            "associatedDTCs": [
+              "P0300",
+              "P0351",
+              "P0335"
+            ]
+          },
+          {
+            "slotId": "R1",
+            "label": "MAIN RLY",
+            "nameArabic": "ريلي المحرك الرئيسي (EFI Main Relay)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يقوم بتوصيل التيار الرئيسي من البطارية إلى كمبيوتر المحرك.",
+            "testingTip": "تأكد من سماع صوت طقة الريلي عند فتح السويتش.",
+            "isRelay": true,
+            "gridRow": 2,
+            "gridCol": 0,
+            "symptoms": [
+              "انقطاع كامل عن كمبيوتر المحرك وعدم دوران السيارة نهائياً"
+            ],
+            "associatedDTCs": [
+              "P0685"
+            ]
+          },
+          {
+            "slotId": "R2",
+            "label": "FAN RLY",
+            "nameArabic": "ريلي تشغيل سرعات مروحة الرداتوري",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "المرحل الكهربائي لتشغيل مروحة تبريد الرداتوري والمكيف.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 2,
+            "gridCol": 1,
+            "symptoms": [
+              "المروحة لا تعمل نهائياً أو تعمل بشكل مستمر ومباشر دون توقف"
+            ],
+            "associatedDTCs": [
+              "P0480"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "corolla_cabin",
+        "nameArabic": "علبة فيوزات كابينة الركاب والمقصورة (تحت التابلوه)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "تحت طبلون القيادة مباشرة من جهة السائق يساراً، بجانب دواسة القدم وذراع فتح غطاء المحرك.",
+        "accessInstructions": "انظر أسفل الطبلون جهة اليسار، ستجد غطاءً بلاستيكياً صغيراً؛ اسحبه بيدك للأسفل برفق.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F15",
+            "label": "OBD / DLC",
+            "nameArabic": "فيوز مدخل الفحص التشخيصي OBD-II وذاكرة الطبلون",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "تغذية الطرف 16 في فيشة الفحص OBD-II بجهد 12 فولت الدائم.",
+            "testingTip": "افحص النقطة 16 في فيشة الفحص؛ إذا لم تجد 12 فولت فالفيوز F15 محترق.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "جهاز الفحص لا يصله كهرباء وشاشته لا تضيء عند ربطه بفيشة السيارة",
+              "إعادة تصفير ساعة الطبلون والعداد الجزئي TRIP عند كل إطفاء للسيارة"
+            ],
+            "associatedDTCs": [
+              "U0100",
+              "U0155"
+            ]
+          },
+          {
+            "slotId": "F16",
+            "label": "CIG",
+            "nameArabic": "فيوز ولاعة السجائر ومخرج الشحن 12V",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي مقبس ولاعة السجائر وشواحن الهواتف في الكونسول.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "شاحن الهاتف لا يعمل ولا تخرج كهرباء من مخرج 12V"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F17",
+            "label": "STOP",
+            "nameArabic": "فيوز لمبات الفرامل الخلفية ومفتاح دعسة الفرامل",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية أنوار التوقف الخلفية وحساس دواسة الفرامل.",
+            "testingTip": "إذا علق القير في الـ P ولم تضئ لمبات الفرامل، افحص هذا الفيوز فوراً.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "عصا ناقل الحركة الأوتوماتيك (الكمبيو) معلقة ولا تتحرك من وضع الـ P",
+              "عدم إضاءة أنوار الفرامل الخلفية عند الضغط على الدواسة"
+            ],
+            "associatedDTCs": [
+              "P0504",
+              "C1503"
+            ]
+          },
+          {
+            "slotId": "F18",
+            "label": "WIPER",
+            "nameArabic": "فيوز مساحات الزجاج الأمامي ومضخة غسيل الزجاج",
+            "ratingAmps": 25.0,
+            "descriptionArabic": "يغذي موتور مساحات الزجاج الأمامي ومضخة رش الماء.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "توقف مساحات الزجاج الأمامي تماماً عن الحركة أو توقف رشاشات الماء"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F19",
+            "label": "PANEL",
+            "nameArabic": "فيوز إضاءة لوحة العدادات وأزرار الكونسول الداخلي",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "يغذي لمبات إضاءة أزرار المكيف والراديو والطبلون ليلاً.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "ظلام في أزرار لوحة القيادة ليلاً رغم عمل المصابيح الخارجية"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mercedes_c_class_w204",
+    "make": "Mercedes-Benz",
+    "makeArabic": "مرسيدس-بنز",
+    "model": "C-Class (W204 / W205)",
+    "modelArabic": "سي كلاس (C-Class W204/W205)",
+    "yearRange": "2007 - 2015 (C180 / C200 / C250 / C300)",
+    "bodyType": "سيدان فاخرة",
+    "obdLocation": "أسفل لوحة القيادة جهة السائق يساراً خلف غطاء بلاستيكي صغير بجانب مقبض فتح الكبوت.",
+    "fuseBoxes": [
+      {
+        "id": "w204_front_sam",
+        "nameArabic": "علبة فيوزات وحدة سام الأمامية (Front SAM K40/2)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في حوض المحرك جهة السائق (اليسار)، بجانب قاعدة مساحات الزجاج وتحت غطاء العزل البلاستيكي.",
+        "accessInstructions": "فك المشبكين المعدنيين على جانبي الصندوق الأسود المحكم وارفع الغطاء بحذر لحماية وحدة SAM من الرطوبة.",
+        "realisticCoverNote": "وحدة SAM الأمامية تتحكم في دوائر المحرك والإنارة والإشعال ومساحات الزجاج.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F3",
+            "label": "EIS / EZS",
+            "nameArabic": "فيوز سويتش ومفتاح التشغيل الإلكتروني (EZS/EIS)",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "يغذي مفتاح التشغيل الإلكتروني وقفل المقود الكهربائي (ESL).",
+            "testingTip": "تأكد من سلامة هذا الفيوز أولاً قبل استبدال قفل الدركسيون ESL الشهير بالأعطال.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المفتاح لا يلف في السويتش نهائياً ولا يفتح كونتاكت",
+              "المقود يظل مقفولاً ولا يستجيب لصوت فتح القفل (ESL Lock)",
+              "انطفاء كامل لشاشة الطبلون"
+            ],
+            "associatedDTCs": [
+              "A25464",
+              "A25407",
+              "U0140"
+            ]
+          },
+          {
+            "slotId": "F4",
+            "label": "SRS / AIRBAG",
+            "nameArabic": "فيوز كمبيوتر الوسائد الهوائية (SRS / Airbag)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "التغذية الكهربائية لوحدة التحكم في الوسائد الهوائية وحزام الأمان.",
+            "testingTip": "افصل البطارية وانتظر 10 دقائق قبل فك أو تبديل أي فيوز متعلق بالإيرباق.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "إضاءة لمبة SRS / الإيرباق الحمراء في الطبلون باستمرار",
+              "رسالة Restraint System Malfunction في شاشة العدادات"
+            ],
+            "associatedDTCs": [
+              "B1000",
+              "B1001"
+            ]
+          },
+          {
+            "slotId": "F7",
+            "label": "IGN / COILS",
+            "nameArabic": "فيوز شمعات وبوبينات الإشعال ومسخنات الأكسجين",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي كويلات الإشعال ومسخنات حساسات الأكسجين O2 ومضخة الهواء الثانوية.",
+            "testingTip": "افحص النقطتين بالمجس للتأكد من وصول 12V مع فتح السويتش.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "تقطيع وتفتفة حادة في المحرك مع إضاءة لمبة Check Engine",
+              "المحرك يرجف بشدة ويفقد العزم"
+            ],
+            "associatedDTCs": [
+              "P0300",
+              "P0351",
+              "P0135"
+            ]
+          },
+          {
+            "slotId": "F8",
+            "label": "WIPER",
+            "nameArabic": "فيوز محرك مساحات الزجاج الأمامي",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "موتور مساحات الزجاج الأمامي وحساس المطر.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 3,
+            "symptoms": [
+              "توقف مساحات الزجاج تماماً عن الحركة أثناء المطر"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F9",
+            "label": "STARTER",
+            "nameArabic": "فيوز محرك بادئ الحركة (السلف / الموتورينو)",
+            "ratingAmps": 25.0,
+            "descriptionArabic": "يغذي سيلينويد محرك السلف لبدء دوران المحرك.",
+            "testingTip": "افحص الفيوز F9 وريلي السلف R_START المجاور له في وحدة SAM.",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "السيارة لا تدور نهائياً بالسلف (لا يوجد صوت دوران الموتورينو)",
+              "سماع تكة خفيفة في الكبوت دون حركة المحرك"
+            ],
+            "associatedDTCs": [
+              "P0615",
+              "P0617"
+            ]
+          },
+          {
+            "slotId": "F10",
+            "label": "HORN",
+            "nameArabic": "فيوز بوق ومنبه السيارة (الكلاكس / الهرن)",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي أبواق التنبيه الثنائية في الواجهة الأمامية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "البوق والهرن لا يصدر أي صوت عند الضغط على المقود"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F21",
+            "label": "ME-SFI / ECU",
+            "nameArabic": "فيوز كمبيوتر المحرك الرئيسي (Engine ECU)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "تغذية وحدة التحكم الرئيسية في المحرك (ECM / ME).",
+            "testingTip": "تأكد من وجود جهد البطارية على طرفي الفيوز مع تشغيل الكونتاكت.",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 2,
+            "symptoms": [
+              "المحرك يدور بالسلف لكن قاطع ولا يشتغل إطلاقاً",
+              "فقدان الاتصال بجهاز الفحص OBD-II مع كمبيوتر المحرك",
+              "عدم إضاءة لمبة فحص المحرك عند فتح السويتش"
+            ],
+            "associatedDTCs": [
+              "P0606",
+              "P0685",
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F22",
+            "label": "MAF / O2",
+            "nameArabic": "فيوز حساس تدفق الهواء (MAF) وحساسات العادم",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي حساس ساعة الهواء وحساسات الشكمان وصمامات الكامات.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 3,
+            "symptoms": [
+              "خروج دخان أسود واستهلاك مفرط للبنزين",
+              "ضعف عزم السيارة ودخولها في طور الطوارئ (Limp Mode)"
+            ],
+            "associatedDTCs": [
+              "P0100",
+              "P0102",
+              "P0010"
+            ]
+          },
+          {
+            "slotId": "F24",
+            "label": "FAN MAIN",
+            "nameArabic": "فيوز مروحة تبريد الرداتوري الرئيسية (Electric Fan)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يغذي مروحة التبريد الكهربائية خلف رديتر المحرك.",
+            "testingTip": "فيوز ماكسي كبير 40 أمبير برتقالي اللون، افحص مقبضه بإحكام.",
+            "isRelay": false,
+            "gridRow": 2,
+            "gridCol": 0,
+            "symptoms": [
+              "ارتفاع سريع وحرج في حرارة محرك المرسيدس وتنبيه أحمر في الطبلون",
+              "توقف كمبروسر المكيف عن ضخ الهواء البارد"
+            ],
+            "associatedDTCs": [
+              "P0480",
+              "P0485"
+            ]
+          },
+          {
+            "slotId": "R_START",
+            "label": "STARTER RLY",
+            "nameArabic": "ريلي بادئ الحركة وسلف التشغيل (Starter Relay)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "المرحل الرئيسي لتوصيل تيار السلف من وحدة السام للموتورينو.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 2,
+            "gridCol": 1,
+            "symptoms": [
+              "المحرك قاطع سلف بالكامل بالرغم من سلامة البطارية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "R_WIPER",
+            "label": "WIPER RLY",
+            "nameArabic": "ريلي مساحات الزجاج الأمامي",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "التحكم بسرعات مساحات الزجاج.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 2,
+            "gridCol": 2,
+            "symptoms": [
+              "المساحات تعمل بسرعة واحدة أو تتوقف"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      },
+      {
+        "id": "w204_rear_sam",
+        "nameArabic": "علبة فيوزات وحدة سام الخلفية (Rear SAM Fuse Box)",
+        "locationType": "trunk",
+        "detailedLocationArabic": "في الشنطة الخلفية جهة اليمين، خلف البطانة القماشية للرفرف الأيمن بجانب مصباح الإيقاف.",
+        "accessInstructions": "اسحب المقبض البلاستيكي الدوار في بطانة الشنطة جهة اليمين نحو اليسار لكشف لوحة الفيوزات.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F4",
+            "label": "FUEL PUMP",
+            "nameArabic": "فيوز طرمبة (بومبة) البنزين الغاطسة في الخزان",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "التغذية الكهربائية لمضخة الوقود الرئيسية في تانكي السيارة.",
+            "testingTip": "من أكثر الفيوزات شيوعاً في حالات تعطل مرسيدس C-Class المفاجئ.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "السيارة تدور بالسلف دون تشغيل نهائياً",
+              "انعدام صوت زنة مضخة البنزين عند فتح السويتش",
+              "انعدام ضغط الوقود في مسطرة البخاخات"
+            ],
+            "associatedDTCs": [
+              "P0087",
+              "P0627",
+              "P2540"
+            ]
+          },
+          {
+            "slotId": "F5",
+            "label": "SUNROOF",
+            "nameArabic": "فيوز فتحة السقف والبانوراما ومحرك الستارة",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي محرك فتحة السقف البانورامية والستارة الداخلية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "فتحة السقف لا تفتح أو معلقة في وضع الفتح ولا تغلق"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F7",
+            "label": "12V OUTLET",
+            "nameArabic": "فيوز ولاعة السجائر ومقابس الطاقة الخلفية 12V",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "تغذية شواحن الركاب ومقبس الطاقة في الكونسول الخلفي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "مخرج الشاحن في الخلف لا يخرج كهرباء"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F8",
+            "label": "AUDIO AMP",
+            "nameArabic": "فيوز مضخم الصوت والنظام الصوتي (Harman Kardon)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي أمبليفاير الصوت في الشنطة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 3,
+            "symptoms": [
+              "اختفاء الصوت تماماً من سماعات السيارة رغم عمل الشاشة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F11",
+            "label": "DEFROSTER",
+            "nameArabic": "فيوز سخان الزجاج الخلفي لإزالة الضباب",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "خطوط التسخين الحرارية في الزجاج الخلفي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "عدم تدفئة الزجاج الخلفي وبقاء الضباب متراكماً"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "R_FP",
+            "label": "PUMP RLY",
+            "nameArabic": "ريلي طرمبة البنزين الخلفية",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يقوم بتوصيل الكهرباء لطرمبة البنزين.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "المحرك قاطع بنزين بالرغم من سلامة الفيوز F4"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      },
+      {
+        "id": "w204_cockpit",
+        "nameArabic": "علبة فيوزات جانب الطبلون (Dashboard Side Fuse Box)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "على الحافة الجانبية اليسرى للطبلون، تظهر فقط عند فتح باب السائق بالكامل.",
+        "accessInstructions": "استخدم أداة فك بلاستيكية عريضة لنزع الغطاء الجانبي للطبلون برفق دون تجريح الديكور.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F21",
+            "label": "LIGHT SW",
+            "nameArabic": "فيوز مفتاح ومقبض الإنارة الرئيسي (Rotary Light Switch)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "يغذي مفتاح الإضاءة والأنوار الدائري يسار المقود.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "الأنوار الأمامية تعمل دائماً بشكل إجباري ولا يمكن إطفاؤها"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F22",
+            "label": "OBD-II / DLC",
+            "nameArabic": "فيوز مدخل الفحص التشخيصي OBD-II ووصلة السكنر",
+            "ratingAmps": 7.0,
+            "descriptionArabic": "تغذية الطرف رقم 16 في فيشة الفحص OBD بجهد 12V الدائم.",
+            "testingTip": "افحص النقطة 16 في الفيشة، إذا لم تجد 12V فهذا الفيوز F22 محترق حتماً.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "جهاز الفحص (سكنر Launch / Autel / Star) لا يضيء نهائياً ولا يقلع",
+              "رسالة Link Error وعدم استجابة منافذ التشخيص"
+            ],
+            "associatedDTCs": [
+              "U0100",
+              "U0140"
+            ]
+          },
+          {
+            "slotId": "F23",
+            "label": "CLUSTER",
+            "nameArabic": "فيوز عدادات الطبلون والشاشة الوسطية",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية لوحة العدادات وشاشة المعلومات للسائق.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "شاشة الطبلون والعدادات مطفية تماماً والسيارة تعمل"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      },
+      {
+        "id": "w204_prefuse_box",
+        "nameArabic": "علبة التوزيع الرئيسية التمهيدية (Prefuse Box F32)",
+        "locationType": "special",
+        "detailedLocationArabic": "في حوض المحرك جهة اليمين (الراكب)، ملاصقة مباشرة لقطب البطارية الموجب داخل غطاء بلاستيكي صلب.",
+        "accessInstructions": "تحذير أمان: افصل القطب السالب للبطارية أولاً قبل فتحها. اضغط على أقفال التثبيت الجانبية للعلبة التمهيدية.",
+        "realisticCoverNote": "تحتوي هذه العلبة على مصهرات رئيسية عملاقة (Mega Fuses) مثبّتة ببراغي. عند احتراق أحدها، تنقطع الكهرباء عن شبكات كاملة كالدينامو، باور الستيرنج، أو سام الأمامي.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "PF1",
+            "label": "ALT FEED",
+            "nameArabic": "فيوز خط تغذية دينامو الشحن العمومي (Alternator)",
+            "ratingAmps": 150.0,
+            "descriptionArabic": "خط الشحن الرئيسي بين دينامو السيارة والبطارية.",
+            "testingTip": "فيوز برغي نحاسي عملاق 150 أمبير، افحص فرق الجهد بين طرفيه.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "البطارية لا تشحن وظهور لمبة البطارية الحمراء فوراً",
+              "تفريغ البطارية وتوقف السيارة أثناء السير"
+            ],
+            "associatedDTCs": [
+              "P0560",
+              "P0620"
+            ]
+          },
+          {
+            "slotId": "PF2",
+            "label": "ESP / ABS",
+            "nameArabic": "فيوز مضخة نظام الاستقرار والفرامل (ESP / ABS Pump)",
+            "ratingAmps": 100.0,
+            "descriptionArabic": "يغذي موتور ومضخة الفرامل الهيدروليكية لنظام ABS وESP.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "ظهور تحذيرات ABS Inoperative و ESP Inoperative باللون الأصفر",
+              "ثقل مفاجئ في دواسة الفرامل وتعطل نظام مانع الانزلاق"
+            ],
+            "associatedDTCs": [
+              "C1000",
+              "C1100"
+            ]
+          },
+          {
+            "slotId": "PF3",
+            "label": "SAM FRONT",
+            "nameArabic": "فيوز التغذية العمومية لوحدة سام الأمامية",
+            "ratingAmps": 80.0,
+            "descriptionArabic": "الخط الرئيسي المغذي لكل فيوزات وريليهات الكبوت.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "انقطاع كامل وشامل لكهرباء حوض المحرك والإنارة وسلف التشغيل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "PF4",
+            "label": "SAM REAR",
+            "nameArabic": "فيوز التغذية العمومية لوحدة سام الخلفية بالشنطة",
+            "ratingAmps": 80.0,
+            "descriptionArabic": "الخط الرئيسي المغذي لعلبة فيوزات الشنطة الخلفية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "تعطل طرمبة البنزين وسنترلوك الأبواب والأنوار الخلفية دفعة واحدة"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "PF5",
+            "label": "EPS STEER",
+            "nameArabic": "فيوز مضخة التوجيه المعزز الكهربائي (Electric Power Steering)",
+            "ratingAmps": 80.0,
+            "descriptionArabic": "يغذي موتور الدودة الكهربائية للدركسيون.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "ثقل شديد جداً وحجر في مقود القيادة (الدركسيون متحجر كأنه مقفل)",
+              "ظهور Power Steering Malfunction في الشاشة"
+            ],
+            "associatedDTCs": [
+              "C1500",
+              "U0131"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mercedes_e_class_w211_w212",
+    "make": "Mercedes-Benz",
+    "makeArabic": "مرسيدس-بنز",
+    "model": "E-Class (W211 / W212)",
+    "modelArabic": "إي كلاس (E-Class W211/W212)",
+    "yearRange": "2003 - 2016 (E200 / E240 / E280 / E350)",
+    "bodyType": "سيدان تنفيذية فاخرة",
+    "obdLocation": "تحت الطبلون جهة اليسار فوق دواسة فرامل اليد / البريك الأرضي.",
+    "fuseBoxes": [
+      {
+        "id": "w212_front_sam",
+        "nameArabic": "علبة فيوزات وحدة سام الأمامية (Engine Compartment SAM)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في حوض المحرك جهة اليسار (السائق) بجانب مفصل الكبوت وقاعدة الفلتر.",
+        "accessInstructions": "ادفع المزلاجين البلاستيكيين للأمام ثم ارفع الغطاء الأسود للأعلى.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F43",
+            "label": "STARTER",
+            "nameArabic": "فيوز سلف وموتورينو التشغيل",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "تغذية بادئ الحركة للمحرك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك لا يلف بالسلف أبداً رغم شحن البطارية"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F48",
+            "label": "WIPER",
+            "nameArabic": "فيوز مساحات الزجاج الأمامية",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "محرك المساحات الأمامية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "توقف المساحات عن العمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F53",
+            "label": "ECU MAIN",
+            "nameArabic": "فيوز كمبيوتر المحرك الرئيسي (Engine Control Module)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي عقل المحرك الرئيسي ووحدات الحقن.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "المحرك قاطع نهائياً",
+              "غياب الاتصال بجهاز الفحص OBD"
+            ],
+            "associatedDTCs": [
+              "P0685",
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F54",
+            "label": "AIRMATIC",
+            "nameArabic": "فيوز كمبروسر مساعدات الهيدروليك (Airmatic Compressor)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يغذي موتور ضاغط الهواء لنظام التعليق الهوائي Airmatic.",
+            "testingTip": "فيوز ماكسي برتقالي 40A، افحصه عند سماع ضغط غير طبيعي للكمبروسر.",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "نزول وهبوط السيارة من الخلف أو الأمام على الأرض",
+              "رسالة Stop Vehicle Too Low في الطبلون"
+            ],
+            "associatedDTCs": [
+              "C1556",
+              "C1550"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "w212_rear_sam",
+        "nameArabic": "علبة فيوزات وحدة سام الخلفية (Luggage Bay SAM)",
+        "locationType": "trunk",
+        "detailedLocationArabic": "في الشنطة الخلفية جهة اليسار، خلف باب الديكور المبطن في الرفرف الأيسر.",
+        "accessInstructions": "أدر مقبض الفتح في بطانة الشنطة واسحب الديكور لتظهر لوحة الفيوزات.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F15",
+            "label": "FUEL PUMP",
+            "nameArabic": "فيوز طرمبة (بومبة) البنزين الرئيسية",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "مضخة البنزين داخل خزان الوقود.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "السيارة تطحن بالسلف دون دوران المحرك"
+            ],
+            "associatedDTCs": [
+              "P0087"
+            ]
+          },
+          {
+            "slotId": "F20",
+            "label": "REAR BLIND",
+            "nameArabic": "فيوز الستارة الخلفية الكهربائية",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "موتور رفع وخفض ستارة الزجاج الخلفي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "الستارة الخلفية لا تتحرك"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      },
+      {
+        "id": "w211_special_sbc",
+        "nameArabic": "علبة التوزيع التمهيدية والبطارية الاحتياطية (Auxiliary Box)",
+        "locationType": "special",
+        "detailedLocationArabic": "تحت فلتر التكييف في حوض المحرك جهة اليمين، بجانب البطارية الإضافية الصغيرة (Auxiliary Battery).",
+        "accessInstructions": "افتح غطاء فلتر المكيف لتصل إلى صينية البطارية المساعدة ومصهر الـ SBC الحساس.",
+        "realisticCoverNote": "هذا الموقع الحساس يغذي نظام فرامل الـ SBC الإلكتروني والبطارية المساعدة لضمان عمل الفرامل حتى لو فرغت البطارية الأساسية.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F_SBC1",
+            "label": "SBC PUMP 1",
+            "nameArabic": "فيوز مضخة الفرامل الإلكترونية الحساسة (SBC Brake System)",
+            "ratingAmps": 50.0,
+            "descriptionArabic": "التغذية الكهربائية الرئيسية لمضخة فرامل الـ SBC الشهيرة في مرسيدس E-Class.",
+            "testingTip": "احذر القيادة نهائياً في حال تلف هذا الفيوز؛ هذا النظام حيوي لسلامة الفرامل.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "ظهور تحذير الفرامل الأحمر STOP BRAKE DEFECTIVE في الطبلون مع رنين متواصل",
+              "تحجر دواسة الفرامل وضياع قدرة الإيقاف إلا بقوة ميكانيكية طارئة شديدة"
+            ],
+            "associatedDTCs": [
+              "C249F",
+              "C2130"
+            ]
+          },
+          {
+            "slotId": "F_AUX_BATT",
+            "label": "AUX BATT",
+            "nameArabic": "فيوز مرحل شحن البطارية الإضافية المساعدة",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "دائرة شحن البطارية المساعدة المسؤولة عن أنظمة الأمان والكمبيوتر.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "رسالة Auxiliary Battery Malfunction في الشاشة",
+              "فصل ميزات الترفيه وتدفئة المقاعد للحفاظ على الطاقة"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bmw_3_series_e90_f30",
+    "make": "BMW",
+    "makeArabic": "بي إم دبليو",
+    "model": "3 Series (E90 / F30)",
+    "modelArabic": "الفئة الثالثة (3 Series E90/F30)",
+    "yearRange": "2005 - 2018 (318i / 320i / 325i / 328i / 330i)",
+    "bodyType": "سيدان رياضية",
+    "obdLocation": "أسفل لوحة القيادة جهة السائق يساراً، فوق مسند القدم اليسرى مباشرة داخل تجويف مخصص.",
+    "fuseBoxes": [
+      {
+        "id": "bmw_e90_jbe",
+        "nameArabic": "علبة فيوزات صندوق القفازات (Junction Box - JBE)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "داخل المقصورة، خلف درج التابلوه (صندوق القفازات) مباشرة.",
+        "accessInstructions": "افتح درج التابلوه، أدر القفلين البلاستيكيين الأبيضين بزاوية 90 درجة واسحب اللوحة لأسفل. ستجد ملقط الفيوزات وخريطة الرموز ملتصقة بالغطاء.",
+        "realisticCoverNote": "هذه هي علبة الفيوزات المركزية لسيارات BMW الفئة الثالثة، وتحتوي على كمبيوتر الجانكشن بوكس JBE.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F8",
+            "label": "OBD-II / CAS",
+            "nameArabic": "فيوز مدخل الفحص التشخيصي OBD ونظام تشغيل المفتاح (CAS)",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي فيشة OBD الطرف 16 ووحدة Car Access System المسؤولة عن المفتاح.",
+            "testingTip": "من أهم الفيوزات عند محاولة تشخيص سيارة BMW عبر فيشة الـ OBD.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "أجهزة الفحص (السكنر) لا تتصل بالسيارة ومطفية",
+              "السيارة لا تستجيب للضغط على زر Start/Stop Engine"
+            ],
+            "associatedDTCs": [
+              "A0B4",
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F30",
+            "label": "CIGAR / 12V",
+            "nameArabic": "فيوز ولاعة السجائر ومخرج الطاقة والشاحن",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "تغذية مقبس الشاحن والولاعة في الكونسول الوسطي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "شاحن الهاتف لا يعمل والولاعة لا تسخن"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F56",
+            "label": "KOMBI",
+            "nameArabic": "فيوز شاشة عدادات الطبلون (Instrument Cluster)",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "تغذية شاشات السرعة والـ RPM ومؤشرات البنزين والحرارة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "طبلون السيارة مظلم تماماً والمؤشرات لا تتحرك"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F61",
+            "label": "BLOWER",
+            "nameArabic": "فيوز مروحة المكيف الداخلية (Blower Motor / Final Stage)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي موتور دفع الهواء البارد داخل الكابينة ومقاومة المكيف.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "لا يخرج أي هواء من فتحات التكييف رغم سماع صوت الكمبروسر",
+              "مروحة المكيف متوقفة نهائياً"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F73",
+            "label": "WIPER / WASHER",
+            "nameArabic": "فيوز مساحات الزجاج ورشاشات ماء الغسيل",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "موتور مساحات المطر الأمامية وطلمبة الرشاشات.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "مساحات الزجاج الأمامي لا تتحرك"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F88",
+            "label": "EKP / PUMP",
+            "nameArabic": "فيوز وحدة مضخة الوقود الرئيسية (EKP Module / Fuel Pump)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي وحدة التحكم الإلكترونية في طرمبة البنزين بمحركات N46/N52/N20/B48.",
+            "testingTip": "في موديلات E90، يرجى فحص وحدة الـ EKP فوق الرفرف الخلفي الأيمن أيضاً.",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 2,
+            "symptoms": [
+              "المحرك يدور بالسلف دون تشغيل نهائياً",
+              "رسالة Fuel Supply Malfunction في شاشة الـ iDrive"
+            ],
+            "associatedDTCs": [
+              "CED4",
+              "P0087"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bmw_e90_ebox",
+        "nameArabic": "صندوق إلكترونيات المحرك (Engine Bay E-Box)",
+        "locationType": "special",
+        "detailedLocationArabic": "في حوض المحرك جهة اليمين (الراكب)، مخفي تحت فلتر تكييف المقصورة ومسار الهواء الأسود.",
+        "accessInstructions": "فك مسامير غطاء فلتر التكييف (مقاس 8 ملم) وأزل مجرى الهواء، ثم فك مشابك الغطاء الأبيض لصندوق الـ E-Box المحكم.",
+        "realisticCoverNote": "موقع استراتيجي وحساس يحتوي على كمبيوتر المحرك DME، ريلي الـ DME الأزرق الشهير، وفيوزات الفالفترونيك ومضخة الماء.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F01",
+            "label": "IGN COILS",
+            "nameArabic": "فيوز شمعات وبوبينات الإشعال (Ignition Coils)",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "تغذية خط الـ 12V لكويلات الإشعال في سلندرات المحرك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "رجفة واهتزاز شديد بالمحرك وانطفاء فوري",
+              "تقطيع عند الضغط على دواسة البنزين"
+            ],
+            "associatedDTCs": [
+              "29CD",
+              "29CE",
+              "P0300"
+            ]
+          },
+          {
+            "slotId": "F02",
+            "label": "VANOS / O2",
+            "nameArabic": "فيوز صمامات الفانوس (VANOS) وسخانات حساس الأكسجين",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي بلوف الفانوس المتغيرة وسخانات حساسات الشكمان.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "ضعف عزم المحرك وعلو صوت الماكينة عند التسارع",
+              "ظهور أكواد أعطال الفانوس 2A82 و 2A87"
+            ],
+            "associatedDTCs": [
+              "2A82",
+              "2A87",
+              "P0012"
+            ]
+          },
+          {
+            "slotId": "F03",
+            "label": "VVT / VALVE",
+            "nameArabic": "فيوز موتور نظام الفالفترونيك (Valvetronic Servomotor)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يغذي محرك التحكم في فتح وغلق صمامات السحب المتغير (VVT).",
+            "testingTip": "فيوز ماكسي كبير 40 أمبير برتقالي اللون داخل علبة الـ E-Box.",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 0,
+            "symptoms": [
+              "دخول السيارة في طور الطوارئ وقفل سرعة السيارة (Limp Home Mode)",
+              "عدم استجابة دواسة الوقود للمحرك وظهور علامة Engine Malfunction"
+            ],
+            "associatedDTCs": [
+              "2A67",
+              "2A6B"
+            ]
+          },
+          {
+            "slotId": "F04",
+            "label": "WATER PUMP",
+            "nameArabic": "فيوز مضخة الماء الكهربائية (Electric Water Pump)",
+            "ratingAmps": 50.0,
+            "descriptionArabic": "يغذي طرمبة الماء الكهربائية الشهيرة في محركات بي إم دبليو 6 سلندر N52/N54/N55.",
+            "testingTip": "فيوز أحمر ماكسي 50 أمبير. احذر قيادة السيارة إذا احترق هذا الفيوز لتفادي حرق جوان كولاس الرأس.",
+            "isRelay": false,
+            "gridRow": 1,
+            "gridCol": 1,
+            "symptoms": [
+              "ارتفاع حرج وفوري في حرارة محرك الـ BMW إلى اللون الأصفر ثم الأحمر",
+              "دوران مروحة الرداتوري بأقصى سرعة وإزعاج شديد كحالة طوارئ"
+            ],
+            "associatedDTCs": [
+              "2E81",
+              "2E82"
+            ]
+          },
+          {
+            "slotId": "R_DME",
+            "label": "DME RELAY",
+            "nameArabic": "ريلي كمبيوتر المحرك الرئيسي الأزرق (DME Main Relay)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "الريلي الأزرق الشهير المسؤول عن استيقاظ كمبيوتر المحرك DME.",
+            "testingTip": "",
+            "isRelay": true,
+            "gridRow": 1,
+            "gridCol": 2,
+            "symptoms": [
+              "السيارة لا تشتغل نهائياً والمحرك يدور بالسلف دون شعلة أو حقن",
+              "فقدان الاتصال بكمبيوتر المحرك تماماً عبر جهاز الفحص"
+            ],
+            "associatedDTCs": [
+              "2E8B",
+              "U0100"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bmw_e90_battery_box",
+        "nameArabic": "صندوق التوزيع وقاطع الحوادث فوق البطارية (Rear Power Box)",
+        "locationType": "trunk",
+        "detailedLocationArabic": "في الشنطة الخلفية جهة اليمين، مثبت مباشرة فوق القطب الموجب لبطارية السيارة.",
+        "accessInstructions": "افتح غطاء البطارية البلاستيكي في الجهة اليمنى للشنطة. الصندوق باللون الأحمر والأسود فوق البطارية.",
+        "realisticCoverNote": "هذا الصندوق يضم فيوزات الميجا الرئيسية لحماية شبكة بي إم دبليو من الحرائق عند الحوادث عبر كبسولة الـ BST.",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "PF100",
+            "label": "BATT MAIN",
+            "nameArabic": "فيوز كابل السلف والدينامو العمومي ومفرقعة الأمان (BST)",
+            "ratingAmps": 250.0,
+            "descriptionArabic": "كابل التغذية الفائق الممتد إلى مقدمة السيارة ومحرك السلف.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "انقطاع كامل لكهرباء بادئ الحركة بعد أي صدمة أو حادث (فصل كبسولة BST)",
+              "المحرك لا يلف بالسلف نهائياً رغم إضاءة الطبلون"
+            ],
+            "associatedDTCs": [
+              "93B2"
+            ]
+          },
+          {
+            "slotId": "PF101",
+            "label": "JBE FEED",
+            "nameArabic": "فيوز تغذية علبة فيوزات التابلوه الرئيسية (JBE Feed)",
+            "ratingAmps": 100.0,
+            "descriptionArabic": "كابل التغذية المغذي لصندوق فيوزات المقصورة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "انقطاع كامل لكهرباء داخلية السيارة وسنترلوك الأبواب"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "PF103",
+            "label": "IBS SENSOR",
+            "nameArabic": "فيوز حساس البطارية الذكي (IBS Intelligent Battery Sensor)",
+            "ratingAmps": 5.0,
+            "descriptionArabic": "يغذي حساس القطب السالب المسؤول عن مراقبة شحن وصحة بطارية BMW.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "رسالة High Battery Discharge عند الوقوف",
+              "عدم انتظام شحن الدينامو ومسح ساعة وتاريخ الشاشة"
+            ],
+            "associatedDTCs": [
+              "299B",
+              "2E8E"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bmw_5_series_e60_f10",
+    "make": "BMW",
+    "makeArabic": "بي إم دبليو",
+    "model": "5 Series (E60 / F10)",
+    "modelArabic": "الفئة الخامسة (5 Series E60/F10)",
+    "yearRange": "2004 - 2016 (520i / 525i / 528i / 530i / 535i)",
+    "bodyType": "سيدان تنفيذية كبيرة",
+    "obdLocation": "تحت الطبلون جهة اليسار بجانب ذراع فتح غطاء المحرك.",
+    "fuseBoxes": [
+      {
+        "id": "bmw_f10_cabin",
+        "nameArabic": "علبة فيوزات الطبلون (Glove Box Fuse Carrier)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "خلف درج التابلوه، تنزل اللوحة بعد فك مسامير التثبيت البلاستيكية اليدوية.",
+        "accessInstructions": "أدر المفاتيح اليدوية وانزل اللوحة لأسفل لكشف صفوف الفيوزات الملونة.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F2",
+            "label": "OBD-II",
+            "nameArabic": "فيوز فيشة الفحص وتشخيص الأعطال OBD-II",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "التغذية الكهربائية لمنفذ التشخيص.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "جهاز الفحص لا يعمل ولا يتعرف على كمبيوتر الفئة الخامسة"
+            ],
+            "associatedDTCs": [
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F24",
+            "label": "CIGAR",
+            "nameArabic": "فيوز ولاعة السجائر والشواحن",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "شواحن الهاتف الأمامية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "الشاحن لا يعمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F40",
+            "label": "CAS / KEY",
+            "nameArabic": "فيوز نظام تشغيل ومستقبل المفتاح الذكي",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "التعرف على المفتاح وزر التشغيل.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "السيارة لا تستشعر المفتاح الذكي ولا تفتح كونتاكت"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      },
+      {
+        "id": "bmw_f10_trunk",
+        "nameArabic": "علبة فيوزات الشنطة الخلفية (Rear Luggage Fuse Carrier)",
+        "locationType": "trunk",
+        "detailedLocationArabic": "في الشنطة الخلفية جهة اليمين خلف الغطاء القماشي المبطن للرفرف.",
+        "accessInstructions": "انزع الغطاء الجانبي المبطن لتجد صينية الفيوزات الكبيرة مع ورقة المخطط الأصلية.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F130",
+            "label": "AIR SUSP",
+            "nameArabic": "فيوز مساعدات وضواغط الهواء الخلفية (Air Suspension)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يغذي كمبروسر رفع خلفية السيارة في طرازات التورينغ والـ 5 Series.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "هبوط مؤخرة السيارة على العجلات"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F141",
+            "label": "FUEL PUMP",
+            "nameArabic": "فيوز طرمبة (بومبة) البنزين",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "مضخة البنزين الرئيسية في الخزان.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "المحرك يدور بالسلف دون اشتعال"
+            ],
+            "associatedDTCs": [
+              "P0087"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bmw_x5_e70_f15",
+    "make": "BMW",
+    "makeArabic": "بي إم دبليو",
+    "model": "X5 (E70 / F15)",
+    "modelArabic": "إكس 5 (BMW X5 E70/F15)",
+    "yearRange": "2007 - 2018 (xDrive30i / 35i / 50i)",
+    "bodyType": "دفع رباعي فاخرة (SAV)",
+    "obdLocation": "تحت الطبلون جهة اليسار فوق دعسة القدم اليسرى مباشرة.",
+    "fuseBoxes": [
+      {
+        "id": "bmw_x5_cabin",
+        "nameArabic": "علبة فيوزات التابلوه الأمامية (JBE Front)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "تحت درج التابلوه في مقصورة الركاب جهة اليمين.",
+        "accessInstructions": "افتح الغطاء السفلي لدرج التابلوه للوصول إلى صينية الفيوزات.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F1",
+            "label": "OBD / CAS",
+            "nameArabic": "فيوز فيشة الفحص OBD ونظام المفتاح",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "تغذية الفحص وتشغيل الكونتاكت.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "تعذر فحص السيارة بالجهاز"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F20",
+            "label": "4WD / XDRIVE",
+            "nameArabic": "فيوز محرك دبل الدفع الرباعي (Transfer Case Motor)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي موتور ترانسفير كيس ونظام xDrive للدفع الرباعي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "ظهور لمبة 4x4 الصفراء في الطبلون مع رنين تحذيري",
+              "فصل الدفع الرباعي وتوقف المساعدة في الرمال أو الطرق الزلقة"
+            ],
+            "associatedDTCs": [
+              "5463",
+              "5462"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "bmw_x5_trunk",
+        "nameArabic": "علبة فيوزات الشنطة الخلفية (Rear Power Distribution)",
+        "locationType": "trunk",
+        "detailedLocationArabic": "في الشنطة الخلفية تحت أرضية التحميل جهة اليمين بجانب البطارية الرئيسية.",
+        "accessInstructions": "ارفع أرضية الشنطة وانزع الغطاء الجانبي الأيمن.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F100",
+            "label": "AIR PUMP",
+            "nameArabic": "فيوز منفاخ التعليق الهوائي الخلفي (Air Springs)",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "موتور هيدروليك المساعدات الخلفية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "نزول خلفية الجيب X5 على الإطارات"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F104",
+            "label": "FUEL PUMP",
+            "nameArabic": "فيوز مضخة الوقود الرئيسية",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "تغذية طرمبة البنزين في الخزان.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "المحرك لا يشتغل إطلاقاً"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "toyota_camry_2007_2017",
+    "make": "Toyota",
+    "makeArabic": "تويوتا",
+    "model": "Camry",
+    "modelArabic": "كامري (Camry XV40/XV50)",
+    "yearRange": "2007 - 2017 (XV40 / XV50)",
+    "bodyType": "سيدان متوسطة",
+    "obdLocation": "تحت الطبلون جهة السائق يساراً فوق دواسة الفرامل مباشرة.",
+    "fuseBoxes": [
+      {
+        "id": "camry_engine_bay",
+        "nameArabic": "علبة فيوزات حوض المحرك الرئيسية (Engine Bay)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في حوض المحرك بجانب البطارية وفلتر الهواء من جهة السائق.",
+        "accessInstructions": "اضغط على الكلبسات البلاستيكية على حواف الغطاء وارفع الغطاء لأعلى.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F1",
+            "label": "EFI MAIN",
+            "nameArabic": "فيوز منظومة الحقن وكمبيوتر المحرك",
+            "ratingAmps": 25.0,
+            "descriptionArabic": "يغذي عقل المحرك وحساسات الأكسجين والبخاخات.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك يدور بالسلف دون تشغيل",
+              "لمبة Check Engine لا تضيء عند فتح السويتش"
+            ],
+            "associatedDTCs": [
+              "P0685",
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F2",
+            "label": "INJ",
+            "nameArabic": "فيوز رشاشات الوقود والشمعات",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية بوبينات الإشعال ورشاشات البنزين.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "تقطيع واهتزاز شديد بالمحرك أو انطفاء فوري"
+            ],
+            "associatedDTCs": [
+              "P0300"
+            ]
+          },
+          {
+            "slotId": "F3",
+            "label": "FAN MAIN",
+            "nameArabic": "فيوز مروحة الرداتوري والتكييف",
+            "ratingAmps": 50.0,
+            "descriptionArabic": "موتور مروحة تبريد الرديتر الرئيسية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "حرارة عالية جداً في التوقف",
+              "توقف المكيف عن التبريد"
+            ],
+            "associatedDTCs": [
+              "P0480"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "camry_cabin",
+        "nameArabic": "علبة فيوزات الطبلون الداخلية (Cabin)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "تحت الطبلون أسفل المقود، بجانب مسند قدم السائق.",
+        "accessInstructions": "انزع الغطاء البلاستيكي بالشد الخفيف باتجاه المقعد.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F11",
+            "label": "OBD / D/C",
+            "nameArabic": "فيوز فيشة الفحص OBD وشاشة الطبلون",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية الطرف رقم 16 في فيشة OBD-II والذاكرة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "جهاز الفحص لا يصله كهرباء شاشة مطفية",
+              "تصفير العداد وساعة الطبلون"
+            ],
+            "associatedDTCs": [
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F12",
+            "label": "CIG",
+            "nameArabic": "فيوز ولاعة السجائر ومخرج الشحن 12V",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "تغذية شواحن الهاتف والولاعة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "شاحن الهاتف لا يعمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F13",
+            "label": "STOP",
+            "nameArabic": "فيوز لمبات الفرامل ومفتاح دعسة البريك",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية لمبات الستوب ومفتاح دواسة البريك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "عصا القير معلقة ولا تتحرك من الـ P",
+              "عدم إضاءة لمبات الفرامل"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hyundai_elantra_md_2011_2016",
+    "make": "Hyundai",
+    "makeArabic": "هيونداي",
+    "model": "Elantra",
+    "modelArabic": "إلنترا (Elantra MD/AD)",
+    "yearRange": "2011 - 2016 (الجيل الخامس MD)",
+    "bodyType": "سيدان",
+    "obdLocation": "خلف غطاء علبة الفيوزات الداخلية يسار المقود مباشرة تحت فتحة المكيف",
+    "fuseBoxes": [
+      {
+        "id": "elantra_engine_bay",
+        "nameArabic": "علبة فيوزات حوض المحرك (Engine Room Fuse & Relay Box)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في حوض المحرك من جهة السائق (اليسار)، بجانب البطارية وعلبة فلتر الهواء.",
+        "accessInstructions": "اضغط على المشبكين البلاستيكيين في مقدمة ونهاية الغطاء ثم اسحبه للأعلى.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F_B_PUMP",
+            "label": "B/PUMP",
+            "nameArabic": "فيوز طرمبة (بومبة) البنزين",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي مضخة الوقود الغاطسة داخل خزان البنزين.",
+            "testingTip": "افحص وصول 12V للفيوز لثانيتين عند فتح السويتش.",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك يدور بالسلف ولكن لا يشتغل نهائياً",
+              "انعدام صوت زنة طرمبة البنزين عند فتح الكونتاكت"
+            ],
+            "associatedDTCs": [
+              "P0087",
+              "P0627"
+            ]
+          },
+          {
+            "slotId": "F_ECU1",
+            "label": "ECU 1",
+            "nameArabic": "فيوز كمبيوتر إدارة المحرك وحساس الأكسجين",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "التغذية الكهربائية الرئيسية لكمبيوتر السيارة (PCM).",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "انقطاع كامل عن عقل السيارة ولا توجد إشارة فحص في الطبلون",
+              "المحرك يلف بالسلف دون أي استجابة"
+            ],
+            "associatedDTCs": [
+              "P0685",
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F_COOL_FAN",
+            "label": "COOL FAN",
+            "nameArabic": "فيوز مروحة تبريد الرداتوري الرئيسية",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "يغذي موتور مروحة التبريد خلف رديتر المحرك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "ارتفاع حرارة المحرك وتوقف تبريد المكيف"
+            ],
+            "associatedDTCs": [
+              "P0480"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "elantra_cabin",
+        "nameArabic": "علبة فيوزات المقصورة الداخلية (Smart Junction Box)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "يسار المقود في لوحة القيادة، خلف الغطاء القابل للنزع أسفل فتحة مكيف السائق.",
+        "accessInstructions": "أدخل إصبعك في التجويف السفلي للغطاء واسحبه برفق باتجاهك لنزعه.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F_CIGAR",
+            "label": "C/LIGHTER",
+            "nameArabic": "فيوز ولاعة السجائر ومخرج الطاقة 12V",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي مقبس الولاعة ومخارج شواحن الهواتف.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "شواحن الهاتف والولاعة لا تعمل"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F_CLUSTER",
+            "label": "CLUSTER",
+            "nameArabic": "فيوز عدادات الطبلون وشاشات القيادة",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية لوحة العدادات وشاشة الرحلات في الطبلون.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "انطفاء كامل لعدادات السرعة والـ RPM ومؤشرات الوقود"
+            ],
+            "associatedDTCs": []
+          },
+          {
+            "slotId": "F_OBD",
+            "label": "OBD-II",
+            "nameArabic": "فيوز مدخل الفحص والتشخيص OBD-II",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية الفولتية 12V لفيشة الفحص وأجهزة السكنر.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "جهاز الفحص لا يقلع ولا يقرأ أي كمبيوتر"
+            ],
+            "associatedDTCs": [
+              "U0100"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hyundai_tucson_sportage_2010_2016",
+    "make": "Hyundai",
+    "makeArabic": "هيونداي",
+    "model": "Tucson / Sportage",
+    "modelArabic": "توسان / سبورتاج (Tucson / Sportage)",
+    "yearRange": "2010 - 2016 (LM / SL)",
+    "bodyType": "SUV / دفع رباعي",
+    "obdLocation": "أسفل مقود القيادة جهة اليسار بجانب علبة الفيوزات الداخلية.",
+    "fuseBoxes": [
+      {
+        "id": "tucson_engine_bay",
+        "nameArabic": "علبة فيوزات الكبوت الرئيسية (Engine Room)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في حوض المحرك بجانب البطارية وصندوق فلتر الهواء جهة السائق.",
+        "accessInstructions": "اضغط على القفلين الجانبيين للغطاء ثم ارفعه للأعلى.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F_B_PUMP",
+            "label": "B/PUMP",
+            "nameArabic": "فيوز طرمبة (بومبة) البنزين",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي مضخة الوقود الغاطسة داخل خزان البنزين.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك يدور بالسلف دون تشغيل",
+              "لا يوجد صوت زنة لطرمبة البنزين"
+            ],
+            "associatedDTCs": [
+              "P0087",
+              "P0627"
+            ]
+          },
+          {
+            "slotId": "F_ECU1",
+            "label": "ECU 1",
+            "nameArabic": "فيوز كمبيوتر إدارة المحرك",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "التغذية الكهربائية الرئيسية لكمبيوتر المحرك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "المحرك قاطع نهائياً",
+              "غياب إشارة Check Engine"
+            ],
+            "associatedDTCs": [
+              "P0685",
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F_COOL_FAN",
+            "label": "COOL FAN",
+            "nameArabic": "فيوز مروحة تبريد الرداتوري",
+            "ratingAmps": 40.0,
+            "descriptionArabic": "موتور مروحة تبريد الرادياتير والمكيف.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 2,
+            "symptoms": [
+              "ارتفاع حرارة المحرك وتوقف تبريد المكيف"
+            ],
+            "associatedDTCs": [
+              "P0480"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tucson_cabin",
+        "nameArabic": "علبة فيوزات المقصورة الداخلية (Smart Junction Block)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "يسار المقود خلف الغطاء البلاستيكي للوحة القيادة أسفل فتحة التهوية.",
+        "accessInstructions": "اسحب الغطاء من الفتحة المخصصة للأصابع إلى الخارج برفق.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F_OBD",
+            "label": "OBD-II",
+            "nameArabic": "فيوز مدخل الفحص والتشخيص OBD-II",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية الفولتية 12V لفيشة الفحص وأجهزة السكنر.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "جهاز الفحص لا يقلع ولا يقرأ أي كمبيوتر"
+            ],
+            "associatedDTCs": [
+              "U0100"
+            ]
+          },
+          {
+            "slotId": "F_BRAKE",
+            "label": "STOP LAMP",
+            "nameArabic": "فيوز لمبات الفرامل ومفتاح الستوب",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "أنوار الفرامل وحساس دعسة الفرامل ونظام ABS.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "عصا القير الأوتوماتيك لا تتحرك من الـ P",
+              "أنوار الفرامل الخلفية لا تضيء"
+            ],
+            "associatedDTCs": [
+              "C1503"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nissan_sunny_n17",
+    "make": "Nissan",
+    "makeArabic": "نيسان",
+    "model": "Sunny",
+    "modelArabic": "صني (Sunny N17)",
+    "yearRange": "2012 - 2021 (N17 الشكل الهندي / التايلاندي)",
+    "bodyType": "سيدان اقتصادية",
+    "obdLocation": "تحت المقود مباشرة من جهة اليمين قليلاً بجانب كونسول القير.",
+    "fuseBoxes": [
+      {
+        "id": "sunny_ipdm",
+        "nameArabic": "علبة التوزيع الذكية بحوض المحرك (IPDM E/R)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في حوض المحرك جهة السائق (اليسار) بجانب البطارية مباشرة.",
+        "accessInstructions": "اضغط على لسان التثبيت الأمامي والخلفي للغطاء الأسود ثم ارفعه للأعلى.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F35",
+            "label": "F/PUMP",
+            "nameArabic": "فيوز طرمبة (بومبة) البنزين",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي مضخة الوقود الرئيسية في الخزان.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "المحرك يدور بالسلف دون دوران نهائياً"
+            ],
+            "associatedDTCs": [
+              "P0087"
+            ]
+          },
+          {
+            "slotId": "F36",
+            "label": "ECM",
+            "nameArabic": "فيوز كمبيوتر المحرك الرئيسي",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "التغذية الرئيسية لعقل المحرك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "المحرك قاطع تماماً وعدم استجابة السكنر"
+            ],
+            "associatedDTCs": [
+              "P0685",
+              "U0100"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sunny_cabin",
+        "nameArabic": "علبة فيوزات المقصورة (تحت المقود)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "يسار المقود خلف درج حفظ الأغراض الصغير.",
+        "accessInstructions": "افتح الدرج الصغير واضغط على جانبيه لإنزاله تماماً.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F10",
+            "label": "ELEC PARTS",
+            "nameArabic": "فيوز فيشة الفحص OBD والولاعة",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "يغذي فيشة OBD والأنظمة الإلكترونية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "جهاز الفحص لا يضيء"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "opel_astra_g",
+    "make": "Opel",
+    "makeArabic": "أوبل",
+    "model": "Astra G",
+    "modelArabic": "أسترا جي (Astra G)",
+    "yearRange": "1998 - 2009",
+    "bodyType": "هاتشباك / سيدان",
+    "obdLocation": "تحت غطاء فرامل اليد (الهاند بريك) في الكونسول الوسطي تماماً.",
+    "fuseBoxes": [
+      {
+        "id": "opel_engine_bay",
+        "nameArabic": "علبة فيوزات حوض المحرك (Engine Relay Box)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في الكبوت أمام خزان سائل الفرامل (سيرفو) بجانب الجدار الناري.",
+        "accessInstructions": "ارفع مشبك الغطاء البلاستيكي للأعلى وافتحه باتجاه الزجاج الأمامي.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "FV1",
+            "label": "COOL FAN",
+            "nameArabic": "فيوز مروحة تبريد الرداتوري والمكيف",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "تغذية وحدة تبريد المحرك (Cooling Module).",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "حرارة عالية للمحرك وظهور لمبة الرادياتير المربعة بالطبلون"
+            ],
+            "associatedDTCs": [
+              "P1481",
+              "P1482"
+            ]
+          },
+          {
+            "slotId": "FV2",
+            "label": "ABS PUMP",
+            "nameArabic": "فيوز مضخة مانع انغلاق المكابح ABS",
+            "ratingAmps": 60.0,
+            "descriptionArabic": "موتور ومضخة الـ ABS الهيدروليكية.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "إضاءة لمبة ABS الصفراء"
+            ],
+            "associatedDTCs": [
+              "C0035"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "opel_cabin",
+        "nameArabic": "علبة فيوزات المقصورة الداخلية (خلف درج العملات)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "يسار المقود، خلف درج العملات الصغير القابل للإمالة.",
+        "accessInstructions": "افتح الدرج الصغير واضغط على ألسنة الإيقاف الجانبية لإنزاله للأسفل تماماً.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "F22",
+            "label": "DIAG / HAZARD",
+            "nameArabic": "فيوز مدخل الفحص التشخيصي OBD وفليشر الانتظار",
+            "ratingAmps": 15.0,
+            "descriptionArabic": "يغذي فيشة OBD تحت الهاند بريك ولمبات الفليشر.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "جهاز الفحص Ediag لا يتعرف على سيارة الأوبل ولا يتصل بكمبيوتر Simtec"
+            ],
+            "associatedDTCs": [
+              "U2105"
+            ]
+          },
+          {
+            "slotId": "F28",
+            "label": "INSTRUMENT",
+            "nameArabic": "فيوز عدادات الطبلون والشاشة الوسطية TID/MID",
+            "ratingAmps": 10.0,
+            "descriptionArabic": "تغذية العدادات وشاشة عرض الساعة والحرارة.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "انطفاء عدادات الطبلون"
+            ],
+            "associatedDTCs": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vw_golf_6_7",
+    "make": "Volkswagen",
+    "makeArabic": "فولكس فاجن",
+    "model": "Golf / Passat",
+    "modelArabic": "جولف / باسات (Golf Mk6/Mk7 & Passat)",
+    "yearRange": "2009 - 2019 (Mk6 / Mk7)",
+    "bodyType": "هاتشباك / سيدان ألمانية",
+    "obdLocation": "أسفل لوحة القيادة يسار دواسة الفرامل باللون البنفسجي الشهير.",
+    "fuseBoxes": [
+      {
+        "id": "vw_engine_bay",
+        "nameArabic": "علبة فيوزات الكبوت الرئيسية (E-Box SB)",
+        "locationType": "engineBay",
+        "detailedLocationArabic": "في حوض المحرك جهة اليسار (الراكب) بجانب علبة فلتر الهواء والبطارية.",
+        "accessInstructions": "اسحب المزلاجين الجانبيين للغطاء للخلف ثم ارفع الغطاء للأعلى.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "SB20",
+            "label": "MECHATRONIC",
+            "nameArabic": "فيوز كمبيوتر قير الدبل كلاتش (DSG Mechatronic)",
+            "ratingAmps": 30.0,
+            "descriptionArabic": "يغذي وحدة الميكاترونيك لقير الـ DSG الأوتوماتيكي.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "ظهور علامة المفتاح الإنجليزي في شاشة القير ووميض مؤشر الغيارات",
+              "القير يفصل ولا ينقل الحركة نهائياً"
+            ],
+            "associatedDTCs": [
+              "P17BF",
+              "P189C"
+            ]
+          },
+          {
+            "slotId": "SB24",
+            "label": "ECU MAIN",
+            "nameArabic": "فيوز كمبيوتر المحرك الرئيسي",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "التغذية الكهربائية الرئيسية لكمبيوتر إدارة المحرك.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 1,
+            "symptoms": [
+              "المحرك يدور دون تشغيل نهائياً"
+            ],
+            "associatedDTCs": [
+              "P0685"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vw_cabin",
+        "nameArabic": "علبة فيوزات المقصورة الداخلية (Fuse Carrier SC)",
+        "locationType": "cabin",
+        "detailedLocationArabic": "يسار المقود، خلف درج حفظ الأغراض الصغير القابل للإمالة.",
+        "accessInstructions": "افتح الدرج واضغط على ألسنة الإيقاف الجانبية لإنزاله للأسفل تماماً.",
+        "realisticCoverNote": "",
+        "cardPartNumber": "",
+        "hasPullTab": false,
+        "equipmentMappings": [],
+        "slots": [
+          {
+            "slotId": "SC40",
+            "label": "12V / OBD",
+            "nameArabic": "فيوز مخرج الولاعة ومدخل الفحص التشخيصي OBD",
+            "ratingAmps": 20.0,
+            "descriptionArabic": "يغذي فيشة OBD ومخرج 12V.",
+            "testingTip": "",
+            "isRelay": false,
+            "gridRow": 0,
+            "gridCol": 0,
+            "symptoms": [
+              "جهاز الفحص لا يتعرف على سيارة الجولف"
+            ],
+            "associatedDTCs": [
+              "U0100"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

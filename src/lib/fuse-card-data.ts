@@ -1,3 +1,4 @@
+import carFusesRaw from "../../public/data/car_fuses.json";
 export interface EquipmentMapping {
   equipmentEnglish: string;
   equipmentArabic: string;
@@ -306,59 +307,71 @@ export const CAR_FUSE_CARDS_DATA: CarFuseModelData[] = [
         },
       },
     ],
-  },
+  }
+];
 
-  // =========================================================================
-  // 2. Toyota Corolla (E140 / E150)
-  // =========================================================================
-  {
-    id: "toyota_corolla",
-    make: "Toyota",
-    makeArabic: "تويوتا",
-    model: "Corolla",
-    modelArabic: "كورولا (Corolla E140/E150)",
-    yearRange: "2008 - 2013",
-    boxes: [
-      {
-        boxId: "engine",
-        boxNameArabic: "علبة فيوزات حوض المحرك الرئيسية",
-        locationArabic: "في الكبوت من جهة السائق (اليسار)، بجانب البطارية وقربة ماء المساحات",
-        accessInstructionsArabic: "اضغط على ألسنة القفل الجانبية الثلاثة للغطاء الأسود ثم ارفعه للأعلى.",
-        cardPartNumber: "Toyota Genuine Relay & Fuse Lid",
-        row1: [1, 2, 3, 4, 5, 6, 7, 8],
-        row2: [9, 10, 11, 12, 13, 14, 15, 16],
-        amperesMap: {
-          1: 20, 2: 30, 3: 30, 4: 20, 5: 10, 6: 10, 7: 15, 8: 10,
-          9: 15, 10: 10, 11: 7.5, 12: 15, 13: 20, 14: 10, 15: 30, 16: 10,
-        },
-        equipmentList: [
-          { equipmentEnglish: "EFI MAIN", equipmentArabic: "كمبيوتر المحرك ومنظومة الحقن الإلكتروني", fuses: [1] },
-          { equipmentEnglish: "FAN MAIN", equipmentArabic: "مروحة تبريد الرداتوري والمكيف الرئيسية", fuses: [3] },
-          { equipmentEnglish: "HORN", equipmentArabic: "بوق ومنبه السيارة (الكلاكس / الهرن)", fuses: [5] },
-          { equipmentEnglish: "IGN", equipmentArabic: "منظومة إشعال المحرك وكويلات البوبينات", fuses: [6] },
-          { equipmentEnglish: "A/C COMP", equipmentArabic: "كلتش ضاغط التكييف (كمبروسر المكيف)", fuses: [8] },
-          { equipmentEnglish: "H-LP MAIN", equipmentArabic: "المصابيح والكشافات الأمامية الرئيسية", fuses: [4] },
-          { equipmentEnglish: "EFI 2", equipmentArabic: "حساسات الشكمان وحساس تدفق الهواء MAF", fuses: [7] },
-          { equipmentEnglish: "ABS NO. 1", equipmentArabic: "مضخة ووحدة فرامل مانع الانغلاق ABS", fuses: [15] },
-        ],
-        slots: {
-          1: {
-            id: "F1",
-            number: 1,
-            label: "EFI MAIN",
-            nameArabic: "فيوز كمبيوتر المحرك الرئيسي ومنظومة الحقن",
-            ratingAmps: 20,
-            descriptionArabic: "يغذي كمبيوتر إدارة المحرك (ECM) ورشاشات الوقود وحساسات العادم.",
-            colorName: "أصفر (20A)",
-            hexColor: "#FDD835",
-            symptoms: [
-              "المحرك يدور بالسلف (الموتورينو) لكن لا يعمل نهائياً",
-              "عدم إضاءة لمبة فحص المحرك (Check Engine) في الطبلون عند فتح السويتش",
-            ],
-            associatedDTCs: ["P0606", "P0685", "U0100"],
-          },
-        },
-      },
-    ],
-  },
+// Convert all 13 authentic vehicle fuse boxes from car_fuses.json
+const DYNAMIC_CAR_MODELS: CarFuseModelData[] = (carFusesRaw as any[])
+  .filter((c) => c.id !== "bmw_5_series_e39" && c.id !== "bmw_e39")
+  .map((c) => {
+    return {
+      id: c.id,
+      make: c.make,
+      makeArabic: c.makeArabic || c.make,
+      model: c.model,
+      modelArabic: c.modelArabic || c.model,
+      yearRange: c.yearRange || "",
+      boxes: (c.fuseBoxes || []).map((b: any) => {
+        const amperesMap: Record<number, number> = {};
+        const slotsRecord: Record<number, FuseSlotDetail> = {};
+        const allNums: number[] = [];
+
+        (b.slots || []).forEach((s: any, i: number) => {
+          const num = parseInt(s.slotId.replace(/\D/g, ""), 10) || (i + 1);
+          allNums.push(num);
+          const amps = s.ratingAmps || 15;
+          amperesMap[num] = amps;
+          const col = getFuseColor(amps);
+          slotsRecord[num] = {
+            id: s.slotId,
+            number: num,
+            label: s.label || s.slotId,
+            nameArabic: s.nameArabic || "",
+            ratingAmps: amps,
+            descriptionArabic: s.descriptionArabic || "",
+            colorName: col.name,
+            hexColor: col.hex,
+            symptoms: Array.isArray(s.symptoms) ? s.symptoms : [],
+            associatedDTCs: Array.isArray(s.associatedDTCs) ? s.associatedDTCs : [],
+            testingTip: s.testingTip || "",
+          };
+        });
+
+        const half = Math.ceil(allNums.length / 2);
+        return {
+          boxId: b.id,
+          boxNameArabic: b.nameArabic,
+          locationArabic: b.detailedLocationArabic || "",
+          accessInstructionsArabic: b.accessInstructions || "",
+          cardPartNumber: b.cardPartNumber || "",
+          hasPullTab: Boolean(b.hasPullTab),
+          row1: allNums.slice(0, half),
+          row2: allNums.slice(half),
+          amperesMap,
+          equipmentList: (b.equipmentMappings || []).map((eq: any) => ({
+            equipmentEnglish: eq.equipmentEnglish,
+            equipmentArabic: eq.equipmentArabic,
+            category: eq.category || "general",
+            fuses: eq.fuseNumbers || [],
+          })),
+          slots: slotsRecord,
+        };
+      }),
+    };
+  });
+
+// Export all 13 cars with BMW E39 at the top followed by all models
+export const ALL_SUPPORTED_CARS_FUSE_DATA: CarFuseModelData[] = [
+  ...CAR_FUSE_CARDS_DATA,
+  ...DYNAMIC_CAR_MODELS,
 ];

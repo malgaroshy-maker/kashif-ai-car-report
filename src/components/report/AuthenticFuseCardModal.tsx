@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  CAR_FUSE_CARDS_DATA,
+  ALL_SUPPORTED_CARS_FUSE_DATA,
   EquipmentMapping,
   FuseSlotDetail,
   VehicleFuseCard,
@@ -20,7 +20,7 @@ export function AuthenticFuseCardModal({ onClose }: { onClose: () => void }) {
   const [activeSlotDetail, setActiveSlotDetail] = useState<FuseSlotDetail | null>(null);
 
   const selectedCar = useMemo(() => {
-    return CAR_FUSE_CARDS_DATA.find((c) => c.id === selectedCarId) || CAR_FUSE_CARDS_DATA[0];
+    return ALL_SUPPORTED_CARS_FUSE_DATA.find((c) => c.id === selectedCarId) || ALL_SUPPORTED_CARS_FUSE_DATA[0];
   }, [selectedCarId]);
 
   const selectedBox = useMemo(() => {
@@ -135,7 +135,7 @@ export function AuthenticFuseCardModal({ onClose }: { onClose: () => void }) {
               value={selectedCarId}
               onChange={(e) => {
                 setSelectedCarId(e.target.value);
-                const car = CAR_FUSE_CARDS_DATA.find((c) => c.id === e.target.value);
+                const car = ALL_SUPPORTED_CARS_FUSE_DATA.find((c) => c.id === e.target.value);
                 if (car && car.boxes.length > 0) {
                   setSelectedBoxId(car.boxes[0].boxId);
                 }
@@ -145,7 +145,7 @@ export function AuthenticFuseCardModal({ onClose }: { onClose: () => void }) {
               }}
               className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-200 font-bold focus:outline-none focus:border-cyan-500"
             >
-              {CAR_FUSE_CARDS_DATA.map((car) => (
+              {ALL_SUPPORTED_CARS_FUSE_DATA.map((car) => (
                 <option key={car.id} value={car.id}>
                   {car.makeArabic} - {car.modelArabic} ({car.yearRange})
                 </option>

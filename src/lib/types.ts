@@ -244,3 +244,25 @@ export function orUnknown(
   const s = String(value).trim();
   return s === "" ? fallback : s;
 }
+
+
+/** Configuration controlling which report sections are displayed / printed */
+export interface ReportSectionsConfig {
+  includeTechnicalAssessment: boolean;
+  includeFaultsTable: boolean;
+  includePassedSystems: boolean;
+  includeProbabilitiesTable: boolean;
+  includeChecklist: boolean;
+  includeSpareParts: boolean;
+  includeTechnicianSignature: boolean;
+}
+
+export const DEFAULT_REPORT_SECTIONS: ReportSectionsConfig = {
+  includeTechnicalAssessment: true,
+  includeFaultsTable: true,
+  includePassedSystems: true,
+  includeProbabilitiesTable: true,
+  includeChecklist: true,
+  includeSpareParts: true,
+  includeTechnicianSignature: true,
+};

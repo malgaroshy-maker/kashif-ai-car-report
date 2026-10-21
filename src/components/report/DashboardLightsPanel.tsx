@@ -135,10 +135,19 @@ export function DashboardLightsPanel({ onClose }: { onClose: () => void }) {
           <div className="rounded-lg border-2 border-[var(--gold-primary)] bg-[var(--cell)] p-4 shadow-xl">
             <div className="flex items-start justify-between border-b border-[var(--rib)] pb-3">
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--royal-blue)] font-mono text-base font-black text-white">
-                  #{selectedLight.number}
-                </span>
+                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[var(--gold-primary)]/50 bg-black/60 p-1.5 shadow-md">
+                  <img
+                    src={`/lights/light_${selectedLight.number}.png`}
+                    alt={selectedLight.nameArabic}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
                 <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded bg-[var(--royal-blue)]/20 px-1.5 py-0.5 font-mono text-xs font-black text-[var(--royal-blue-light)]">
+                      #{selectedLight.number}
+                    </span>
+                  </div>
                   <h3 className="text-base font-bold text-(color:--ink)">
                     {selectedLight.nameArabic}
                   </h3>
@@ -241,18 +250,33 @@ export function DashboardLightsPanel({ onClose }: { onClose: () => void }) {
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-[var(--royal-blue)]/15 font-mono text-xs font-black text-[var(--royal-blue)] dark:text-[var(--royal-blue-electric)]">
-                      #{light.number}
-                    </span>
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: light.colorHex }}
-                      title={light.severity}
-                    />
-                    <h4 className="line-clamp-1 text-xs font-bold text-(color:--ink)">
-                      {light.nameArabic}
-                    </h4>
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-700/60 bg-black/50 p-1 shadow-inner">
+                      <img
+                        src={`/lights/light_${light.number}.png`}
+                        alt={light.nameArabic}
+                        className="h-full w-full object-contain"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] font-bold text-(color:--ink-3)">
+                          #{light.number}
+                        </span>
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: light.colorHex }}
+                          title={light.severity}
+                        />
+                      </div>
+                      <h4 className="line-clamp-1 text-xs font-bold text-(color:--ink)">
+                        {light.nameArabic}
+                      </h4>
+                    </div>
                   </div>
                   <span className="shrink-0 text-[10px] font-mono font-semibold text-(color:--ink-3)">
                     {light.symbolCode}

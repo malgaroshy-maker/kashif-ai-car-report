@@ -1,7 +1,7 @@
 import { escapeDeep, escapeHtml, safeFilenamePart } from "./html-escape";
 import { getPartSvg } from "./part-visuals";
 import { getElectricalDiagnosticsForCode, scanContext } from "./sensor-locator";
-import { orUnknown, type KashifDiagnosticReport } from "./types";
+import { orUnknown, type KashifDiagnosticReport, type ReportSectionsConfig, DEFAULT_REPORT_SECTIONS } from "./types";
 
 /**
  * The three ways a report leaves the screen.
@@ -82,8 +82,18 @@ export function shareReportToWhatsApp(report: KashifDiagnosticReport): void {
       }
     }
 
+    let workshopHeader = '';
+    if (typeof window !== 'undefined') {
+      const wName = localStorage.getItem('kashif_workshop_name');
+      const wPhone = localStorage.getItem('kashif_workshop_phone');
+      if (wName) {
+        workshopHeader = `*الورشة المعتمدة:* ${wName}\n` + (wPhone ? `*هاتف الورشة:* ${wPhone}\n` : '') + '----------------------------------\n';
+      }
+    }
+
     const text = `*تقرير فحص فني - Flow Cars*
 ----------------------------------
+${workshopHeader}
 📋 بيانات المركبة المفحوصة:
 • السيارة: ${vehicle.make} ${vehicle.model} (${vehicle.year})
 • رقم الهيكل VIN: ${vehicle.vin}
@@ -178,6 +188,25 @@ async function photoAsDataUri(url: string, budgetLeft: number): Promise<string> 
 export async function downloadReportHtml(
   report: KashifDiagnosticReport
 ): Promise<void> {
+    let workshopName = '';
+    let workshopPhone = '';
+    let workshopAddress = '';
+    let technicianName = '';
+    let sectionsConfig: ReportSectionsConfig = DEFAULT_REPORT_SECTIONS;
+
+    if (typeof window !== 'undefined') {
+      try {
+        workshopName = localStorage.getItem('kashif_workshop_name') || '';
+        workshopPhone = localStorage.getItem('kashif_workshop_phone') || '';
+        workshopAddress = localStorage.getItem('kashif_workshop_address') || '';
+        technicianName = localStorage.getItem('kashif_technician_name') || '';
+        const rawConfig = localStorage.getItem('kashif_report_sections_config');
+        if (rawConfig) {
+          sectionsConfig = { ...DEFAULT_REPORT_SECTIONS, ...JSON.parse(rawConfig) };
+        }
+      } catch (_) {}
+    }
+
     // Every string below is model output, interpolated into an HTML file the
     // user forwards to their customer. Escaping once at the source is the only
     // enforceable place: the template has hundreds of interpolation points and
@@ -505,9 +534,17 @@ export async function downloadReportHtml(
           </div>
         </div>
 
-        <div class="workshop-seal">
-          <span>فحص كمبيوتر</span>
-          <span>• جهاز ${orUnknown(safe.scannerInfo.toolName)}</span>
+        <div style="text-align: left;">
+          ${workshopName ? `
+            <div style="font-size: 14px; font-weight: 800; color: var(--amp-15); margin-bottom: 2px;">${escapeHtml(workshopName)}</div>
+            ${workshopPhone ? `<div style="font-size: 10px; color: var(--ink-2); direction: ltr;">${escapeHtml(workshopPhone)}</div>` : ''}
+            ${workshopAddress ? `<div style="font-size: 10px; color: var(--ink-3);">${escapeHtml(workshopAddress)}</div>` : ''}
+          ` : `
+            <div class="workshop-seal">
+              <span>فحص كمبيوتر</span>
+              <span>• جهاز ${orUnknown(safe.scannerInfo.toolName)}</span>
+            </div>
+          `}
         </div>
       </div>
 
@@ -739,9 +776,13 @@ export async function downloadReportHtml(
         }
       </div>
 
-      <div style="display: flex; gap: 20px; font-size: 11px; color: var(--ink-2);">
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 11px; color: var(--ink-2);">
         <div>التاريخ: <strong style="color: inherit;">${safe.generatedAt.slice(0, 10)}</strong></div>
-        <div>توقيع الفاحص: <span class="sign-line"></span></div>
+        ${technicianName ? `<div>الفني المسؤول: <strong style="color: var(--amp-15);">${escapeHtml(technicianName)}</strong></div>` : ''}
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>توقيع واعتماد الفاحص:</span>
+          <span class="sign-line"></span>
+        </div>
       </div>
     </div>
 

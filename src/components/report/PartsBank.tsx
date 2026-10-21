@@ -75,8 +75,16 @@ function PartCell({
   selected: boolean;
   vehicle?: { make?: string; model?: string; year?: string | number };
 }) {
+  const [copied, setCopied] = React.useState(false);
   const photo = usePartPhoto(part, vehicle);
   const price = part.estimatedPriceRangeLYD;
+
+  const handleCopyOem = () => {
+    if (!part.oemPartNumber) return;
+    navigator.clipboard.writeText(part.oemPartNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <Cell
@@ -146,8 +154,23 @@ function PartCell({
         </div>
       )}
 
-      {/* 1-Tap Google / EPC Catalog Search Link (matching mobile app) */}
-      <div className="mt-[var(--s3)] pt-[var(--s2)] border-t border-[var(--rib)]">
+      {/* 1-Tap Google / EPC Catalog Search & Copy Buttons (matching mobile app) */}
+      <div className="mt-[var(--s3)] pt-[var(--s2)] border-t border-[var(--rib)] flex flex-wrap items-center gap-2">
+        {part.oemPartNumber && (
+          <button
+            type="button"
+            onClick={handleCopyOem}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition border ${
+              copied
+                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                : "border-[var(--rib)] bg-[var(--board-sunk)] text-(color:--ink) hover:bg-[var(--cell)]"
+            }`}
+            title="نسخ رقم القطعة الأصلي"
+          >
+            <span>{copied ? "✓" : "📋"}</span>
+            <span>{copied ? "تم نسخ رقم الوكالة!" : "نسخ رقم القطعة"}</span>
+          </button>
+        )}
         <a
           href={`https://www.google.com/search?q=${encodeURIComponent(
             `${vehicle?.year || ""} ${vehicle?.make || ""} ${vehicle?.model || ""} ${

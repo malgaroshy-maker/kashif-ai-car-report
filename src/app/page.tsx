@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Masthead } from "@/components/report/Masthead";
+import { Button } from "@/components/ui/primitives";
 import { Intake } from "@/components/report/Intake";
 import { VehiclePlate } from "@/components/report/VehiclePlate";
 import { FaultBoard } from "@/components/report/FaultBoard";
@@ -14,6 +15,10 @@ import { DictionaryPanel } from "@/components/report/DictionaryPanel";
 import { AssistantPanel } from "@/components/report/AssistantPanel";
 import { DashboardLightsPanel } from "@/components/report/DashboardLightsPanel";
 import { AuthenticFuseCardModal } from "@/components/report/AuthenticFuseCardModal";
+import { DtcLookupView } from "@/components/report/DtcLookupView";
+import { ReportCompareView } from "@/components/report/ReportCompareView";
+import { analyzeCodes } from "@/lib/api-client";
+
 import { KashifDiagnosticReport } from "@/lib/types";
 import { removeLocal, useLocalJson, writeLocal } from "@/lib/local-store";
 
@@ -71,6 +76,7 @@ function readHistory(value: unknown): KashifDiagnosticReport[] | null {
 export default function HomePage() {
   const [activeReport, setActiveReport] =
     useState<KashifDiagnosticReport | null>(null);
+  const [activeTab, setActiveTab] = useState<"scan" | "report" | "dtc" | "compare" | "history">("scan");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<string | undefined>();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -89,6 +95,7 @@ export default function HomePage() {
   const handleReportGenerated = (report: KashifDiagnosticReport) => {
     setActiveReport(report);
     setSelectedPartId(undefined);
+    setActiveTab("report");
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     // Persist to local history. A failed write (quota, storage disabled) is
@@ -101,7 +108,21 @@ export default function HomePage() {
     );
   };
 
-  /** Jumps to a part named by a fault, and marks it so it can be seen. */
+
+  const handleGenerateFromCodes = async (codes: string[]) => {
+    if (codes.length === 0) return;
+    setIsLoading(true);
+    try {
+      const report = await analyzeCodes({ manualCodes: codes.join(", ") });
+      handleReportGenerated(report);
+    } catch (e: any) {
+      alert("تعذر تحليل الأكواد: " + (e?.message || e));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+    /** Jumps to a part named by a fault, and marks it so it can be seen. */
   const handleSelectPart = (partId?: string) => {
     setSelectedPartId(partId);
     const target = partId
@@ -113,55 +134,149 @@ export default function HomePage() {
   return (
     <div className="flex min-h-dvh flex-col bg-[var(--board)]">
       <Masthead
-        onNewScan={
-          activeReport
-            ? () => {
-                setActiveReport(null);
-                setSelectedPartId(undefined);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }
-            : undefined
-        }
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        hasActiveReport={Boolean(activeReport)}
+        onNewScan={() => {
+          setActiveReport(null);
+          setSelectedPartId(undefined);
+          setActiveTab("scan");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenDictionary={() => setDictionaryOpen(true)}
         onOpenDashboardLights={() => setDashboardLightsOpen(true)}
         onOpenFuseMap={() => setFuseMapOpen(true)}
       />
 
-      <main id="main" className="mx-auto w-full max-w-[1180px] flex-1 px-[var(--s4)] py-[var(--s5)]">
-        {activeReport ? (
-          <div className="space-y-[var(--s5)]">
-            <VehiclePlate report={activeReport} />
-            <ReportActions report={activeReport} />
-            <FaultBoard report={activeReport} onSelectPart={handleSelectPart} />
-            <Checklist steps={activeReport.workshopChecklist} />
-            <PartsBank
-              parts={activeReport.sparePartsRequired}
-              selectedPartId={selectedPartId}
-              vehicle={{
-                make: activeReport.vehicle.make ?? undefined,
-                model: activeReport.vehicle.model ?? undefined,
-                year: activeReport.vehicle.year ?? undefined,
-              }}
-            />
-            <AssistantPanel report={activeReport} />
-          </div>
-        ) : (
+      <main id="main" className="mx-auto w-full max-w-[1280px] flex-1 px-[var(--s4)] py-[var(--s5)]">
+        {/* 1. Tab: Scan / Intake */}
+        {activeTab === "scan" && (
           <div className="space-y-[var(--s5)]">
             <Intake
               busy={isLoading}
               setBusy={setIsLoading}
               onReport={handleReportGenerated}
             />
-            <HistoryBank
-              history={savedReports}
-              onSelect={(r) => {
-                setActiveReport(r);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              onClear={() => removeLocal(HISTORY_KEY)}
-            />
+            {savedReports.length > 0 && (
+              <div className="rounded-xl border border-[var(--rib)] bg-[var(--cell)] p-4 shadow-sm">
+                <div className="flex items-center justify-between border-b border-[var(--rib)] pb-2.5 mb-3">
+                  <h3 className="text-xs font-bold text-(color:--ink) flex items-center gap-1.5">
+                    <span>🕒</span>
+                    <span>آخر الفحوصات المحفوظة:</span>
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab("history")}
+                    className="text-xs font-bold text-[var(--royal-blue-light)] hover:underline"
+                  >
+                    عرض كل السجل ({savedReports.length}) ➔
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  {savedReports.slice(0, 3).map((r) => (
+                    <button
+                      key={r.reportId}
+                      onClick={() => {
+                        setActiveReport(r);
+                        setActiveTab("report");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="flex items-center justify-between rounded-lg border border-[var(--rib)] bg-[var(--board-sunk)] p-2.5 text-right transition hover:border-[var(--royal-blue)]"
+                    >
+                      <div>
+                        <div className="font-bold text-(color:--ink)">
+                          {r.vehicle.make || "سيارة"} {r.vehicle.model || ""} ({r.vehicle.year || ""})
+                        </div>
+                        <div className="text-[10px] text-(color:--ink-3)">{r.generatedAt.slice(0, 10)}</div>
+                      </div>
+                      <span className="font-mono font-black text-amber-500">
+                        {r.summary.overallHealthScore}%
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+        )}
+
+        {/* 2. Tab: Active Diagnostic Report */}
+        {activeTab === "report" && (
+          activeReport ? (
+            <div className="space-y-[var(--s5)]">
+              <VehiclePlate report={activeReport} />
+              <ReportActions report={activeReport} />
+              <FaultBoard report={activeReport} onSelectPart={handleSelectPart} />
+              <Checklist steps={activeReport.workshopChecklist} />
+              <PartsBank
+                parts={activeReport.sparePartsRequired}
+                selectedPartId={selectedPartId}
+                vehicle={{
+                  make: activeReport.vehicle.make ?? undefined,
+                  model: activeReport.vehicle.model ?? undefined,
+                  year: activeReport.vehicle.year ?? undefined,
+                }}
+              />
+              <AssistantPanel report={activeReport} />
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-[var(--rib)] bg-[var(--cell)] p-12 text-center text-(color:--ink-2) shadow-sm space-y-4">
+              <span className="text-4xl">📋</span>
+              <h3 className="text-lg font-bold text-(color:--ink)">
+                لم يتم فحص أو تحميل تقرير بعد
+              </h3>
+              <p className="text-xs max-w-md mx-auto text-(color:--ink-2) leading-relaxed">
+                قم برفع ملف فحص (PDF / صورة) أو إدخال أكواد الأعطال، أو اختر فحصاً من السجل لعرض التقرير هنا.
+              </p>
+              <div className="flex justify-center gap-3 pt-2">
+                <Button variant="primary" onClick={() => setActiveTab("scan")}>
+                  ⚡ ابدأ فحصاً جديداً
+                </Button>
+                {savedReports.length > 0 && (
+                  <Button onClick={() => setActiveTab("history")}>
+                    🕒 فتح السجل
+                  </Button>
+                )}
+              </div>
+            </div>
+          )
+        )}
+
+        {/* 3. Tab: DTC Encyclopedia & Basket */}
+        {activeTab === "dtc" && (
+          <DtcLookupView
+            onGenerateReport={handleGenerateFromCodes}
+            onOpenFuseMap={() => setFuseMapOpen(true)}
+          />
+        )}
+
+        {/* 4. Tab: Report Comparison */}
+        {activeTab === "compare" && (
+          <ReportCompareView
+            history={savedReports}
+            initialBefore={savedReports[1]}
+            initialAfter={savedReports[0]}
+            onSelectReport={(r) => {
+              setActiveReport(r);
+              setActiveTab("report");
+            }}
+          />
+        )}
+
+        {/* 5. Tab: History Bank */}
+        {activeTab === "history" && (
+          <HistoryBank
+            history={savedReports}
+            onSelect={(r) => {
+              setActiveReport(r);
+              setActiveTab("report");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            onClear={() => removeLocal(HISTORY_KEY)}
+          />
         )}
       </main>
 

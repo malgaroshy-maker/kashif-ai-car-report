@@ -33,6 +33,7 @@ export const STORAGE_KEYS = {
   workshopPhone: "kashif_workshop_phone",
   workshopAddress: "kashif_workshop_address",
   technicianName: "kashif_technician_name",
+  reportSectionsConfig: "kashif_report_sections_config",
 } as const;
 
 export interface ClientSettings {

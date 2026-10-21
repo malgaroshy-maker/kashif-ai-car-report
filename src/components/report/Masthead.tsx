@@ -5,21 +5,19 @@ import Link from "next/link";
 import { Button } from "@/components/ui/primitives";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
-/**
- * The lid's masthead: the plate riveted to the top of the box.
- *
- * A fuse box lid names itself once, in stamped type, and then gets out of the
- * way — it is not a navigation bar and it does not follow you down the page.
- * The one thing it holds besides the name is the way back to a new scan, and
- * that only exists while there is something to go back from.
- */
 export function Masthead({
+  activeTab = "scan",
+  onTabChange,
+  hasActiveReport = false,
   onNewScan,
   onOpenSettings,
   onOpenDictionary,
   onOpenDashboardLights,
   onOpenFuseMap,
 }: {
+  activeTab?: "scan" | "report" | "dtc" | "compare" | "history";
+  onTabChange?: (tab: "scan" | "report" | "dtc" | "compare" | "history") => void;
+  hasActiveReport?: boolean;
   onNewScan?: () => void;
   onOpenSettings: () => void;
   onOpenDictionary: () => void;
@@ -27,64 +25,166 @@ export function Masthead({
   onOpenFuseMap?: () => void;
 }) {
   return (
-    <header className="border-b border-[var(--rib)] bg-[var(--board-sunk)] shadow-sm">
-      <div className="mx-auto flex max-w-[1180px] items-center gap-[var(--s3)] px-[var(--s4)] py-[var(--s3)]">
-        <Wordmark />
+    <header className="sticky top-0 z-40 border-b border-[var(--rib)] bg-[var(--board-sunk)]/95 backdrop-blur-md shadow-sm">
+      <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-2.5 px-4 py-2.5">
+        
+        {/* Brand Group (Flow Cars Authentic Mobile Identity) */}
+        <div className="flex items-center gap-2.5">
+          <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-amber-400/80 shadow-xs bg-slate-900">
+            <img
+              src="/images/app_icon.png"
+              alt="Flow Cars"
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = "none";
+              }}
+            />
+          </div>
 
-        <span className="flex-1" aria-hidden />
+          <div className="flex items-center gap-1.5">
+            <span className="rounded bg-gradient-to-r from-[#D4AF37] via-[#F5C84C] to-[#A67C1E] px-2 py-0.5 text-xs font-black text-[#070E1E] shadow-xs tracking-tight">
+              Flow Cars
+            </span>
+            <Wordmark />
+          </div>
+        </div>
 
-        {onOpenFuseMap && (
+        {/* Central Screen / Mode Tabs (matching mobile bottom navigation) */}
+        {onTabChange && (
+          <nav className="flex items-center gap-1 rounded-lg border border-[var(--rib)] bg-[var(--cell)]/90 p-1 text-xs">
+            <button
+              type="button"
+              onClick={() => onTabChange("scan")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-bold transition ${
+                activeTab === "scan"
+                  ? "bg-[var(--royal-blue)] text-white shadow-xs"
+                  : "text-(color:--ink-2) hover:text-(color:--ink) hover:bg-[var(--board-sunk)]"
+              }`}
+            >
+              <span>⚡</span>
+              <span>فحص جديد</span>
+            </button>
+
+            {hasActiveReport && (
+              <button
+                type="button"
+                onClick={() => onTabChange("report")}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-bold transition ${
+                  activeTab === "report"
+                    ? "bg-[var(--royal-blue)] text-white shadow-xs"
+                    : "text-(color:--ink-2) hover:text-(color:--ink) hover:bg-[var(--board-sunk)]"
+                }`}
+              >
+                <span>📋</span>
+                <span>التقرير المفحوص</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onTabChange("dtc")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-bold transition ${
+                activeTab === "dtc"
+                  ? "bg-[var(--royal-blue)] text-white shadow-xs"
+                  : "text-(color:--ink-2) hover:text-(color:--ink) hover:bg-[var(--board-sunk)]"
+              }`}
+            >
+              <span>🔍</span>
+              <span>موسوعة الأعطال (DTC)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("compare")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-bold transition ${
+                activeTab === "compare"
+                  ? "bg-[var(--royal-blue)] text-white shadow-xs"
+                  : "text-(color:--ink-2) hover:text-(color:--ink) hover:bg-[var(--board-sunk)]"
+              }`}
+            >
+              <span>⚖️</span>
+              <span>مقارنة الفحوصات</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onTabChange("history")}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-bold transition ${
+                activeTab === "history"
+                  ? "bg-[var(--royal-blue)] text-white shadow-xs"
+                  : "text-(color:--ink-2) hover:text-(color:--ink) hover:bg-[var(--board-sunk)]"
+              }`}
+            >
+              <span>🕒</span>
+              <span>السجل</span>
+            </button>
+          </nav>
+        )}
+
+        {/* Right Tools & Modals Bar */}
+        <div className="flex items-center gap-1.5">
+          {onOpenFuseMap && (
+            <button
+              onClick={onOpenFuseMap}
+              className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1.5 text-xs font-bold text-cyan-600 transition hover:bg-cyan-500/20 dark:text-cyan-400"
+              title="خريطة وبطاقات الفيوزات الأصلية للسيارات (BMW, Toyota, Hyundai...)"
+            >
+              <span>⚡</span>
+              <span>دليل الفيوزات</span>
+            </button>
+          )}
+
+          {onOpenDashboardLights && (
+            <button
+              onClick={onOpenDashboardLights}
+              className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400"
+              title="دليل الـ 64 لمبة تحذيرية في طبلون السيارة"
+            >
+              <span>⚠️</span>
+              <span>لمبات الطبلون (64)</span>
+            </button>
+          )}
+
           <button
-            onClick={onOpenFuseMap}
-            className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-600 transition hover:bg-cyan-500/20 dark:text-cyan-400"
-            title="خريطة وبطاقات الفيوزات الأصلية للسيارات (BMW, Toyota, Hyundai...)"
+            onClick={onOpenDictionary}
+            className="rounded-md border border-[var(--rib)] bg-[var(--cell)] px-2.5 py-1.5 text-xs font-bold text-(color:--ink) hover:bg-[var(--board-sunk)] transition"
           >
-            <span>⚡</span>
-            <span>خريطة الفيوزات الأصلية</span>
+            📖 القاموس
           </button>
-        )}
 
-        {onOpenDashboardLights && (
           <button
-            onClick={onOpenDashboardLights}
-            className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-600 transition hover:bg-amber-500/20 dark:text-amber-400"
-            title="دليل الـ 64 لمبة تحذيرية في طبلون السيارة"
+            onClick={onOpenSettings}
+            className="rounded-md border border-[var(--rib)] bg-[var(--cell)] px-2.5 py-1.5 text-xs font-bold text-(color:--ink) hover:bg-[var(--board-sunk)] transition"
           >
-            <span>⚠️</span>
-            <span>لمبات الطبلون (64)</span>
+            ⚙️ الإعدادات
           </button>
-        )}
 
-        <Link
-          href="/mobile"
-          className="text-(length:--t-plate) px-3 py-1.5 rounded-md border border-[var(--royal-blue-light)]/40 bg-[var(--royal-blue)]/10 text-[var(--royal-blue)] dark:text-[var(--royal-blue-electric)] hover:bg-[var(--royal-blue)]/20 transition inline-flex items-center gap-1 font-bold text-xs"
-        >
-          <span>📱 تطبيق الهاتف</span>
-        </Link>
-        <Button onClick={onOpenDictionary} className="text-(length:--t-plate)">
-          القاموس
-        </Button>
-        <Button onClick={onOpenSettings} className="text-(length:--t-plate)">
-          الإعدادات
-        </Button>
-        <ThemeToggle />
-        {onNewScan && (
-          <Button variant="primary" onClick={onNewScan} className="text-(length:--t-plate)">
-            فحص جديد
-          </Button>
-        )}
+          <Link
+            href="/mobile"
+            className="rounded-md border border-[var(--royal-blue-light)]/40 bg-[var(--royal-blue)]/10 px-2.5 py-1.5 text-[var(--royal-blue)] dark:text-[var(--royal-blue-electric)] hover:bg-[var(--royal-blue)]/20 transition inline-flex items-center gap-1 font-bold text-xs"
+            title="فتح واجهة تطبيق الهاتف"
+          >
+            <span>📱</span>
+            <span>الهاتف</span>
+          </Link>
+
+          <ThemeToggle />
+
+          {onNewScan && activeTab !== "scan" && (
+            <Button
+              variant="primary"
+              onClick={onNewScan}
+              className="text-xs px-3 py-1.5"
+            >
+              فحص جديد
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );
 }
 
-/**
- * The name, stamped.
- *
- * The mark is a seated 15A blade — the interactive amp rating, the one colour
- * in the system that is not a status — because the product is the thing that
- * reads the box, not one of the faults in it.
- */
 function Wordmark() {
   return (
     <svg
