@@ -11,6 +11,7 @@ import '../providers/settings_provider.dart';
 import '../../data/storage/hive_storage.dart';
 import '../widgets/fuse_cell.dart';
 import '../widgets/molded_rib.dart';
+import '../../core/constants/app_version.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -2311,13 +2312,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Flow Cars للأندرويد — الإصدار 1.2.2',
+                    'Flow Cars للأندرويد — ' + AppVersion.display,
                     style: KashifTypography.arabic(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: isDark
                           ? KashifColors.darkTextMuted
                           : KashifColors.lightTextMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'الرقم التسلسلي: ' + AppVersion.serial,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
                     ),
                   ),
                   const SizedBox(height: 2),

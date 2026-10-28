@@ -1,0 +1,17 @@
+==================================================
+           FLOW CARS - APK RELEASE INFO
+==================================================
+- Application: Flow Cars (كاشف الأعطال)
+- Version: 1.2.5
+- Build Number: 8
+- Serial Number: KASHIF-V1.2.5-B8-20261029
+- Badge on Home Screen: v1.2.5 #8
+- Build Date: 2026-10-29 01:52:49
+- Target Platform: android-arm64 (Poco X7 Pro & modern devices)
+- Size: 25.95 MB
+
+Generated Files:
+1. APK_OUTPUT/kashif_poco_v1.2.5_b8.apk
+2. APK_OUTPUT/kashif_poco_x7_pro.apk
+3. flowcars_release.apk
+==================================================

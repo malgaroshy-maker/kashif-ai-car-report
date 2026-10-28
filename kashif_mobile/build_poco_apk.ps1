@@ -81,8 +81,24 @@ if ($apkSrc) {
         New-Item -ItemType Directory -Path $destDir | Out-Null
     }
     
+    $versionedFile = Join-Path $destDir "kashif_poco_v1.2.5_b8.apk"
+    Copy-Item -Path $apkSrc -Destination $versionedFile -Force
     $destFile = Join-Path $destDir "kashif_poco_x7_pro.apk"
     Copy-Item -Path $apkSrc -Destination $destFile -Force
+
+    $versionInfo = @"
+======================================================================
+ Flow Cars / Kashif AI (Poco X7 Pro Edition)
+======================================================================
+ Version      : 1.2.5
+ Build Number : 8
+ Serial       : KASHIF-V1.2.5-B8-20261029
+ Build Date   : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+ Target       : ARM64-v8a (MediaTek Dimensity 8400-Ultra)
+ Output APK   : kashif_poco_v1.2.5_b8.apk
+======================================================================
+"@
+    Set-Content -Path (Join-Path $destDir "VERSION_INFO.txt") -Value $versionInfo -Encoding UTF8
 
     # Also sync root and mobile helper copies to eliminate stale APK confusion
     $workspaceRoot = Split-Path $projectRoot -Parent

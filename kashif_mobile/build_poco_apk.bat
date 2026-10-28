@@ -116,7 +116,20 @@ if not exist "%APK_FILE%" goto BUILD_ERROR
 
 :COPY_OUTPUT
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
+copy /y "%APK_FILE%" "%OUTPUT_DIR%\kashif_poco_v1.2.5_b8.apk" > nul
 copy /y "%APK_FILE%" "%OUTPUT_DIR%\kashif_poco_x7_pro.apk" > nul
+(
+echo ======================================================================
+echo  Flow Cars / Kashif AI (Poco X7 Pro Edition)
+echo ======================================================================
+echo  Version      : 1.2.5
+echo  Build Number : 8
+echo  Serial       : KASHIF-V1.2.5-B8-20261029
+echo  Build Date   : %DATE% %TIME%
+echo  Target       : ARM64-v8a (MediaTek Dimensity 8400-Ultra)
+echo  Output APK   : kashif_poco_v1.2.5_b8.apk
+echo ======================================================================
+) > "%OUTPUT_DIR%\VERSION_INFO.txt"
 copy /y "%APK_FILE%" "%WORKSPACE_ROOT%\flowcars_release.apk" > nul 2>nul
 copy /y "%APK_FILE%" "%PROJECT_ROOT%\kashif-poco-arm64.apk" > nul 2>nul
 if errorlevel 1 goto COPY_ERROR

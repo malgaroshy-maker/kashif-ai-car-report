@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../core/constants/app_version.dart';
 import '../providers/history_provider.dart';
 import 'scan_screen.dart';
 import 'report_screen.dart';
@@ -114,6 +115,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: isDark
                     ? KashifColors.darkTextPrimary
                     : KashifColors.lightTextPrimary,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: (isDark ? Colors.white24 : Colors.black12),
+                  width: 0.5,
+                ),
+              ),
+              child: Text(
+                AppVersion.badge,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                  color: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
+                ),
               ),
             ),
           ],
