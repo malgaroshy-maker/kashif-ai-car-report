@@ -601,7 +601,7 @@ class KashifHtmlGenerator {
         <div class="header-brand">
           <div class="brand-text">
             <div class="brand-badge">Flow Cars | فحص وتشخيص</div>
-            <div class="brand-sub">منظومة كاشف الذكي للكشف عن الأعطال</div>
+            <div class="brand-sub">تطبيق كشف الأعطال بالمصطلحات الليبية</div>
           </div>
           ${iconBase64 != null && iconBase64.isNotEmpty ? '''
           <img src="data:image/png;base64,$iconBase64" class="header-logo" alt="Flow Cars Logo" />

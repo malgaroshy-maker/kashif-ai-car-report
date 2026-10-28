@@ -1,18 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Flow Cars - Mobile Preview Launcher (Fast v2)
-Ultra-fast launcher with optimized socket checks, warm browser profile, zero delay, and direct launch.
+Flow Cars - Mobile Preview Launcher (Fast v2 Enhanced)
+Ultra-fast launcher with reliable outdated detection, automatic cache/data wiping,
+hot rebuild triggers, and clean process management.
 """
 import sys
 import os
 import subprocess
 import time
 import socket
+import shutil
 import threading
 import urllib.request
 import urllib.error
 import json
+import atexit
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+# Ensure UTF-8 output encoding on Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
 
 PORT = 7357
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +30,9 @@ APP_DIR = os.path.join(SCRIPT_DIR, "kashif_mobile")
 if not os.path.exists(os.path.join(APP_DIR, "pubspec.yaml")):
     APP_DIR = SCRIPT_DIR
 WEB_DIR = os.path.join(APP_DIR, "build", "web")
+
+# Global reference to the preview browser process
+browser_process = None
 
 # Ensure Flutter is in PATH
 FLUTTER_DIRS = [
@@ -65,11 +78,57 @@ def kill_port_owner(port):
     except Exception:
         pass
 
+def close_browser():
+    """Immediately terminates the preview browser process if running."""
+    global browser_process
+    if browser_process is not None:
+        try:
+            subprocess.run(['taskkill', '/F', '/T', '/PID', str(browser_process.pid)], capture_output=True)
+        except Exception:
+            pass
+        browser_process = None
+
+def kill_stale_processes():
+    """Kills any previous processes using port 7357 or the dedicated dev profile."""
+    kill_port_owner(PORT)
+    close_browser()
+    try:
+        ps_cmd = (
+            "Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | "
+            "Where-Object { $_.CommandLine -like '*kashif_chrome_dev*' -or $_.CommandLine -like '*127.0.0.1:7357*' } | "
+            "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+        )
+        subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, timeout=5)
+    except Exception:
+        pass
+
+def clear_browser_cache():
+    """
+    Completely wipes the dev profile directory to eliminate old Hive IndexedDB databases,
+    cached reports, car inspections, and JS bytecode cache.
+    """
+    close_browser()
+    dev_profile = os.path.expandvars(r"%TEMP%\kashif_chrome_dev")
+    if os.path.exists(dev_profile):
+        for _ in range(3):
+            try:
+                shutil.rmtree(dev_profile, ignore_errors=True)
+                break
+            except Exception:
+                time.sleep(0.15)
+
 class CustomHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=WEB_DIR, **kwargs)
 
     def do_GET(self):
+        # Strip conditional headers so server never returns 304 Not Modified
+        if 'If-Modified-Since' in self.headers:
+            del self.headers['If-Modified-Since']
+        if 'If-None-Match' in self.headers:
+            del self.headers['If-None-Match']
+
+        # Aggressively unregister any service worker
         if self.path.startswith('/flutter_service_worker.js'):
             unregister_code = (
                 b"'use strict';\n"
@@ -85,6 +144,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
             self.wfile.write(unregister_code)
             return
 
+        # Apinex AI Proxy to bypass browser CORS
         if self.path.startswith('/apinex-proxy'):
             sub_path = self.path[len('/apinex-proxy'):]
             target_url = f"https://api.apinex.bond/v1{sub_path}"
@@ -126,7 +186,8 @@ class CustomHandler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def end_headers(self):
-        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        # Strict anti-caching headers so latest build is always loaded
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
         self.send_header('Pragma', 'no-cache')
         self.send_header('Expires', '0')
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -204,12 +265,14 @@ def wait_for_server(port, timeout=2.0):
             s.settimeout(0.05)
             if s.connect_ex(('127.0.0.1', port)) == 0:
                 return True
-        time.sleep(0.01)
+        time.sleep(0.02)
     return False
 
 def open_mobile_window():
+    global browser_process
+    close_browser()
     browser = find_browser()
-    cache_buster = int(time.time())
+    cache_buster = int(time.time() * 1000)
     url = f"http://127.0.0.1:{PORT}/?v={cache_buster}"
     if browser:
         dev_profile = os.path.expandvars(r"%TEMP%\kashif_chrome_dev")
@@ -225,73 +288,103 @@ def open_mobile_window():
             "--disable-application-cache",
             "--disk-cache-size=1",
             "--media-cache-size=1",
-            "--aggressive-cache-discard"
+            "--aggressive-cache-discard",
+            "--disable-features=IsolateOrigins,site-per-process",
+            "--no-first-run",
+            "--no-default-browser-check"
         ]
-        subprocess.Popen(args)
+        browser_process = subprocess.Popen(args)
     else:
         import webbrowser
         webbrowser.open(url)
 
-def get_latest_source_mtime():
-    latest = 0
+def get_latest_source_info():
+    """
+    Finds the latest modification time and the corresponding file path across
+    all project source files and assets.
+    """
+    latest_mtime = 0
+    latest_file = ""
     check_dirs = [
         os.path.join(APP_DIR, "lib"),
         os.path.join(APP_DIR, "assets"),
         os.path.join(APP_DIR, "web"),
     ]
+    valid_exts = ('.dart', '.yaml', '.json', '.png', '.ttf', '.html', '.js', '.css', '.svg')
     for cdir in check_dirs:
         if os.path.exists(cdir):
             for root, _, files in os.walk(cdir):
                 for f in files:
-                    if f.endswith(('.dart', '.yaml', '.json', '.png', '.ttf', '.html', '.js')):
+                    if f.endswith(valid_exts):
                         p = os.path.join(root, f)
                         try:
                             m = os.path.getmtime(p)
-                            if m > latest:
-                                latest = m
+                            if m > latest_mtime:
+                                latest_mtime = m
+                                latest_file = p
                         except Exception:
                             pass
     pubspec = os.path.join(APP_DIR, "pubspec.yaml")
     if os.path.exists(pubspec):
         try:
-            latest = max(latest, os.path.getmtime(pubspec))
+            m = os.path.getmtime(pubspec)
+            if m > latest_mtime:
+                latest_mtime = m
+                latest_file = pubspec
         except Exception:
             pass
-    return latest
+    return latest_mtime, latest_file
 
 def is_web_outdated():
-    index_path = os.path.join(WEB_DIR, "index.html")
-    if not os.path.exists(index_path):
-        return True
+    """
+    Reliably checks if the compiled web bundle (main.dart.js) is missing or older
+    than any project source file.
+    """
+    main_js = os.path.join(WEB_DIR, "main.dart.js")
+    index_html = os.path.join(WEB_DIR, "index.html")
+
+    if not os.path.exists(main_js) or not os.path.exists(index_html):
+        return True, "ملفات حزمة الويب غير موجودة (Web bundle files missing)"
+
     try:
-        build_time = os.path.getmtime(index_path)
-        source_time = get_latest_source_mtime()
-        return source_time > (build_time + 2)
-    except Exception:
-        return False
+        bundle_mtime = os.path.getmtime(main_js)
+        src_mtime, src_file = get_latest_source_info()
+        if src_mtime > bundle_mtime:
+            rel_file = os.path.relpath(src_file, APP_DIR)
+            return True, f"تم تعديل: {rel_file}"
+        return False, None
+    except Exception as e:
+        return True, str(e)
 
 def build_web():
-    print("\n[*] Building latest web release bundle...")
+    print("\n" + "=" * 68)
+    print(" [*] جاري إعادة بناء حزمة الويب وتطبيق آخر التعديلات...")
+    print(" [*] Building latest Flutter web bundle from source...")
+    print("=" * 68)
+    t0 = time.time()
     res = subprocess.run(
         ["flutter", "build", "web", "--no-pub", "--no-wasm-dry-run", "--no-tree-shake-icons"],
         cwd=APP_DIR,
         shell=True
     )
     if res.returncode == 0:
-        print("[+] Web bundle compiled successfully!\n")
+        elapsed = time.time() - t0
+        print(f"\n[+] تم بناء الحزمة بنجاح خلال {elapsed:.1f} ثانية! (Built successfully)")
+        clear_browser_cache()
         return True
     else:
-        print("[-] Error compiling web bundle.")
+        print("\n[-] حدث خطأ أثناء بناء الحزمة (flutter build web failed).")
         return False
 
 def run_dev():
-    kill_port_owner(PORT)
+    kill_stale_processes()
+    clear_browser_cache()
     print("\n====================================================================")
-    print(" [Hot Reload Controls in Development Mode]:")
-    print("   - Save any file in your editor (Ctrl + S)")
-    print("   - Press [ r ] for Hot Reload")
-    print("   - Press [ R ] for Full Hot Restart")
-    print("   - Press [ q ] to Quit")
+    print(" [Hot Reload Controls in Live Development Mode]:")
+    print("   - احفظ أي ملف في محرر الأكواد (Ctrl + S)")
+    print("   - اضغط [ r ] للتحديث السريع (Hot Reload)")
+    print("   - اضغط [ R ] للتحديث الشامل (Hot Restart)")
+    print("   - اضغط [ q ] للخروج")
     print("====================================================================\n")
     print("[*] Launching Flutter live development server...")
     user_data = os.path.expandvars(r"%USERPROFILE%\.flutter_chrome_dev")
@@ -306,60 +399,133 @@ def run_dev():
     ]
     subprocess.run(" ".join(cmd), cwd=APP_DIR, shell=True)
 
+def cleanup_on_exit():
+    close_browser()
+    try:
+        dev_profile = os.path.expandvars(r"%TEMP%\kashif_chrome_dev")
+        if os.path.exists(dev_profile):
+            shutil.rmtree(dev_profile, ignore_errors=True)
+    except Exception:
+        pass
+
+atexit.register(cleanup_on_exit)
+
 def main():
     t_start = time.time()
     args = sys.argv[1:]
+
+    # Clean old leftover processes and stale session data before starting
+    kill_stale_processes()
+    clear_browser_cache()
 
     if "--dev" in args or "-d" in args:
         run_dev()
         return
 
-    if "--rebuild" in args or "-r" in args:
-        if build_web():
-            pass
+    force_rebuild = "--rebuild" in args or "-r" in args
+
+    if not force_rebuild:
+        print("====================================================================")
+        print("         Flow Cars - سكربت تشغيل معاينة الهاتف المباشرة (v2)")
+        print("====================================================================")
+        print(" خيارات التشغيل (يتم البدء تلقائياً بالخيار [1] خلال ثانيتين):")
+        print("   [1] تشغيل سريع ونظيف مع فحص التعديلات تلقائياً (Fast Run) *")
+        print("   [2] فرض إعادة البناء من الصفر (Force Rebuild Web Bundle)")
+        print("   [3] وضع التطوير الحي مع التحديث اللحظي (Live Dev Mode / Hot Reload)")
+        print("====================================================================")
+        print(" اختيارك: ", end="", flush=True)
+
+        import msvcrt
+        menu_choice = "1"
+        start_wait = time.time()
+        while time.time() - start_wait < 2.0:
+            if msvcrt.kbhit():
+                ch = msvcrt.getch().decode('utf-8', errors='ignore')
+                if ch in ["1", "2", "3"]:
+                    menu_choice = ch
+                    print(ch)
+                    break
+            time.sleep(0.04)
         else:
-            input("\nPress Enter to exit...")
+            print("1 (تلقائي)")
+
+        if menu_choice == "2":
+            force_rebuild = True
+        elif menu_choice == "3":
+            run_dev()
             return
 
-    # Check if web bundle exists
-    index_path = os.path.join(WEB_DIR, "index.html")
-    if not os.path.exists(index_path):
-        print("[*] Web bundle not found. Compiling for the first time...")
+    if force_rebuild:
         if not build_web():
-            input("\nPress Enter to exit...")
+            input("\nاضغط Enter للخروج...")
             return
-    elif is_web_outdated():
-        print("[*] Newer source code changes detected. Updating web bundle...")
-        if not build_web():
-            print("[!] Continuing with existing build...")
 
-    # Fast port check & kill only if active
+    # Check if web bundle exists or needs recompilation
+    outdated, reason = is_web_outdated()
+    if outdated:
+        print(f"\n[*] تم رصد تغييرات في ملفات التطبيق: ({reason})")
+        print("[*] جاري إعادة تجميع حزمة الويب لعرض التعديلات الجديدة...")
+        if not build_web():
+            print("[!] المتابعة بالنسخة الحالية الموجودة...")
+
+    # Fast port ensure
     kill_port_owner(PORT)
 
     # Launch local HTTP server in background thread
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
 
-    # Wait for server to bind (typically 20-50ms)
+    # Wait for server to bind
     wait_for_server(PORT, timeout=1.5)
 
-    # Launch mobile browser window immediately
+    # Launch mobile browser window with a clean fresh session
     open_mobile_window()
     elapsed = time.time() - t_start
 
+    print("\n====================================================================")
+    print("         Flow Cars - Live Mobile App Preview (v2 Enhanced)")
     print("====================================================================")
-    print("       Flow Cars - Live Mobile App Preview (Fast Mode v2)")
-    print("====================================================================")
-    print(f" [OK] Preview window opened in {elapsed:.2f} seconds!")
-    print(f" Local URL: http://127.0.0.1:{PORT}")
-    print(" Press [Enter] to stop the server and close this window...")
-    print("====================================================================")
+    print(f" [OK] تم تشغيل نافذة المعاينة بنجاح خلال {elapsed:.2f} ثانية!")
+    print(f" الرابط المحلي: http://127.0.0.1:{PORT}")
+    print()
+    print(" [أوامر التحكم التفاعلي أثناء المعاينة]:")
+    print("   [ r ] -> إعادة بناء التطبيق فوراً وعرض التعديلات الجديدة (Rebuild)")
+    print("   [ c ] -> مسح جميع بيانات الكشف وبدء فحص سيارة جديدة نظيفة (Clear Data)")
+    print("   [ o ] -> إعادة فتح نافذة المعاينة إذا أغلقتها (Re-open Window)")
+    print("   [ q ] أو [Enter] -> إغلاق المعاينة ومسح بيانات الجلسة المؤقتة والخروج")
+    print("====================================================================\n")
 
+    import msvcrt
     try:
-        input()
+        while True:
+            if msvcrt.kbhit():
+                ch = msvcrt.getch()
+                if ch in [b'\r', b'\n', b'q', b'Q']:
+                    break
+                elif ch in [b'r', b'R']:
+                    print("\n[*] طلب إعادة البناء فوراً...")
+                    close_browser()
+                    if build_web():
+                        open_mobile_window()
+                        print("[+] تم تحديث المعاينة بالتعديلات الجديدة بنجاح!\n")
+                elif ch in [b'c', b'C']:
+                    print("\n[*] مسح بيانات الكشف والجلسة وبدء تطبيق نظيف تماماً...")
+                    close_browser()
+                    clear_browser_cache()
+                    open_mobile_window()
+                    print("[+] تم تفريغ البيانات القديمة بنجاح والمعاينة جاهزة كأنها لأول مرة!\n")
+                elif ch in [b'o', b'O']:
+                    print("\n[*] إعادة فتح نافذة المعاينة...")
+                    open_mobile_window()
+            time.sleep(0.08)
     except (KeyboardInterrupt, EOFError):
         pass
-    print("Server stopped.")
+
+    print("\n[*] جاري إيقاف السيرفر وتنظيف بيانات المعاينة المؤقتة...")
+    close_browser()
+    kill_stale_processes()
+    clear_browser_cache()
+    print("[+] تم إغلاق المعاينة وحذف البيانات المؤقتة بنجاح.")
 
 if __name__ == "__main__":
     main()

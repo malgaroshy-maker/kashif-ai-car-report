@@ -29,7 +29,8 @@ import '../../core/utils/report_sanitizer.dart';
 import '../../core/utils/pdf_generator.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
-  const ReportScreen({super.key});
+  final VoidCallback? onNavigateToFuses;
+  const ReportScreen({super.key, this.onNavigateToFuses});
 
   @override
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
@@ -698,14 +699,24 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     size: 19,
                     color: primaryColor,
                   ),
-                  tooltip: 'دليل ومكتشف الفيوزات',
+                  tooltip: 'دليل ومخطط علب الفيوزات للسيارة',
                   padding: const EdgeInsets.all(4),
                   constraints: const BoxConstraints(),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const FuseBoxScreen()),
-                    );
+                    if (widget.onNavigateToFuses != null) {
+                      widget.onNavigateToFuses!();
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FuseBoxScreen(
+                            initialVehicleMake: v.make,
+                            initialVehicleModel: v.model,
+                            initialVehicleYear: v.year,
+                          ),
+                        ),
+                      );
+                    }
                   },
                 ),
               ],
@@ -727,6 +738,49 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
             buildSpecRow(label: 'قراءة العداد:', value: v.formattedMileage),
           if (testDate.isNotEmpty)
             buildSpecRow(label: 'تاريخ الفحص:', value: testDate),
+
+          // Direct Action Button to Vehicle Fuses & Diagram
+          Container(
+            margin: const EdgeInsets.only(top: 10),
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: primaryColor,
+                side: BorderSide(
+                  color: primaryColor.withValues(alpha: 0.35),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.electric_bolt_rounded, size: 16),
+              label: Text(
+                'فحص مخطط وعلب فيوزات السيارة مباشرة (${v.make} ${v.model})',
+                style: KashifTypography.arabic(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              onPressed: () {
+                if (widget.onNavigateToFuses != null) {
+                  widget.onNavigateToFuses!();
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FuseBoxScreen(
+                        initialVehicleMake: v.make,
+                        initialVehicleModel: v.model,
+                        initialVehicleYear: v.year,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

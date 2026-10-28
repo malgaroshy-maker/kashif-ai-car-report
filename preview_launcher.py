@@ -275,13 +275,14 @@ def get_latest_source_mtime():
     return latest
 
 def is_web_outdated():
-    index_path = os.path.join(WEB_DIR, "index.html")
-    if not os.path.exists(index_path):
+    main_js = os.path.join(WEB_DIR, "main.dart.js")
+    index_html = os.path.join(WEB_DIR, "index.html")
+    if not os.path.exists(main_js) or not os.path.exists(index_html):
         return True
     try:
-        build_time = os.path.getmtime(index_path)
+        bundle_mtime = os.path.getmtime(main_js)
         source_time = get_latest_source_mtime()
-        return source_time > (build_time + 2)
+        return source_time > bundle_mtime
     except Exception:
         return False
 

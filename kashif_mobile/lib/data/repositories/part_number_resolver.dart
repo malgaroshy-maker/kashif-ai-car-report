@@ -2,11 +2,11 @@ import '../models/spare_part.dart';
 import '../models/vehicle_info.dart';
 import '../storage/hive_storage.dart';
 import '../../core/network/api_client.dart';
+import 'vehicle_parts_catalog.dart';
 
 /// Intelligent Universal OEM & Aftermarket Part Number Resolver.
-/// Resolves authentic manufacturer part numbers across ALL car makes & models
-/// via cloud search grounding, local Hive persistent cache, and verified EPC deep links.
-/// Strictly eliminates hardcoded car-specific lists and synthetic placeholder codes.
+/// Resolves authentic manufacturer part numbers across car makes & models
+/// via local verified EPC catalog rules, cloud search grounding, and persistent cache.
 class PartNumberResolver {
   /// Builds a deterministic cache key for a vehicle and spare part
   static String buildCacheKey({
@@ -29,6 +29,10 @@ class PartNumberResolver {
     VehicleInfo? vehicle,
     required SparePartItem part,
   }) {
+    final vin = vehicle?.cleanVin.trim() ?? '';
+    if (vin.isNotEmpty && vin != 'غير محدد' && vin.length >= 11) {
+      return 'https://partsouq.com/en/search/all?q=${Uri.encodeComponent(vin)}';
+    }
     final car = '${vehicle?.year ?? ""} ${vehicle?.make ?? ""} ${vehicle?.model ?? ""}'.trim();
     final pName = part.partNameEnglish.isNotEmpty ? part.partNameEnglish : part.partNameLibyan;
     final oem = (part.oemPartNumber != null &&
@@ -40,13 +44,20 @@ class PartNumberResolver {
     return 'https://www.google.com/search?q=${Uri.encodeComponent(query)}';
   }
 
-  /// Synchronous enrichment: checks local persistent Hive cache first,
-  /// otherwise preserves valid AI codes or sets clean VIN verification guidance.
-  /// NEVER generates synthetic "-ALT" or fake placeholder codes.
+  /// Synchronous enrichment: checks verified EPC local catalog first,
+  /// then checks local persistent Hive cache, or sets clean VIN verification guidance.
+  /// Corrects hallucinated or mismatched generational part numbers automatically.
   static SparePartItem enrich(
     SparePartItem part, {
     VehicleInfo? vehicle,
   }) {
+    // 1. Primary Check: Verified Vehicle Parts Catalog
+    final catalogMatch = VehiclePartsCatalog.resolve(vehicle: vehicle, part: part);
+    if (catalogMatch != null) {
+      return catalogMatch;
+    }
+
+    // 2. Check local persistent Hive cache
     final cacheKey = buildCacheKey(vehicle: vehicle, part: part);
     final cached = KashifStorage.getCachedPart(cacheKey);
 
@@ -82,14 +93,33 @@ class PartNumberResolver {
     }
 
     final rawOem = part.oemPartNumber?.trim() ?? '';
-    final isOemMissing = rawOem.isEmpty ||
+    final isDummyOem = rawOem.contains('123456') ||
+        rawOem.contains('028100200') ||
+        rawOem.toLowerCase().contains('dummy') ||
+        rawOem.toLowerCase().contains('fake') ||
+        rawOem == '1234567';
+
+    final isOemMissing = isDummyOem ||
+        rawOem.isEmpty ||
         rawOem.toUpperCase() == 'N/A' ||
         rawOem == 'غير محدد' ||
         rawOem == 'غير متوفر' ||
         rawOem == 'null' ||
         rawOem.contains('حسب رقم الهيكل') ||
         rawOem.contains('أصلي وكالة') ||
-        rawOem.contains('وكالة');
+        rawOem.contains('وكالة') ||
+        rawOem.contains('مطابقة برقم الهيكل') ||
+        rawOem.contains('VIN');
+
+    // Clean up hallucinated sequential numbers in aftermarket replacements
+    final cleanReplacements = part.aftermarketReplacements.map((r) {
+      return r
+          .replaceAll(RegExp(r'\b123456\d*\b'), '')
+          .replaceAll(RegExp(r'\b028100200\d*\b'), '')
+          .replaceAll(RegExp(r'\b411[12]\b'), '')
+          .replaceAll(RegExp(r'\b19456[78]\b'), '')
+          .trim();
+    }).where((r) => r.isNotEmpty).toSet().toList();
 
     final searchUrl = part.catalogSearchUrl ??
         generateCatalogSearchUrl(vehicle: vehicle, part: part);
@@ -125,7 +155,7 @@ class PartNumberResolver {
       partNameStandardArabic: part.partNameStandardArabic,
       partNameEnglish: part.partNameEnglish,
       oemPartNumber: rawOem,
-      aftermarketReplacements: part.aftermarketReplacements,
+      aftermarketReplacements: cleanReplacements.isNotEmpty ? cleanReplacements : part.aftermarketReplacements,
       estimatedPriceRangeLYD: part.estimatedPriceRangeLYD,
       systemCategory: part.systemCategory,
       partImageUrl: part.partImageUrl,
@@ -135,16 +165,19 @@ class PartNumberResolver {
     );
   }
 
-  /// Batch enrich a list of spare parts with deduplication guard
+  /// Batch enrich a list of spare parts with catalog grounding and deduplication guard
   static List<SparePartItem> enrichList(
     List<SparePartItem> parts, {
     VehicleInfo? vehicle,
   }) {
+    // 1. Pass through vehicle parts catalog enricher (handles related part dependencies)
+    final catalogEnriched = VehiclePartsCatalog.enrichPartsList(vehicle: vehicle, parts: parts);
+
     final enrichedList = <SparePartItem>[];
     final seenOems = <String>{};
 
-    for (int i = 0; i < parts.length; i++) {
-      final enriched = enrich(parts[i], vehicle: vehicle);
+    for (int i = 0; i < catalogEnriched.length; i++) {
+      final enriched = enrich(catalogEnriched[i], vehicle: vehicle);
       final oem = enriched.oemPartNumber;
 
       // Deduplication guard: if an exact OEM number repeats across different parts,
@@ -191,9 +224,12 @@ class PartNumberResolver {
     final client = apiClient ?? KashifApiClient();
     final effectiveVehicle = vehicle ?? VehicleInfo(vin: '', make: '', model: '', year: '');
 
-    // 1. Identify parts needing resolution
+    // 1. First enrich locally via verified catalog
+    final locallyEnriched = enrichList(parts, vehicle: effectiveVehicle);
+
+    // 2. Identify remaining unverified parts needing resolution
     final unverifiedParts = <SparePartItem>[];
-    for (final p in parts) {
+    for (final p in locallyEnriched) {
       final cacheKey = buildCacheKey(vehicle: effectiveVehicle, part: p);
       final cached = KashifStorage.getCachedPart(cacheKey);
       final rawOem = p.oemPartNumber?.trim() ?? '';
@@ -207,7 +243,7 @@ class PartNumberResolver {
       }
     }
 
-    // 2. Query cloud resolver if needed
+    // 3. Query cloud resolver if needed
     if (unverifiedParts.isNotEmpty && effectiveVehicle.make.isNotEmpty) {
       try {
         final resolvedFromCloud = await client.resolveParts(
@@ -222,7 +258,7 @@ class PartNumberResolver {
       } catch (_) {}
     }
 
-    // 3. Return enriched list from cache & deduplicated
-    return enrichList(parts, vehicle: effectiveVehicle);
+    // 4. Return enriched list from catalog, cache & deduplicated
+    return enrichList(locallyEnriched, vehicle: effectiveVehicle);
   }
 }

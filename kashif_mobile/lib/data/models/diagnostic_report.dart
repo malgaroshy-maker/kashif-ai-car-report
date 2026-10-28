@@ -299,6 +299,17 @@ class DiagnosticReport {
   int get totalFaultsCount =>
       criticalFaults.length + moderateFaults.length + historyFaults.length;
 
+  /// All diagnosed fault codes across critical, moderate, and history lists
+  List<DiagnosticFaultCode> get allFaults =>
+      [...criticalFaults, ...moderateFaults, ...historyFaults];
+
+  /// All unique uppercase fault code strings (e.g. ['P0301', 'SRS-07-02'])
+  List<String> get allFaultCodes => allFaults
+      .map((f) => f.code.trim().toUpperCase())
+      .where((c) => c.isNotEmpty)
+      .toSet()
+      .toList();
+
   /// Returns confirmed sound/passed systems, or dynamically derives non-faulted standard systems
   List<String> get soundSystems {
     if (passedSystems.isNotEmpty) {

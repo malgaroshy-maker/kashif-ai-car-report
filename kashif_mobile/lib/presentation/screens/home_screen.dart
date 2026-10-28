@@ -34,7 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final screens = [
       ScanScreen(onReportReady: () => _navigateToTab(1)),
-      const ReportScreen(),
+      ReportScreen(onNavigateToFuses: () => _navigateToTab(3)),
       DtcLookupScreen(onReportGenerated: () => _navigateToTab(1)),
       const FuseBoxScreen(showAppBar: false),
       const DictionaryScreen(),

@@ -1493,7 +1493,7 @@ class CarFuseRepository {
               ratingAmps: 20,
               descriptionArabic: 'يغذي كويلات الإشعال ومسخنات حساسات الأكسجين O2 ومضخة الهواء الثانوية.',
               symptoms: [
-                'تقطيع وتفتفة حادة في المحرك مع إضاءة لمبة Check Engine',
+                'تقطيع وفطفطة حادة في المحرك مع إضاءة لمبة Check Engine',
                 'المحرك يرجف بشدة ويفقد العزم',
               ],
               associatedDTCs: ['P0300', 'P0351', 'P0135'],
@@ -1871,7 +1871,7 @@ class CarFuseRepository {
               label: 'ECU MAIN',
               nameArabic: 'فيوز كمبيوتر المحرك الرئيسي (Engine Control Module)',
               ratingAmps: 20,
-              descriptionArabic: 'يغذي عقل المحرك الرئيسي ووحدات الحقن.',
+              descriptionArabic: 'يغذي بوكس المحرك الرئيسي ووحدات الحقن.',
               symptoms: ['المحرك قاطع نهائياً', 'غياب الاتصال بجهاز الفحص OBD'],
               associatedDTCs: ['P0685', 'U0100'],
               gridRow: 0,
@@ -2431,7 +2431,7 @@ class CarFuseRepository {
               label: 'EFI MAIN',
               nameArabic: 'فيوز منظومة الحقن وكمبيوتر المحرك',
               ratingAmps: 25,
-              descriptionArabic: 'يغذي عقل المحرك وحساسات الأكسجين والبخاخات.',
+              descriptionArabic: 'يغذي بوكس المحرك وحساسات الأكسجين والبخاخات.',
               symptoms: ['المحرك يدور بالسلف دون تشغيل', 'لمبة Check Engine لا تضيء عند فتح السويتش'],
               associatedDTCs: ['P0685', 'U0100'],
               gridRow: 0,
@@ -2550,7 +2550,7 @@ class CarFuseRepository {
               ratingAmps: 20,
               descriptionArabic: 'التغذية الكهربائية الرئيسية لكمبيوتر السيارة (PCM).',
               symptoms: [
-                'انقطاع كامل عن عقل السيارة ولا توجد إشارة فحص في الطبلون',
+                'انقطاع كامل عن بوكس السيارة ولا توجد إشارة فحص في الطبلون',
                 'المحرك يلف بالسلف دون أي استجابة',
               ],
               associatedDTCs: ['P0685', 'U0100'],
@@ -2746,7 +2746,7 @@ class CarFuseRepository {
               label: 'ECM',
               nameArabic: 'فيوز كمبيوتر المحرك الرئيسي',
               ratingAmps: 20,
-              descriptionArabic: 'التغذية الرئيسية لعقل المحرك.',
+              descriptionArabic: 'التغذية الرئيسية لبوكس المحرك.',
               symptoms: ['المحرك قاطع تماماً وعدم استجابة السكنر'],
               associatedDTCs: ['P0685', 'U0100'],
               gridRow: 0,
@@ -2932,6 +2932,330 @@ class CarFuseRepository {
         ),
       ],
     ),
+    // =========================================================================
+    // 14. Honda Civic (1996 - 2005) - EK / EJ / MB4 / ES
+    // =========================================================================
+    CarVehicleModel(
+      id: 'honda_civic_1996_2005',
+      make: 'Honda',
+      makeArabic: 'هوندا',
+      model: 'Civic',
+      modelArabic: 'سيفيك (Civic EK / MB4 / ES)',
+      yearRange: '1996 - 2005 (Civic Aero / Sedan / Hatchback D14/D15/D16/D17)',
+      bodyType: 'سيدان / هاتشباك / أيرو ستيشن',
+      obdLocation: 'تحت لوحة القيادة جهة السائق يسار الدومان (فيشة OBD-II 16-Pin)، أو فيشة زرقاء 2-Pin/3-Pin بجانب قدم الراكب الأمامي لموديلات ما قبل 2001.',
+      fuseBoxes: [
+        VehicleFuseBox(
+          id: 'honda_civic_engine_bay',
+          nameArabic: 'علبة فيوزات وراميات حجرة المحرك (تحت الكوفنو)',
+          locationType: FuseBoxLocationType.engineBay,
+          detailedLocationArabic: 'في الجانب الأيمن الخلفي من حجرة المحرك، بجانب البطارية.',
+          accessInstructions: 'افتح كوفنو السيارة، اضغط على الكلبس الجانبي لغطاء علبة الفيوزات السوداء واسحب الغطاء لأعلى. ستجد خريطة الفيوزات وملاقط السحب مطبوعة على باطن الغطاء.',
+          realisticCoverNote: 'مخطط علبة فيوزات هوندا سيفيك الأصلية بحجرة المحرك مع ريلي بومبة البنزين والمكيف والمراوح.',
+          slots: [
+            FuseSlot(
+              slotId: 'F41',
+              label: 'BATTERY',
+              nameArabic: 'الفيوز الرئيسي للبطارية (Battery Main)',
+              ratingAmps: 80,
+              descriptionArabic: 'يغذي كامل المنظومة الكهربائية وعموم علب الفيوزات من البطارية مباشرة.',
+              symptoms: ['انقطاع كامل للكهرباء في السيارة مع عدم إضاءة الطبلون'],
+              associatedDTCs: ['U0100', 'P0562'],
+              gridRow: 0,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'F42',
+              label: 'IGN SWITCH',
+              nameArabic: 'فيوز سويتش الكونتاك الرئيسي (Ignition Switch)',
+              ratingAmps: 50,
+              descriptionArabic: 'يغذي مفتاح التشغيل والكونتاك وبوكس المحرك.',
+              symptoms: ['المحرك لا يلف نهائياً ولا يستجيب للمفتاح'],
+              associatedDTCs: ['P0685', 'U0100'],
+              gridRow: 0,
+              gridCol: 1,
+            ),
+            FuseSlot(
+              slotId: 'F43',
+              label: 'HEADLIGHT',
+              nameArabic: 'فيوز الفنارات الرئيسية',
+              ratingAmps: 40,
+              descriptionArabic: 'يغذي الفنارات الأمامية العالي والواطي.',
+              symptoms: ['انطفاء الفنارات الأمامية بالكامل'],
+              associatedDTCs: [],
+              gridRow: 0,
+              gridCol: 2,
+            ),
+            FuseSlot(
+              slotId: 'F44',
+              label: 'RAD FAN',
+              nameArabic: 'فيوز وريليه مروحة الرداتوري (Cooling Fan)',
+              ratingAmps: 20,
+              descriptionArabic: 'يغذي مروحة تبريد الرداتوري الرئيسية.',
+              symptoms: ['ارتفاع حرارة المحرك أثناء الوقوف أو في الزحام'],
+              associatedDTCs: ['P0117', 'P0118'],
+              gridRow: 1,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'F45',
+              label: 'CONDENSER',
+              nameArabic: 'فيوز مروحة كوندنسر المكيف (AC Fan)',
+              ratingAmps: 20,
+              descriptionArabic: 'يغذي مروحة مكيف السيارة والكوندنسر.',
+              symptoms: ['ضعف تبريد المكيف وارتفاع ضغط الغاز عند التوقف'],
+              associatedDTCs: [],
+              gridRow: 1,
+              gridCol: 1,
+            ),
+            FuseSlot(
+              slotId: 'F46',
+              label: 'BACK UP',
+              nameArabic: 'فيوز ذاكرة بوكس المحرك والراديو (Back Up Clock)',
+              ratingAmps: 7,
+              descriptionArabic: 'يحافظ على ذاكرة بوكس المحرك ECU وساعة الطبلون وإعدادات الراديو.',
+              symptoms: ['تصفير ساعة الطبلون ومسح ذاكرة التعلم لبوكس المحرك عند إطفاء السويتش'],
+              associatedDTCs: ['P1607', 'U0100'],
+              gridRow: 1,
+              gridCol: 2,
+            ),
+            FuseSlot(
+              slotId: 'F47',
+              label: 'HORN / STOP',
+              nameArabic: 'فيوز كلاكس ولمبات الستوب الخلفية',
+              ratingAmps: 20,
+              descriptionArabic: 'يغذي بوق التنبيه ولمبات الفرامل الخلفية.',
+              symptoms: ['تعطل الفلاكس وعدم إضاءة لمبات الفرامل الخلفية'],
+              associatedDTCs: [],
+              gridRow: 2,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'F48',
+              label: 'ABS MTR',
+              nameArabic: 'فيوز بومبة منظومة مانع الانغلاق ABS',
+              ratingAmps: 30,
+              descriptionArabic: 'يغذي موتور وبومبة صمام ABS.',
+              symptoms: ['إضاءة لمبة ABS في الطبلون وتوقف المنظومة'],
+              associatedDTCs: ['ABS-51', 'ABS-53', 'C0020'],
+              gridRow: 2,
+              gridCol: 1,
+            ),
+            FuseSlot(
+              slotId: 'R1',
+              label: 'AC CLUTCH',
+              nameArabic: 'ريليه كمبروسر المكيف (A/C Clutch Relay)',
+              ratingAmps: 20,
+              descriptionArabic: 'ريلي تشغيل كلتش كمبروسر مكيف الهواء.',
+              symptoms: ['المكيف يخرج هواء ساخناً وعدم دوران كلتش الكمبروسر'],
+              associatedDTCs: [],
+              isRelay: true,
+              gridRow: 3,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'R2',
+              label: 'FAN RELAY',
+              nameArabic: 'ريليه مروحة الرداتوري (Fan Relay)',
+              ratingAmps: 30,
+              descriptionArabic: 'ريلي تشغيل مروحة تبريد الرداتوري بأمر من حساس الحرارة وبوكس المحرك.',
+              symptoms: ['غليان مية الرداتوري وارتفاع مؤشر الحرارة'],
+              associatedDTCs: ['P0117', 'P0217'],
+              isRelay: true,
+              gridRow: 3,
+              gridCol: 1,
+            ),
+          ],
+        ),
+        VehicleFuseBox(
+          id: 'honda_civic_cabin',
+          nameArabic: 'علبة فيوزات الصالون (تحت الستيرسو / الدومان)',
+          locationType: FuseBoxLocationType.cabin,
+          detailedLocationArabic: 'تحت الطبلون من جهة السائق، فوق مسند القدم اليسار وخلف غطاء التخزين الصغير.',
+          accessInstructions: 'افتح باب السائق، انظر تحت الدومان جهة اليسار، انزع الغطاء البلاستيكي الصغير لتصل إلى صفوف الفيوزات المرقمة.',
+          realisticCoverNote: 'لوحة فيوزات الصالون الأصلية لهوندا سيفيك متضمنة فيوز بوبينة الديلكو وفيوز الإيرباق وبومبة البنزين.',
+          slots: [
+            FuseSlot(
+              slotId: 'F31',
+              label: 'COIL / IGN',
+              nameArabic: 'فيوز بوبينة الديلكو والإشعال (Ignition Coil)',
+              ratingAmps: 15,
+              descriptionArabic: 'يغذي بوبينة الإشعال وموزع الشرارة (الديلكو) وأسلاك البوجيهات في محركات هوندا D15/D16/D17.',
+              symptoms: [
+                'انقطاع الشرارة تماماً وتوقف المحرك عن الدوران',
+                'فطفطة حادة في بسطونات المحرك وضعف سحب شديد',
+                'إضاءة لمبة Check Engine مع أكواد P0300 - P0304',
+              ],
+              associatedDTCs: ['P0300', 'P0301', 'P0302', 'P0303', 'P0304', 'P1399'],
+              testingTip: 'افحص وصول 12V بالسويتش على فيشة الديلكو/البوبينة.',
+              gridRow: 0,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'F42',
+              label: 'SRS AIRBAG',
+              nameArabic: 'فيوز بوكس الوسائد الهوائية (SRS Unit)',
+              ratingAmps: 10,
+              descriptionArabic: 'يغذي وحدة التحكم الإلكترونية للوسائد الهوائية (كمبيوتر SRS) وشريط الدومان.',
+              symptoms: [
+                'إضاءة لمبة SRS الإيرباق حمراء بشكل دائم في الطبلون',
+                'عدم استجابة بوكس الإيرباق لجهاز الفحص أو تسجيل كود انقطاع تغذية',
+              ],
+              associatedDTCs: ['SRS-07-02', 'SRS-09-02', 'B1801', 'B1811', 'B1155'],
+              testingTip: 'تأكد من سلامة الفيوز قبل الحكم على تلف كمبيوتر الوسائد الهوائية.',
+              gridRow: 0,
+              gridCol: 1,
+            ),
+            FuseSlot(
+              slotId: 'F24',
+              label: 'FUEL PUMP',
+              nameArabic: 'فيوز بومبة البنزين والريلي الرئيسي (PGM-FI)',
+              ratingAmps: 15,
+              descriptionArabic: 'يغذي مضخة الوقود (بومبة البنزين) والريلي الرئيسي PGM-FI Main Relay ورشاشات الوقود.',
+              symptoms: [
+                'المحرك يدور بالمارش (الموتورينو) لكن لا يشتغل نهائياً',
+                'عدم سماع صوت زنّة بومبة البنزين عند فتح السويتش',
+                'انقطاع ضغط البنزين عن مسطرة الرشاشات',
+              ],
+              associatedDTCs: ['P0171', 'P0087', 'P0685', 'P1399'],
+              testingTip: 'عند فتح السويتش يجب أن تسمع طقة الريلي الرئيسي تحت التابلوه مع اشتغال البومبة ثانيتين.',
+              gridRow: 0,
+              gridCol: 2,
+            ),
+            FuseSlot(
+              slotId: 'F13',
+              label: 'STARTER SIG',
+              nameArabic: 'فيوز إشارة الموتورينو وبوكس المحرك (Starter Signal)',
+              ratingAmps: 7,
+              descriptionArabic: 'يرسل إشارة بدء التشغيل لبوكس المحرك وموتورينو السلف.',
+              symptoms: ['الموتورينو لا يعمل ولا يعطي أي صوت عند تدوير المفتاح'],
+              associatedDTCs: ['P0615'],
+              gridRow: 1,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'F15',
+              label: 'ALT / VSS',
+              nameArabic: 'فيوز الدينمو وحساس السرعة (Alternator / Speed Sensor)',
+              ratingAmps: 7,
+              descriptionArabic: 'يغذي دارة شحن الدينمو وحساس سرعة السيارة VSS.',
+              symptoms: [
+                'تذبذب عداد السرعة في الطبلون أو توقفه عن العمل',
+                'إضاءة لمبة البطارية والدينمو لا يشحن بطارية السيارة',
+              ],
+              associatedDTCs: ['P0500', 'P0501', 'P0562'],
+              gridRow: 1,
+              gridCol: 1,
+            ),
+            FuseSlot(
+              slotId: 'F25',
+              label: 'METER',
+              nameArabic: 'فيوز لوحة العدادات ومؤشرات الطبلون (Meter)',
+              ratingAmps: 7,
+              descriptionArabic: 'يغذي مؤشرات السرعة والحرارة والبنزين وإنارات الطبلون التحذيرية.',
+              symptoms: ['انطفاء كامل لمؤشرات لوحة العدادات'],
+              associatedDTCs: ['U0155'],
+              gridRow: 1,
+              gridCol: 2,
+            ),
+            FuseSlot(
+              slotId: 'F45',
+              label: 'WIPER',
+              nameArabic: 'فيوز محرك المساحات وبومبة المية',
+              ratingAmps: 20,
+              descriptionArabic: 'يغذي موتور مساحات الزجاج الأمامي ومضخة غسيل الزجاج.',
+              symptoms: ['توقف مساحات الزجاج الأمامي تماماً عن العمل'],
+              associatedDTCs: [],
+              gridRow: 2,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'F44',
+              label: 'CIGAR',
+              nameArabic: 'فيوز مخرج ولاعة السجائر والشاحن 12V',
+              ratingAmps: 15,
+              descriptionArabic: 'يغذي مخرج شاحن الهاتف والولاعة.',
+              symptoms: ['مخرج الشاحن لا يعمل'],
+              associatedDTCs: [],
+              gridRow: 2,
+              gridCol: 1,
+            ),
+            FuseSlot(
+              slotId: 'R3',
+              label: 'PGM-FI RELAY',
+              nameArabic: 'الريلي الرئيسي للبومبة وبوكس المحرك (Main Relay)',
+              ratingAmps: 30,
+              descriptionArabic: 'الريلي الرئيسي المشهور في سيارات هوندا (PGM-FI Main Relay)، يتحكم في تشغيل بومبة البنزين والرشاشات وبوكس المحرك.',
+              symptoms: [
+                'السيارة لا تشتغل خصوصاً عندما تكون ساخنة أو متوقفة تحت الشمس',
+                'الموتورينو يلف بسرعة لكن المحرك لا يدور لعدم وصول البنزين',
+              ],
+              associatedDTCs: ['P0685', 'P0171'],
+              isRelay: true,
+              gridRow: 3,
+              gridCol: 0,
+            ),
+          ],
+        ),
+      ],
+    ),
+    // =========================================================================
+    // 15. Hyundai Santa Fe (2006 - 2012) - CM
+    // =========================================================================
+    CarVehicleModel(
+      id: 'hyundai_santa_fe_cm',
+      make: 'Hyundai',
+      makeArabic: 'هيونداي',
+      model: 'Santa Fe',
+      modelArabic: 'سنتافي (Santa Fe CM)',
+      yearRange: '2006 - 2012 (CM 2.7L / 3.3L / 3.5L)',
+      bodyType: 'SUV / فورويل',
+      obdLocation: 'تحت لوحة القيادة جهة السائق يسار الدومان، خلف غطاء الفيوزات الصغير.',
+      fuseBoxes: [
+        VehicleFuseBox(
+          id: 'santa_fe_engine_bay',
+          nameArabic: 'علبة فيوزات وراميات حجرة المحرك',
+          locationType: FuseBoxLocationType.engineBay,
+          detailedLocationArabic: 'في الجهة اليسرى لحجرة المحرك بجانب البطارية وفلتر الهواء.',
+          accessInstructions: 'افتح كوفنو السيارة، اضغط على ألسنة الغطاء الأسود من الجانبين وارفع الغطاء.',
+          slots: [
+            FuseSlot(
+              slotId: 'F_IGN',
+              label: 'IGN COIL',
+              nameArabic: 'فيوز بوبينات الإشعال ومسخنات حساسات الأكسجين',
+              ratingAmps: 20,
+              descriptionArabic: 'يغذي كويلات وبوبينات الإشعال الستة ومسخنات حساسات المرميطة O2 وحساس الكام والكرنك.',
+              symptoms: ['فطفطة قوية في المحرك وإضاءة لمبة Check Engine'],
+              associatedDTCs: ['P0300', 'P0301', 'P0302', 'P0351', 'P0135', 'P0030'],
+              gridRow: 0,
+              gridCol: 0,
+            ),
+            FuseSlot(
+              slotId: 'F_EVAP',
+              label: 'SENSOR 2',
+              nameArabic: 'فيوز صمام بخر البنزين (Purge Valve) وحساسات المحرك',
+              ratingAmps: 15,
+              descriptionArabic: 'يغذي صمام التحكم في تصريف أبخرة الوقود (EVAP Purge Solenoid) وحساسات الفاب.',
+              symptoms: ['تسجيل أكواد تسريب أبخرة البنزين P0440 / P0442 / P0455 وصعوبة تشغيل بعد التزويد بالوقود'],
+              associatedDTCs: ['P0440', 'P0442', 'P0455', 'P0441'],
+              gridRow: 0,
+              gridCol: 1,
+            ),
+            FuseSlot(
+              slotId: 'F_B_PUMP',
+              label: 'F/PUMP',
+              nameArabic: 'فيوز بومبة البنزين (Fuel Pump)',
+              ratingAmps: 15,
+              descriptionArabic: 'يغذي مضخة الوقود داخل خزان البنزين.',
+              symptoms: ['المحرك لا يشتغل لعدم وصول الوقود'],
+              associatedDTCs: ['P0087', 'P0171'],
+              gridRow: 0,
+              gridCol: 2,
+            ),
+          ],
+        ),
+      ],
+    ),
   ];
 
   /// Search cars by query (Brand, Model, Year, Body type, Code like W204, E90, F30)
@@ -2997,21 +3321,51 @@ class CarFuseRepository {
     final cleanMake = make.trim().toLowerCase();
     final cleanModel = (model ?? '').trim().toLowerCase();
 
-    // Try exact make and model match
+    // 1. Try exact or substring make and model match
     for (final c in supportedCars) {
       final cMake = c.make.toLowerCase();
       final cModel = c.model.toLowerCase();
-      if ((cMake.contains(cleanMake) || cleanMake.contains(cMake)) &&
-          cleanModel.isNotEmpty &&
-          (cModel.contains(cleanModel) || cleanModel.contains(cModel))) {
-        return c;
+      final isMakeMatch = cMake.contains(cleanMake) ||
+          cleanMake.contains(cMake) ||
+          c.makeArabic.toLowerCase().contains(cleanMake);
+      if (isMakeMatch) {
+        if (cleanModel.isNotEmpty &&
+            (cModel.contains(cleanModel) ||
+                cleanModel.contains(cModel) ||
+                c.modelArabic.toLowerCase().contains(cleanModel))) {
+          return c;
+        }
       }
     }
 
-    // Fallback: match by make only
+    // 2. Tokenized word match on model (e.g. Civic Aero -> Civic, Santa Fe -> Santa Fe)
+    final modelTokens = cleanModel
+        .split(RegExp(r'[^a-zA-Z0-9]+'))
+        .where((w) => w.length >= 3)
+        .toList();
+
+    for (final c in supportedCars) {
+      final cMake = c.make.toLowerCase();
+      final cModel = c.model.toLowerCase();
+      final isMakeMatch = cMake.contains(cleanMake) ||
+          cleanMake.contains(cMake) ||
+          c.makeArabic.toLowerCase().contains(cleanMake);
+      if (isMakeMatch && modelTokens.isNotEmpty) {
+        for (final token in modelTokens) {
+          if (cModel.contains(token) ||
+              c.id.contains(token) ||
+              c.yearRange.toLowerCase().contains(token)) {
+            return c;
+          }
+        }
+      }
+    }
+
+    // 3. Fallback: match by make only
     for (final c in supportedCars) {
       if (c.make.toLowerCase().contains(cleanMake) ||
-          cleanMake.contains(c.make.toLowerCase())) {
+          cleanMake.contains(c.make.toLowerCase()) ||
+          c.makeArabic.toLowerCase().contains(cleanMake)) {
         return c;
       }
     }
@@ -3026,9 +3380,14 @@ class CarFuseRepository {
     String query = '',
     bool? relaysOnly,
     String? dtcCode,
+    List<String>? dtcCodes,
   }) {
     final cleanQuery = query.trim().toLowerCase();
     final cleanDtc = (dtcCode ?? '').trim().toUpperCase();
+    final cleanDtcSet = (dtcCodes ?? [])
+        .map((d) => d.trim().toUpperCase())
+        .where((d) => d.isNotEmpty)
+        .toSet();
 
     final List<FuseSlot> results = [];
     final boxesToSearch = (boxId != null && boxId.isNotEmpty)
@@ -3044,6 +3403,12 @@ class CarFuseRepository {
 
         if (cleanDtc.isNotEmpty) {
           if (!slot.associatedDTCs.any((d) => d.toUpperCase().contains(cleanDtc))) {
+            continue;
+          }
+        }
+
+        if (cleanDtcSet.isNotEmpty) {
+          if (!slot.associatedDTCs.any((d) => cleanDtcSet.any((c) => d.toUpperCase().contains(c) || c.contains(d.toUpperCase())))) {
             continue;
           }
         }

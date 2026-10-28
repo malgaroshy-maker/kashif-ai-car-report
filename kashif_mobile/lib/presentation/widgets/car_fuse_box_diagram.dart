@@ -73,7 +73,7 @@ class _CarFuseBoxDiagramState extends State<CarFuseBoxDiagram> {
     if (text.contains('fan') || text.contains('مروحة') || text.contains('رداتوري')) {
       return Icons.toys_rounded;
     }
-    if (text.contains('ecu') || text.contains('dme') || text.contains('كمبيوتر') || text.contains('عقل')) {
+    if (text.contains('ecu') || text.contains('dme') || text.contains('كمبيوتر') || text.contains('عقل') || text.contains('بوكس')) {
       return Icons.memory_rounded;
     }
     if (text.contains('obd') || text.contains('فحص') || text.contains('سكنر')) {

@@ -865,8 +865,12 @@ class KashifPdfGenerator {
                       ? ReportSanitizer.clean(p.aftermarketReplacements.join(' • '))
                       : 'أصلي أو حسب المتوفر';
                   final rawOem = p.oemPartNumber?.trim() ?? '';
-                  final oemDisplay = (rawOem.isEmpty || rawOem.toUpperCase() == 'N/A' || rawOem == 'null')
-                      ? 'أصلي وكالة'
+                  final oemDisplay = (rawOem.isEmpty ||
+                          rawOem.toUpperCase() == 'N/A' ||
+                          rawOem == 'null' ||
+                          rawOem.contains('مطابقة') ||
+                          rawOem.contains('VIN'))
+                      ? 'مطابقة بالهيكل'
                       : rawOem;
                   return [
                     priceStr,
@@ -876,6 +880,25 @@ class KashifPdfGenerator {
                   ];
                 }).toList(),
               ),
+              if (report.vehicle.cleanVin.isNotEmpty && report.vehicle.cleanVin != 'غير محدد') ...[
+                pw.SizedBox(height: 4),
+                pw.Align(
+                  alignment: pw.Alignment.centerLeft,
+                  child: pw.UrlLink(
+                    destination: 'https://partsouq.com/en/search/all?q=${report.vehicle.cleanVin}',
+                    child: pw.Text(
+                      '🔗 فتح كتالوج الوكالة برقم الهيكل',
+                      style: pw.TextStyle(
+                        font: arabicBoldFont,
+                        fontSize: 7.5,
+                        color: PdfColor.fromHex('0284C7'),
+                        decoration: pw.TextDecoration.underline,
+                      ),
+                      textDirection: pw.TextDirection.rtl,
+                    ),
+                  ),
+                ),
+              ],
               pw.SizedBox(height: 12),
             ],
 

@@ -271,8 +271,9 @@ ${dictionaryContext}
   * عند عطل عوامة البنزين: انصح بـ "تنظيف مسارات المقاومة الكربونية في العوامة بالسبراي قبل الاستبدال".
   * عند أعطال تسريب هواء أو خليط وقود فقير: انصح بـ "فحص خراطيم الهواء بسبراي كاربراتير أو جهاز الدخان قبل استبدال الحساسات".
 2-د. كودات قطع الغيار الأصلية والبديلة (OEM & Aftermarket Part Codes):
-- لكل قطعة في مصفوفة sparePartsRequired، يجب توفير رقم القطعة الأصلي للوكالة (oemPartNumber) المطابق تماماً لبيانات وطراز وسنة وهيكل السيارة (VIN) بصيغة المصنع الرسمية (مثل: "73970-06010", "89467-33080", "12131748017", "93480-2H000"). ممنوع منعاً باتاً كتابة عبارة حسب رقم الهيكل أو تركها فارغة.
-- في البدائل المعتمدة (aftermarketReplacements)، يجب توفير كودات القطع البديلة من كبرى الشركات العالمية الصانعة مرفقة بأرقامها وكوداتها الدقيقة (مثل: ["Denso 673-1301", "Bosch 0221504029"]).
+- تنبيه صارم لمنع الهلوسة: ممنوع منعاً باتاً اختراع أو توليد أرقام قطع غيار وهمية أو تسلسلية (مثل 1234567 أو 0281002001 أو بادئات عشوائية مكررة)!
+- لكل قطعة في مصفوفة sparePartsRequired، ضع رقم القطعة الأصلي للوكالة (oemPartNumber) فقط إذا كنت متأكداً منه بنسبة 100% لنفس موديل وسنة ومحرك ورقم هيكل السيارة (VIN). إذا لم تكن متأكداً بنسبة 100%، اترك القيمة null أو اكتب "مطابقة برقم الهيكل (VIN)".
+- في البدائل المعتمدة (aftermarketReplacements): اذكر أسماء الشركات العالمية الصانعة الموثوقة للقطعة (مثل: ["Denso", "Bosch", "NGK", "Delphi", "TRW", "Aisin"]) دون اختراع أرقام متسلسلة وهمية.
 
 3. يجب أن يكون ردك بصيغة JSON مطابقة تماماً للهيكل التالي:
 {
@@ -385,11 +386,9 @@ ${rawInput.scannerTool ? `جهاز الفحص كما طبعه التقرير ح�
 ${rawInput.vehicleInfo?.vin ? `رقم الهيكل VIN: ${rawInput.vehicleInfo.vin}\n` : ""}
 ${rawInput.vehicleInfo?.make ? `الصانع: ${rawInput.vehicleInfo.make} ${rawInput.vehicleInfo.model || ""} ${rawInput.vehicleInfo.year || ""}\n` : ""}
 مطلوب في جدول قطع الغيار (sparePartsRequired):
-ابحث في الإنترنت وقواعد بيانات قطع الغيار العالمية (مثل RockAuto, PartsMonkey, RealOEM, Catcar, Amayama, أو المواقع الرسمية للشركات الصانعة) عن أرقام القطع الأصلية المطابقة بدقة لموديل السيارة وسنتها ومحركها ورقم هيكلها VIN المذكورين أعلاه.
-- لكل قطعة، ضع رقم الوكالة الأصلي الحقيقي (oemPartNumber) بصيغته الرسمية الدقيقة للشركة الصانعة.
-- ممنوع تكرار نفس رقم القطعة لقطع مختلفة في نفس التقرير!
-- وفّر كودات القطع البديلة المعتمدة (aftermarketReplacements) من شركات موثوقة (مثل Bosch, Denso, NGK, Delphi, TRW, Valeo, Febi, Mann) مع أرقامها وكوداتها الدقيقة.
-- إذا لم يتوفر رقم الهيكل، ابحث وطابق بدقة حسب (سنة الصنع + الشركة الصانعة + الموديل + سعة المحرك ومواصفاته).
+- لا تضع رقم القطعة الأصلي للوكالة (oemPartNumber) إلا إذا كان مؤكداً 100% لنفس السيارة ومواصفاتها، وإذا لم تكن متأكداً اتركه null (ممنوع اختراع أرقام وهمية أو متسلسلة مثل 1234567 إطلاقاً!).
+- حدد أسماء شركات البدائل التجارية الموثوقة (aftermarketReplacements) من شركات معروفة (مثل Bosch, Denso, NGK, Delphi, TRW, Valeo, Febi, Mann, Aisin) دون تلفيق أرقام متتالية.
+- كود العطل وحده لا يعني بالضرورة شراء قطعة جديدة دون عزل وفحص (مثال: عطل إيرباق المقود قد يكون شريط الدومان وليس الوسادة الهوائية).
 `;
 
   const contents: unknown[] = [];
@@ -771,8 +770,10 @@ export function normalizeDiagnosticReport(
     (part: RawPart, idx: number) => {
       let resolvedOem = oemOrNull(pick(part.oemPartNumber));
       if (resolvedOem) {
-        // Prevent duplicate OEM numbers from being assigned across distinct parts in the same report
-        if (seenOemNumbers.has(resolvedOem)) {
+        // Filter out dummy/hallucinated numbers
+        if (/123456|028100200|dummy|fake|sample/i.test(resolvedOem)) {
+          resolvedOem = null;
+        } else if (seenOemNumbers.has(resolvedOem)) {
           resolvedOem = null;
         } else {
           seenOemNumbers.add(resolvedOem);
@@ -794,7 +795,9 @@ export function normalizeDiagnosticReport(
           // parts counter. Same filter the odometer already uses.
           oemPartNumber: resolvedOem,
           isOemNumberUnverified: !statedInScan(resolvedOem),
-          aftermarketReplacements: part.aftermarketReplacements ?? [],
+          aftermarketReplacements: (part.aftermarketReplacements ?? []).map((r: string) =>
+            r.replace(/\b123456\d*\b/g, "").replace(/\b028100200\d*\b/g, "").replace(/\b411[12]\b/g, "").replace(/\b19456[78]\b/g, "").trim()
+          ).filter(Boolean),
           estimatedPriceRangeLYD: price
             ? {
                 min: price.min,

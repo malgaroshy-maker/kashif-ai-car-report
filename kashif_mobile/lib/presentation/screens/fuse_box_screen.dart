@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/car_fuse_box.dart';
+import '../../data/models/diagnostic_report.dart';
 import '../../data/repositories/car_fuse_repository.dart';
+import '../providers/report_provider.dart';
 import '../widgets/car_fuse_box_diagram.dart';
 
-class FuseBoxScreen extends StatefulWidget {
+class FuseBoxScreen extends ConsumerStatefulWidget {
   final String? initialDtcFilter;
   final String? initialVehicleMake;
   final String? initialVehicleModel;
+  final String? initialVehicleYear;
   final bool showAppBar;
 
   const FuseBoxScreen({
@@ -16,14 +20,15 @@ class FuseBoxScreen extends StatefulWidget {
     this.initialDtcFilter,
     this.initialVehicleMake,
     this.initialVehicleModel,
+    this.initialVehicleYear,
     this.showAppBar = true,
   });
 
   @override
-  State<FuseBoxScreen> createState() => _FuseBoxScreenState();
+  ConsumerState<FuseBoxScreen> createState() => _FuseBoxScreenState();
 }
 
-class _FuseBoxScreenState extends State<FuseBoxScreen> {
+class _FuseBoxScreenState extends ConsumerState<FuseBoxScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -35,16 +40,31 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
   String _searchQuery = '';
   bool? _relaysFilter; // null = all, false = fuses only, true = relays only
   bool _showVisualDiagram = true;
+  String? _lastSyncedReportId;
+  bool _manuallyChangedCar = false;
+  bool _filterByReportDtcs = false;
 
   @override
   void initState() {
     super.initState();
+    DiagnosticReport? activeReport;
+    try {
+      activeReport = ref.read(reportProvider).report;
+    } catch (_) {
+      activeReport = null;
+    }
+    final make = widget.initialVehicleMake ?? activeReport?.vehicle.make;
+    final model = widget.initialVehicleModel ?? activeReport?.vehicle.model;
+    final year = widget.initialVehicleYear ?? activeReport?.vehicle.year;
+
     _selectedCar = CarFuseRepository.matchCar(
-      make: widget.initialVehicleMake,
-      model: widget.initialVehicleModel,
+      make: make,
+      model: model,
+      year: year,
     ) ?? CarFuseRepository.supportedCars.first;
 
     _selectedBox = _selectedCar.fuseBoxes.first;
+    _lastSyncedReportId = activeReport?.reportId;
 
     if (widget.initialDtcFilter != null &&
         widget.initialDtcFilter!.isNotEmpty) {
@@ -63,6 +83,7 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
 
   void _onCarChanged(CarVehicleModel newCar) {
     setState(() {
+      _manuallyChangedCar = true;
       _selectedCar = newCar;
       _selectedBox = newCar.fuseBoxes.first;
       _selectedSlot = null;
@@ -101,6 +122,45 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    DiagnosticReport? activeReport;
+    try {
+      activeReport = ref.watch(reportProvider).report;
+    } catch (_) {
+      activeReport = null;
+    }
+
+    // Auto-sync car when active report exists and hasn't been synced to _selectedCar yet
+    if (activeReport != null &&
+        activeReport.reportId != _lastSyncedReportId &&
+        !_manuallyChangedCar) {
+      _lastSyncedReportId = activeReport.reportId;
+      final matched = CarFuseRepository.matchCar(
+        make: activeReport.vehicle.make,
+        model: activeReport.vehicle.model,
+        year: activeReport.vehicle.year,
+      );
+      if (matched != null && matched.id != _selectedCar.id) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _selectedCar = matched;
+              _selectedBox = matched.fuseBoxes.first;
+              _selectedSlot = null;
+            });
+          }
+        });
+      }
+    }
+
+    final reportDtcs = activeReport?.allFaultCodes ?? [];
+
+    final matchingReportSlotsCount =
+        activeReport != null && reportDtcs.isNotEmpty
+            ? CarFuseRepository.searchFuses(
+                car: _selectedCar,
+                dtcCodes: reportDtcs,
+              ).length
+            : 0;
 
     final filteredSlots = CarFuseRepository.searchFuses(
       car: _selectedCar,
@@ -108,6 +168,7 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
       query: _searchQuery,
       relaysOnly: _relaysFilter,
       dtcCode: _dtcFilter,
+      dtcCodes: _filterByReportDtcs ? reportDtcs : null,
     );
 
     return Scaffold(
@@ -157,6 +218,15 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
         children: [
           // 1. Compact Unified Vehicle Bar (Only ~68px, Sleek & High-Tech)
           _buildCompactVehicleHeader(isDark),
+
+          // 1.b. Active Report Direct Connection Banner
+          if (activeReport != null)
+            _buildReportSyncBanner(
+              context,
+              activeReport,
+              matchingReportSlotsCount,
+              isDark,
+            ),
 
           // 2. Compact Location Switcher Pills (حوض المحرك / المقصورة / الشنطة / موقع فريد)
           _buildCompactLocationBar(isDark),
@@ -223,6 +293,112 @@ class _FuseBoxScreenState extends State<FuseBoxScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// 1.b. Active Report Sync Banner (Auto-grounded to report vehicle & DTCs)
+  Widget _buildReportSyncBanner(
+    BuildContext context,
+    DiagnosticReport activeReport,
+    int matchingFusesCount,
+    bool isDark,
+  ) {
+    final v = activeReport.vehicle;
+    final primaryColor =
+        isDark ? const Color(0xFFD4AF37) : const Color(0xFF1E40AF);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 6, 14, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: primaryColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(
+          color: primaryColor.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.auto_awesome_rounded,
+            size: 16,
+            color: primaryColor,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'سيارة الفحص بالتقرير الحالي (ربط تلقائي مباشر):',
+                  style: KashifTypography.arabic(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: primaryColor,
+                  ),
+                ),
+                Text(
+                  '${v.formattedTitle} ${v.cleanVin.isNotEmpty ? "• هيكل " + v.cleanVin : ""}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: KashifTypography.arabic(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (matchingFusesCount > 0)
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _filterByReportDtcs = !_filterByReportDtcs;
+                  if (_filterByReportDtcs) {
+                    _searchQuery = '';
+                    _searchController.clear();
+                  }
+                });
+              },
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _filterByReportDtcs ? primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: primaryColor),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _filterByReportDtcs
+                          ? Icons.check_circle_rounded
+                          : Icons.filter_alt_rounded,
+                      size: 12,
+                      color: _filterByReportDtcs
+                          ? (isDark ? Colors.black : Colors.white)
+                          : primaryColor,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'أعطال الفحص ($matchingFusesCount)',
+                      style: KashifTypography.arabic(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: _filterByReportDtcs
+                            ? (isDark ? Colors.black : Colors.white)
+                            : primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

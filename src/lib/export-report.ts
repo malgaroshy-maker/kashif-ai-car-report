@@ -714,10 +714,10 @@ export async function downloadReportHtml(
 
             <div style="background: var(--board); padding: 8px 10px; border: 1px solid var(--rule); margin-bottom: 8px;">
               <div style="font-size: 10px; color: var(--ink-2);">رقم الوكالة (OEM):</div>
-              <div class="ltr-chunk" style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--amp-20);">${p.oemPartNumber}</div>
+              <div class="ltr-chunk" style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--amp-20);">${p.oemPartNumber || "مطابقة برقم الهيكل (VIN)"}</div>
               ${
-                p.oemPartNumber && p.isOemNumberUnverified
-                  ? `<div style="font-size: 9px; color: var(--ink-3); margin-top: 3px; line-height: 1.4;">من المساعد، مش من جهاز الفحص — أكّده مع المحل على رقم هيكل سيارتك.</div>`
+                !p.oemPartNumber || p.isOemNumberUnverified
+                  ? `<div style="font-size: 9px; color: var(--ink-3); margin-top: 3px; line-height: 1.4;">أرقام قطع الغيار تخضع للمطابقة برقم الهيكل (VIN) لدى الوكيل لضمان مطابقة الفيش والمواصفات.</div>`
                   : ""
               }
             </div>
