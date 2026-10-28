@@ -31,8 +31,16 @@ if errorlevel 1 goto NO_FLUTTER
 
 :FLUTTER_FOUND
 echo [2/4] Preparing build directory...
-set "BUILD_DIR=%PROJECT_ROOT%"
-cd /d "%BUILD_DIR%"
+:: Map project to virtual drive K: to bypass Dart AOT snapshotter non-ASCII Arabic path bug on Windows
+subst K: /d >nul 2>nul
+subst K: "%PROJECT_ROOT%" >nul 2>nul
+if exist "K:\" (
+    set "BUILD_DIR=K:"
+    cd /d K:\
+) else (
+    set "BUILD_DIR=%PROJECT_ROOT%"
+    cd /d "%BUILD_DIR%"
+)
 
 set "CHOICE=%~1"
 if "%CHOICE%"=="--arm64" set CHOICE=1
@@ -95,7 +103,8 @@ goto BUILD_ARM64
 
 :FIND_APK
 set "APK_FILE="
-if exist "%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk" set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk"
+if exist "%BUILD_DIR%\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk" set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"
+if not defined APK_FILE if exist "%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk" set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk"
 if not defined APK_FILE (
     for /f "delims=" %%F in ('dir /b /a:-d /o:-d "%BUILD_DIR%\build\app\outputs\flutter-apk\*.apk" 2^>nul') do (
         if not defined APK_FILE set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\%%F"
@@ -132,6 +141,7 @@ echo  3. If HyperOS warns about unknown source, allow installation.
 echo ======================================================================
 echo.
 
+subst K: /d >nul 2>nul
 if not "%NON_INTERACTIVE%"=="1" (
     explorer.exe "%OUTPUT_DIR%"
 )
@@ -156,6 +166,7 @@ if not "%NON_INTERACTIVE%"=="1" pause
 exit /b 1
 
 :BUILD_ERROR
+subst K: /d >nul 2>nul
 echo.
 echo ======================================================================
 echo  [ERROR] Build failed! Check the Gradle/Flutter error messages above.

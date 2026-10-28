@@ -31,8 +31,17 @@ if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-$buildDir = $projectRoot
-Set-Location -Path $buildDir
+# Map project to virtual drive K: to bypass Dart AOT snapshotter non-ASCII Arabic path bug on Windows
+$substDrive = "K:"
+subst $substDrive /d 2>$null
+subst $substDrive "$projectRoot" 2>$null
+if (Test-Path "$substDrive\") {
+    $buildDir = "$substDrive\"
+    Set-Location -Path $buildDir
+} else {
+    $buildDir = $projectRoot
+    Set-Location -Path $buildDir
+}
 
 Write-Host "[1/3] Fetching dependencies..." -ForegroundColor Gray
 flutter pub get
@@ -46,8 +55,11 @@ Remove-Item -Path (Join-Path $destDir "kashif_poco_x7_pro.apk") -Force -ErrorAct
 Write-Host "[2/3] Compiling optimized ARM64 release for Poco X7 Pro..." -ForegroundColor Yellow
 flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons --android-skip-build-dependency-validation
 
+$arm64Apk = Join-Path $buildDir "build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"
 $standardApk = Join-Path $buildDir "build\app\outputs\flutter-apk\app-release.apk"
-if (Test-Path $standardApk) {
+if (Test-Path $arm64Apk) {
+    $apkSrc = $arm64Apk
+} elseif (Test-Path $standardApk) {
     $apkSrc = $standardApk
 } else {
     $newestApk = Get-ChildItem -Path @(
@@ -87,10 +99,12 @@ if ($apkSrc) {
     Write-Host "======================================================================" -ForegroundColor Green
     Write-Host ""
     
+    subst $substDrive /d 2>$null
     if (-not $env:CI -and -not $env:NON_INTERACTIVE) {
         try { Invoke-Item $destDir } catch {}
     }
 } else {
+    subst $substDrive /d 2>$null
     Write-Host ""
     Write-Host "[ERROR] APK build output was not found." -ForegroundColor Red
     exit 1
