@@ -32,18 +32,6 @@ if errorlevel 1 goto NO_FLUTTER
 :FLUTTER_FOUND
 echo [2/4] Preparing build directory...
 set "BUILD_DIR=%PROJECT_ROOT%"
-
-if not exist "C:\" goto SETUP_DIR_DONE
-if exist "C:\kashif_build\pubspec.yaml" goto USE_JUNCTION
-
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { New-Item -ItemType Junction -Path 'C:\kashif_build' -Target '%PROJECT_ROOT%' -Force -ErrorAction SilentlyContinue | Out-Null } catch {}" >nul 2>nul
-if exist "C:\kashif_build\pubspec.yaml" goto USE_JUNCTION
-goto SETUP_DIR_DONE
-
-:USE_JUNCTION
-set "BUILD_DIR=C:\kashif_build"
-
-:SETUP_DIR_DONE
 cd /d "%BUILD_DIR%"
 
 set "CHOICE=%~1"
@@ -107,12 +95,10 @@ goto BUILD_ARM64
 
 :FIND_APK
 set "APK_FILE="
-for /f "delims=" %%F in ('dir /b /a:-d /o:-d "%BUILD_DIR%\build\app\outputs\flutter-apk\*.apk" 2^>nul') do (
-    if not defined APK_FILE set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\%%F"
-)
+if exist "%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk" set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\app-release.apk"
 if not defined APK_FILE (
-    for /f "delims=" %%F in ('dir /b /a:-d /o:-d "%PROJECT_ROOT%\build\app\outputs\flutter-apk\*.apk" 2^>nul') do (
-        if not defined APK_FILE set "APK_FILE=%PROJECT_ROOT%\build\app\outputs\flutter-apk\%%F"
+    for /f "delims=" %%F in ('dir /b /a:-d /o:-d "%BUILD_DIR%\build\app\outputs\flutter-apk\*.apk" 2^>nul') do (
+        if not defined APK_FILE set "APK_FILE=%BUILD_DIR%\build\app\outputs\flutter-apk\%%F"
     )
 )
 
@@ -122,6 +108,8 @@ if not exist "%APK_FILE%" goto BUILD_ERROR
 :COPY_OUTPUT
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 copy /y "%APK_FILE%" "%OUTPUT_DIR%\kashif_poco_x7_pro.apk" > nul
+copy /y "%APK_FILE%" "%WORKSPACE_ROOT%\flowcars_release.apk" > nul 2>nul
+copy /y "%APK_FILE%" "%PROJECT_ROOT%\kashif-poco-arm64.apk" > nul 2>nul
 if errorlevel 1 goto COPY_ERROR
 if not exist "%OUTPUT_DIR%\kashif_poco_x7_pro.apk" goto COPY_ERROR
 

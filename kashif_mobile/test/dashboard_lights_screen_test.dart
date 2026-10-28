@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kashif_mobile/presentation/screens/dashboard_lights_screen.dart';
-import 'package:kashif_mobile/data/repositories/dashboard_lights_repository.dart';
 
 void main() {
   testWidgets('DashboardLightsScreen renders clean list and details sheet with causes', (tester) async {

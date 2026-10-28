@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kashif_mobile/presentation/screens/fuse_box_screen.dart';
-import 'package:kashif_mobile/data/repositories/car_fuse_repository.dart';
 
 void main() {
   testWidgets('FuseBoxScreen renders car selector, locations, diagram and Arabic fuse directory', (tester) async {

@@ -2,8 +2,8 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "          🚗 Kashif AI - Poco X7 Pro APK Builder" -ForegroundColor Green
-Write-Host "          📱 Architecture: ARM64-v8a (Dimensity 8400-Ultra / 64-bit)" -ForegroundColor Yellow
+Write-Host "          [Kashif AI] - Poco X7 Pro APK Builder" -ForegroundColor Green
+Write-Host "          Architecture: ARM64-v8a (Dimensity 8400-Ultra / 64-bit)" -ForegroundColor Yellow
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 $projectRoot = $PSScriptRoot
@@ -32,27 +32,6 @@ if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
 }
 
 $buildDir = $projectRoot
-$junctionPath = "C:\kashif_build"
-
-try {
-    if (Test-Path "C:\") {
-        if (Test-Path $junctionPath) {
-            $currentTarget = (Get-Item $junctionPath -ErrorAction SilentlyContinue).Target
-            if ($currentTarget -ne $projectRoot) {
-                Remove-Item $junctionPath -Force -ErrorAction SilentlyContinue
-            }
-        }
-        if (-not (Test-Path $junctionPath)) {
-            New-Item -ItemType Junction -Path $junctionPath -Target $projectRoot -Force -ErrorAction SilentlyContinue | Out-Null
-        }
-        if (Test-Path (Join-Path $junctionPath "pubspec.yaml")) {
-            $buildDir = $junctionPath
-        }
-    }
-} catch {
-    $buildDir = $projectRoot
-}
-
 Set-Location -Path $buildDir
 
 Write-Host "[1/3] Fetching dependencies..." -ForegroundColor Gray
@@ -67,17 +46,21 @@ Remove-Item -Path (Join-Path $destDir "kashif_poco_x7_pro.apk") -Force -ErrorAct
 Write-Host "[2/3] Compiling optimized ARM64 release for Poco X7 Pro..." -ForegroundColor Yellow
 flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons --android-skip-build-dependency-validation
 
-$apkSrc = $null
-$newestApk = Get-ChildItem -Path @(
-    (Join-Path $buildDir "build\app\outputs\flutter-apk\*.apk"),
-    (Join-Path $projectRoot "build\app\outputs\flutter-apk\*.apk")
-) -ErrorAction SilentlyContinue |
-    Where-Object { $_.Name -notmatch "unaligned" } |
-    Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1
+$standardApk = Join-Path $buildDir "build\app\outputs\flutter-apk\app-release.apk"
+if (Test-Path $standardApk) {
+    $apkSrc = $standardApk
+} else {
+    $newestApk = Get-ChildItem -Path @(
+        (Join-Path $buildDir "build\app\outputs\flutter-apk\*.apk"),
+        (Join-Path $projectRoot "build\app\outputs\flutter-apk\*.apk")
+    ) -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notmatch "unaligned" } |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
 
-if ($newestApk) {
-    $apkSrc = $newestApk.FullName
+    if ($newestApk) {
+        $apkSrc = $newestApk.FullName
+    }
 }
 
 if ($apkSrc) {
@@ -88,6 +71,11 @@ if ($apkSrc) {
     
     $destFile = Join-Path $destDir "kashif_poco_x7_pro.apk"
     Copy-Item -Path $apkSrc -Destination $destFile -Force
+
+    # Also sync root and mobile helper copies to eliminate stale APK confusion
+    $workspaceRoot = Split-Path $projectRoot -Parent
+    Copy-Item -Path $apkSrc -Destination (Join-Path $workspaceRoot "flowcars_release.apk") -Force -ErrorAction SilentlyContinue
+    Copy-Item -Path $apkSrc -Destination (Join-Path $projectRoot "kashif-poco-arm64.apk") -Force -ErrorAction SilentlyContinue
     
     $fileSizeMB = [math]::Round(((Get-Item $destFile).Length / 1MB), 2)
     
@@ -99,7 +87,9 @@ if ($apkSrc) {
     Write-Host "======================================================================" -ForegroundColor Green
     Write-Host ""
     
-    Invoke-Item $destDir
+    if (-not $env:CI -and -not $env:NON_INTERACTIVE) {
+        try { Invoke-Item $destDir } catch {}
+    }
 } else {
     Write-Host ""
     Write-Host "[ERROR] APK build output was not found." -ForegroundColor Red

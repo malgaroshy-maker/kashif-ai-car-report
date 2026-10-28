@@ -3,7 +3,7 @@ chcp 65001 >nul
 setlocal
 
 echo ========================================================
-echo    تثبيت تطبيق كاشف (Kashif) على POCO F5 Pro
+echo    تثبيت تطبيق كاشف (Kashif) على POCO X7 / X7 Pro
 echo ========================================================
 echo.
 
@@ -16,9 +16,16 @@ if %errorlevel% neq 0 (
         set "ADB_PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe"
     ) else (
         echo [!] تعذر العثور على أداة adb تلقائياً.
-        echo يمكنك نقل ملف kashif-poco-f5-pro.apk إلى هاتفك وتثبيته مباشرة.
+        echo يمكنك نقل ملف APK_OUTPUT\kashif_poco_x7_pro.apk إلى هاتفك وتثبيته مباشرة.
         pause
         exit /b 1
+    )
+)
+
+set "TARGET_APK=%~dp0APK_OUTPUT\kashif_poco_x7_pro.apk"
+if not exist "%TARGET_APK%" (
+    if exist "%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-release.apk" (
+        set "TARGET_APK=%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-release.apk"
     )
 )
 
@@ -26,8 +33,8 @@ echo [*] جاري البحث عن الأجهزة المتصلة عبر USB / Wi-
 "%ADB_PATH%" devices
 
 echo.
-echo [*] جاري تثبيت التطبيق على الهاتف...
-"%ADB_PATH%" install -r "%~dp0kashif-poco-f5-pro.apk"
+echo [*] جاري تثبيت التطبيق (%TARGET_APK%)...
+"%ADB_PATH%" install -r "%TARGET_APK%"
 
 if %errorlevel% equ 0 (
     echo.
