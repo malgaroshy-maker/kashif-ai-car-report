@@ -22,11 +22,18 @@ if %errorlevel% neq 0 (
     )
 )
 
-set "TARGET_APK=%~dp0APK_OUTPUT\kashif_poco_x7_pro.apk"
-if not exist "%TARGET_APK%" (
-    if exist "%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-release.apk" (
-        set "TARGET_APK=%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-release.apk"
-    )
+set "TARGET_APK="
+if exist "%~dp0APK_OUTPUT\kashif_poco_x7_pro.apk" set "TARGET_APK=%~dp0APK_OUTPUT\kashif_poco_x7_pro.apk"
+if not defined TARGET_APK if exist "%~dp0kashif_mobile\APK_OUTPUT\kashif_poco_x7_pro.apk" set "TARGET_APK=%~dp0kashif_mobile\APK_OUTPUT\kashif_poco_x7_pro.apk"
+if not defined TARGET_APK if exist "%~dp0flowcars_release.apk" set "TARGET_APK=%~dp0flowcars_release.apk"
+if not defined TARGET_APK if exist "%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk" set "TARGET_APK=%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-arm64-v8a-release.apk"
+if not defined TARGET_APK if exist "%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-release.apk" set "TARGET_APK=%~dp0kashif_mobile\build\app\outputs\flutter-apk\app-release.apk"
+
+if not defined TARGET_APK (
+    echo [!] لم يتم العثور على ملف APK جاهز للتثبيت.
+    echo يرجى تشغيل سكربت "بناء_تطبيق_بوكو_Poco_X7_Pro.bat" أولاً لبناء النسخة.
+    pause
+    exit /b 1
 )
 
 echo [*] جاري البحث عن الأجهزة المتصلة عبر USB / Wi-Fi...
@@ -43,7 +50,7 @@ if %errorlevel% equ 0 (
     "%ADB_PATH%" shell monkey -p ly.kashif.app.kashif_mobile -c android.intent.category.LAUNCHER 1 >nul 2>&1
 ) else (
     echo.
-    echo [!] فشل التثبيت التلقائي عبر ADB. تأكد من تفعيل "تصحيح أخطاء USB" (USB Debugging) في إعدادات المطور، أو انسخ ملف kashif-poco-f5-pro.apk لهاتفك وثبته يدوياً.
+    echo [!] فشل التثبيت التلقائي عبر ADB. تأكد من تفعيل "تصحيح أخطاء USB" (USB Debugging) في إعدادات المطور، أو انسخ ملف kashif_poco_x7_pro.apk لهاتفك وثبته يدوياً.
 )
 
 echo.

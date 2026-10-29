@@ -2280,6 +2280,61 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
 
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: isDark ? KashifColors.goldLight : KashifColors.royalBlue,
+                side: BorderSide(
+                  color: (isDark ? KashifColors.goldPrimary : KashifColors.royalBlue).withValues(alpha: 0.5),
+                  width: 1,
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text('مسح الذاكرة وتحديث البيانات', style: KashifTypography.arabic(fontWeight: FontWeight.bold)),
+                    content: Text(
+                      'سيتم مسح التقارير وذاكرة قطع الغيار المؤقتة لإعادة قراءة وفحص التقارير بأحدث الأكواد والتحديثات فورياً. هل أنت متأكد؟',
+                      style: KashifTypography.arabic(fontSize: 13),
+                    ),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('مسح الآن'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  await KashifStorage.clearAllCaches();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('تم مسح الذاكرة المؤقتة بنجاح، التطبيق جاهز للفحص بأحدث التحديثات!'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
+              label: Text(
+                'تحديث ومسح الذاكرة المؤقتة (تحديث شامل)',
+                style: KashifTypography.arabic(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
             const SizedBox(height: 24),
             Center(
               child: Column(

@@ -1,16 +1,8 @@
 @echo off
-chcp 65001 > nul
 setlocal
-
-cd /d "%~dp0kashif_mobile"
-call build_poco_apk.bat %*
+cd /d "%~dp0"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0kashif_mobile\build_poco_apk.ps1" %*
 if errorlevel 1 (
     echo.
-    echo ======================================================================
-    echo  [خطأ] فشلت عملية البناء. يرجى مراجعة التعليمات أعلاه.
-    echo ======================================================================
     pause
-    exit /b 1
 )
-
-exit /b 0

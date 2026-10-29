@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../core/constants/app_version.dart';
 import '../models/diagnostic_report.dart';
 import '../models/report_sections_config.dart';
 
@@ -17,6 +18,22 @@ class KashifStorage {
     await _safeOpenBox<Map>(reportsBoxName);
     await _safeOpenBox(settingsBoxName);
     await _safeOpenBox<Map>(partsCacheBoxName);
+
+    // Auto-invalidate outdated cache when app version or serial changes
+    try {
+      final lastSerial = settingsBox.get('app_last_serial');
+      if (lastSerial != AppVersion.serial) {
+        debugPrint('KashifStorage: New version/serial detected ($lastSerial -> ${AppVersion.serial}). Purging stale report & parts cache...');
+        await partsCacheBox.clear();
+        final staleKeys = settingsBox.keys.where((k) => k.toString().startsWith('fp_')).toList();
+        for (final k in staleKeys) {
+          await settingsBox.delete(k);
+        }
+        await settingsBox.put('app_last_serial', AppVersion.serial);
+      }
+    } catch (e) {
+      debugPrint('KashifStorage: Version cache invalidation error: $e');
+    }
   }
 
   static Future<void> _safeOpenBox<T>(String name) async {
@@ -194,6 +211,20 @@ class KashifStorage {
   // Clear all saved reports
   static Future<void> clearAllReports() async {
     await reportsBox.clear();
+  }
+
+  /// Manually clears all caches (fingerprints, parts cache, reports) to force fresh scan
+  static Future<void> clearAllCaches() async {
+    try {
+      await partsCacheBox.clear();
+      final staleKeys = settingsBox.keys.where((k) => k.toString().startsWith('fp_')).toList();
+      for (final k in staleKeys) {
+        await settingsBox.delete(k);
+      }
+      await clearAllReports();
+    } catch (e) {
+      debugPrint('clearAllCaches error: $e');
+    }
   }
 
   // Settings getters & setters
