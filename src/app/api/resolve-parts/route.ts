@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { resolveActiveApiKey } from "@/lib/gemini";
 import { KashifError } from "@/lib/errors";
+import { VehiclePartsCatalog } from "@/lib/vehicle-parts-catalog";
 
 // In-memory cache for resolved parts across requests
 const partsCache = new Map<string, {
@@ -40,8 +41,29 @@ export async function POST(req: NextRequest) {
     const resolvedResults = [];
     const partsToQuery: PartInput[] = [];
 
-    // 1. Check in-memory cache
+    // 0. Primary Check: Verified Vehicle Parts Catalog
+    const remainingAfterCatalog: PartInput[] = [];
     for (const part of parts) {
+      const catalogMatch = VehiclePartsCatalog.resolve(vehicle, part as any);
+      if (catalogMatch) {
+        const item = {
+          id: part.id,
+          oemPartNumber: catalogMatch.oemPartNumber || "مطابقة برقم الهيكل (VIN)",
+          aftermarketReplacements: catalogMatch.aftermarketReplacements || [],
+          estimatedPriceRangeLYD: catalogMatch.estimatedPriceRangeLYD || { min: 70, max: 180 },
+          confidence: "verified" as const,
+          catalogSearchUrl: catalogMatch.catalogSearchUrl || VehiclePartsCatalog.generateCatalogSearchUrl(vehicle, catalogMatch),
+        };
+        const partName = part.partNameEnglish || part.partNameStandardArabic || part.partNameLibyan || "part";
+        partsCache.set(buildCacheKey(vehicle, partName), item);
+        resolvedResults.push(item);
+      } else {
+        remainingAfterCatalog.push(part);
+      }
+    }
+
+    // 1. Check in-memory cache for remainder
+    for (const part of remainingAfterCatalog) {
       const partName = part.partNameEnglish || part.partNameStandardArabic || part.partNameLibyan || "part";
       const key = buildCacheKey(vehicle, partName);
       if (partsCache.has(key)) {

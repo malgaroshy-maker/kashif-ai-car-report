@@ -2,6 +2,7 @@ import { escapeDeep, escapeHtml, safeFilenamePart } from "./html-escape";
 import { getPartSvg } from "./part-visuals";
 import { getElectricalDiagnosticsForCode, scanContext } from "./sensor-locator";
 import { orUnknown, type KashifDiagnosticReport, type ReportSectionsConfig, DEFAULT_REPORT_SECTIONS } from "./types";
+import { ReportSanitizer } from "./report-sanitizer";
 
 /**
  * The three ways a report leaves the screen.
@@ -212,7 +213,7 @@ export async function downloadReportHtml(
     // enforceable place: the template has hundreds of interpolation points and
     // one missed call is the whole hole. `svg` is merged in afterwards from the
     // ORIGINAL part, because it is the one value that must stay real markup.
-    const safe = escapeDeep(report);
+    const safe = ReportSanitizer.sanitizeReport(escapeDeep(report));
 
     const faultCats = safe?.faultCategories || {
       criticalFaults: [],

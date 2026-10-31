@@ -6,6 +6,9 @@ import { tryAgyPrompt, parseAgyJson } from "@/lib/agy";
 import { callApinexChat, parseApinexJson } from "@/lib/apinex";
 import { KashifError, errorPayload } from "@/lib/errors";
 import { resolveModelId } from "@/lib/models";
+import { KashifDiagnosticReport } from "@/lib/types";
+import { ReportSanitizer } from "@/lib/report-sanitizer";
+import { VehiclePartsCatalog } from "@/lib/vehicle-parts-catalog";
 
 /**
  * The demo reports, put through the same normaliser a real analysis goes
@@ -30,6 +33,15 @@ function demoReport(sample: unknown) {
 /** Uploads are base64'd for the model; cap before that. */
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ALLOWED_MIME = /^(application\/pdf|image\/(jpeg|png|webp))$/;
+
+function finalizeReport(rawReport: unknown, scanInput: any): KashifDiagnosticReport {
+  let rep = normalizeDiagnosticReport(rawReport, scanInput);
+  rep = ReportSanitizer.sanitizeReport(rep);
+  if (rep.vehicle && Array.isArray(rep.sparePartsRequired)) {
+    rep.sparePartsRequired = VehiclePartsCatalog.enrichPartsList(rep.vehicle, rep.sparePartsRequired);
+  }
+  return rep;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -130,7 +142,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        report = normalizeDiagnosticReport(report, scanInput);
+        report = finalizeReport(report, scanInput);
 
         return NextResponse.json({ success: true, report });
       } else {
@@ -241,7 +253,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    report = normalizeDiagnosticReport(report, body);
+    report = finalizeReport(report, body);
 
     return NextResponse.json({ success: true, report });
   } catch (error) {

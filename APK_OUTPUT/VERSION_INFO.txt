@@ -2,10 +2,10 @@
  Flow Cars / Kashif AI (Poco X7 Pro Edition)
 ======================================================================
  Application  : Flow Cars
- Version      : 1.2.5
- Build Number : 8
- Serial       : KASHIF-V1.2.5-B8-20261029
- Build Date   : 2026-10-29 08:37:44
+ Version      : 1.2.6
+ Build Number : 9
+ Serial       : KASHIF-V1.2.6-B9-20261031
+ Build Date   : 2026-10-31 08:25:25
  Target       : ARM64-v8a (MediaTek Dimensity 8400-Ultra / 64-bit)
  Status       : FRESH BUILD COMPLETE
 ======================================================================

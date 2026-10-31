@@ -81,6 +81,7 @@ class ReportSummary {
 
 class DiagnosticReport {
   final String reportId;
+  String get id => reportId;
   final String generatedAt;
   final ScannerInfo scannerInfo;
   final VehicleInfo vehicle;

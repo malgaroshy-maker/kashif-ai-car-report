@@ -57,7 +57,7 @@ export const LIBYAN_DICTIONARY: DictionaryEntry[] = [
   { libyanTerm: "بيّلا", standardArabic: "ذراع التوصيل (البيالة)", english: "Connecting rod (biella)", category: "المحرك ونقل الحركة" },
   { libyanTerm: "كمبيو / كامبيو", standardArabic: "علبة التروس (الفتيس/القير)", english: "Gearbox / transmission (cambio)", category: "المحرك ونقل الحركة" },
   { libyanTerm: "كونفيرتا / طنجرة الكمبيو", standardArabic: "محول العزم الهيدروليكي للقير", english: "Torque converter (convertitore)", category: "المحرك ونقل الحركة" },
-  { libyanTerm: "عقل الكمبيو / الفالف بدي", standardArabic: "مجمع الصمامات الكهرومغناطيسية للقير", english: "Valve body / Mechatronic unit", category: "المحرك ونقل الحركة" },
+  { libyanTerm: "بوكس الكمبيو / الفالف بدي", standardArabic: "مجمع الصمامات الكهرومغناطيسية للقير", english: "Valve body / Mechatronic unit", category: "المحرك ونقل الحركة" },
   { libyanTerm: "صبورتوات المحرك والكمبيو", standardArabic: "كراسي وقواعد تثبيت المحرك والقير", english: "Engine & transmission mounts (supporti)", category: "المحرك ونقل الحركة" },
   { libyanTerm: "مارشا", standardArabic: "ذراع تعشيق السرعات", english: "Gear shift lever", category: "المحرك ونقل الحركة" },
   { libyanTerm: "عمود نقل الحركة", standardArabic: "عمود نقل الحركة (الكردان)", english: "Propeller / drive shaft", category: "المحرك ونقل الحركة" },

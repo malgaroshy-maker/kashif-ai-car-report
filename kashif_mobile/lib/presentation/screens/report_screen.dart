@@ -25,8 +25,10 @@ import 'report_compare_screen.dart';
 import 'fuse_box_screen.dart';
 import 'dashboard_lights_screen.dart';
 import 'dtc_lookup_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/report_sanitizer.dart';
 import '../../core/utils/pdf_generator.dart';
+import '../../data/repositories/part_number_resolver.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToFuses;
@@ -1038,9 +1040,51 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(12),
-      itemCount: parts.length,
+      itemCount: parts.length + 1,
       itemBuilder: (context, index) {
-        return SparePartCard(part: parts[index], vehicle: vehicle);
+        if (index == 0) {
+          final catalogUrl = PartNumberResolver.generateVehicleCatalogUrl(vehicle: vehicle);
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark
+                    ? const Color(0xFF132347)
+                    : const Color(0xFFE8F0FC),
+                foregroundColor: isDark
+                    ? KashifColors.goldLight
+                    : KashifColors.royalBlue,
+                elevation: 0,
+                side: BorderSide(
+                  color: isDark
+                      ? KashifColors.goldPrimary.withValues(alpha: 0.5)
+                      : KashifColors.royalBlue.withValues(alpha: 0.35),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                final uri = Uri.parse(catalogUrl);
+                try {
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                } catch (_) {}
+              },
+              icon: const Icon(Icons.menu_book_rounded, size: 18),
+              label: Text(
+                'فتح كتالوج ومخططات الوكالة برقم الهيكل 🔍',
+                style: KashifTypography.arabic(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          );
+        }
+        return SparePartCard(part: parts[index - 1], vehicle: vehicle);
       },
     );
   }

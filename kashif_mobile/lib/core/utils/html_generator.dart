@@ -14,7 +14,6 @@ import '../theme/colors.dart';
 import '../theme/typography.dart';
 import 'web_downloader.dart';
 import 'report_sanitizer.dart';
-import 'report_qr_helper.dart';
 
 class KashifHtmlGenerator {
   // HTML escape helper
@@ -42,10 +41,6 @@ class KashifHtmlGenerator {
     final workshopName = KashifStorage.workshopName;
     final workshopPhone = KashifStorage.workshopPhone;
 
-    final qrSvg = ReportQrHelper.generateQrSvg(
-      ReportQrHelper.buildQrInspectionSummary(report),
-      size: 125,
-    );
 
     final technicianName =
         (workshopName.trim().isNotEmpty &&
@@ -320,47 +315,17 @@ class KashifHtmlGenerator {
       font-weight: 600;
       color: var(--text);
     }
-    .qr-verification-card {
+    .certified-endorsement-card {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-right: 4px solid #D4AF37;
+      border-right: 4px solid #2E9E5B;
       border-radius: 6px;
-      padding: 14px 16px;
-      margin-top: 18px;
-    }
-    .qr-svg-container {
-      flex-shrink: 0;
-      background: #FFFFFF !important;
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid rgba(0,0,0,0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .qr-info {
-      flex: 1;
-    }
-    .qr-heading {
-      font-size: 13.5px;
-      font-weight: 800;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .qr-subtext {
-      font-size: 11.5px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 4px;
-    }
-    .qr-specs {
-      font-size: 10px;
-      color: #D4AF37;
-      font-weight: 700;
-      letter-spacing: 0.5px;
+      padding: 12px 16px;
+      margin-top: 16px;
     }
     .footer {
       text-align: center;
@@ -375,10 +340,6 @@ class KashifHtmlGenerator {
         flex-direction: column-reverse;
         align-items: flex-start;
         gap: 10px;
-      }
-      .qr-verification-card {
-        flex-direction: column;
-        text-align: center;
       }
     }
     /* Specific overrides for Dark Mode */
@@ -542,13 +503,6 @@ class KashifHtmlGenerator {
         padding: 4px 6px !important;
         font-size: 10px !important;
         color: #0F172A !important;
-      }
-      .qr-verification-card {
-        padding: 6px 10px !important;
-        margin-top: 8px !important;
-        background: #FFFFFF !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
       }
       .footer {
         margin-top: 8px !important;
@@ -749,25 +703,30 @@ class KashifHtmlGenerator {
             <th>الاسم بالإنجليزية</th>
             <th>رقم الوكالة (OEM)</th>
             <th>السعر التقديري (د.ل)</th>
-            <th>البدائل</th>
+            <th>البدائل المعتمدة</th>
           </tr>
         </thead>
         <tbody>
-          ${spareParts.map((p) {
+          ${PartNumberResolver.enrichList(spareParts, vehicle: report.vehicle).map((p) {
             final rawOem = p.oemPartNumber?.trim() ?? '';
-            final oemDisplay = (rawOem.isEmpty || rawOem.toUpperCase() == 'N/A' || rawOem == 'null') ? 'أصلي وكالة' : rawOem;
+            final oemDisplay = (rawOem.isEmpty || rawOem.toUpperCase() == 'N/A' || rawOem == 'null' || rawOem.contains('مطابقة')) ? 'مطابقة بالهيكل' : rawOem;
+            final searchUrl = p.catalogSearchUrl ?? PartNumberResolver.generateCatalogSearchUrl(vehicle: report.vehicle, part: p);
+            final cleanLibyan = ReportSanitizer.clean(p.partNameLibyan);
             return '''
           <tr>
-            <td><strong>${esc(ReportSanitizer.clean(p.partNameLibyan))}</strong></td>
+            <td><strong><a href="${esc(searchUrl)}" target="_blank" style="color: #0284C7; text-decoration: underline;">${esc(cleanLibyan)} 🔍</a></strong></td>
             <td>${esc(p.partNameEnglish)}</td>
-            <td style="font-family: monospace; font-weight: bold;">${esc(oemDisplay)}</td>
-            <td style="font-weight: bold; color: var(--amp-30);">${p.estimatedPriceRangeLYD != null ? '${p.estimatedPriceRangeLYD!.min.toInt()} - ${p.estimatedPriceRangeLYD!.max.toInt()} د.ل' : 'غير مسعر'}</td>
-            <td>${esc(p.aftermarketReplacements.join(', '))}</td>
+            <td style="font-family: monospace; font-weight: bold;"><a href="${esc(searchUrl)}" target="_blank" style="color: #0284C7; text-decoration: underline;">${esc(oemDisplay)}</a></td>
+            <td style="font-weight: bold; color: var(--amp-30);">${p.estimatedPriceRangeLYD != null ? '${p.estimatedPriceRangeLYD!.min.toInt()} - ${p.estimatedPriceRangeLYD!.max.toInt()} د.ل' : 'حسب السوق'}</td>
+            <td>${esc(p.aftermarketReplacements.join(' • '))}</td>
           </tr>
           ''';
           }).join('')}
         </tbody>
       </table>
+      <div style="margin-top: 8px; text-align: left;">
+        <a href="${esc(PartNumberResolver.generateVehicleCatalogUrl(vehicle: report.vehicle))}" target="_blank" style="color: #0284C7; font-weight: bold; font-size: 11px; text-decoration: underline;">🔗 فتح كتالوج الوكالة برقم الهيكل (البحث المباشر عن المخططات والقطع)</a>
+      </div>
     </div>
     ''' : ''}
 
@@ -837,15 +796,15 @@ class KashifHtmlGenerator {
       <div><strong>التوقيع / الختم:</strong> ____________________</div>
     </div>
 
-    <div class="qr-verification-card">
-      <div class="qr-svg-container">
-        $qrSvg
+    <div class="certified-endorsement-card">
+      <div>
+        <div style="font-weight: 800; font-size: 13.5px; color: var(--text);">شهادة فحص وتشخيص فني معتمدة • Flow Cars</div>
+        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">تقرير فحص رسمي موثق | رقم التقرير: ${esc(report.id.substring(0, report.id.length > 8 ? 8 : report.id.length).toUpperCase())}</div>
       </div>
-      <div class="qr-info">
-        <div class="qr-heading">رمز التحقق الذكي والمشاركة (QR Code)</div>
-        <div class="qr-subtext">امسح الكود بكاميرا أي هاتف محمول لقراءة وتأكيد ملخص الفحص الفني وحالة الأعطال فوراً دون الحاجة إلى إنترنت.</div>
-        <div class="qr-specs">Flow Cars Certified Diagnostic Summary</div>
+      <div style="font-size: 12px; font-weight: bold; color: var(--amp-30); background: rgba(46, 158, 91, 0.14); border: 1px solid rgba(46, 158, 91, 0.35); padding: 5px 12px; border-radius: 4px;">
+        ✓ فحص معتمد
       </div>
+    </div>
     </div>
 
     <div class="footer">

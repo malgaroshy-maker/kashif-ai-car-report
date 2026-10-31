@@ -32,7 +32,7 @@ export function PartsBank({
 }: {
   parts: SparePartItem[];
   selectedPartId?: string;
-  vehicle?: { make?: string; model?: string; year?: string | number };
+  vehicle?: { make?: string; model?: string; year?: string | number; vin?: string };
 }) {
   if (parts.length === 0) return null;
 
@@ -73,7 +73,7 @@ function PartCell({
 }: {
   part: SparePartItem;
   selected: boolean;
-  vehicle?: { make?: string; model?: string; year?: string | number };
+  vehicle?: { make?: string; model?: string; year?: string | number; vin?: string };
 }) {
   const [copied, setCopied] = React.useState(false);
   const photo = usePartPhoto(part, vehicle);
@@ -154,7 +154,7 @@ function PartCell({
         </div>
       )}
 
-      {/* 1-Tap Google / EPC Catalog Search & Copy Buttons (matching mobile app) */}
+      {/* 1-Tap Google / EPC Catalog Search, PartSouq VIN, & Copy Buttons (matching mobile app) */}
       <div className="mt-[var(--s3)] pt-[var(--s2)] border-t border-[var(--rib)] flex flex-wrap items-center gap-2">
         {part.oemPartNumber && (
           <button
@@ -171,16 +171,32 @@ function PartCell({
             <span>{copied ? "تم نسخ رقم الوكالة!" : "نسخ رقم القطعة"}</span>
           </button>
         )}
+        {((vehicle?.vin && vehicle.vin.length >= 11 && vehicle.vin !== "غير محدد") || part.catalogSearchUrl?.includes("partsouq")) && (
+          <a
+            href={part.catalogSearchUrl || `https://partsouq.com/en/search/all?q=${encodeURIComponent(vehicle?.vin || "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-400 transition hover:bg-amber-500/20"
+            title="البحث المباشر برقم الهيكل في كتالوج Partsouq العالمي"
+          >
+            <span>🏷️</span>
+            <span>كتالوج الوكالة برقم الهيكل (PartSouq)</span>
+          </a>
+        )}
         <a
-          href={`https://www.google.com/search?q=${encodeURIComponent(
-            `${vehicle?.year || ""} ${vehicle?.make || ""} ${vehicle?.model || ""} ${
-              part.partNameEnglish || part.partNameLibyan || ""
-            } ${
-              part.oemPartNumber && !part.oemPartNumber.includes("VIN") && !part.oemPartNumber.includes("مطابقة")
-                ? part.oemPartNumber
-                : ""
-            } OEM part number`.trim()
-          )}`}
+          href={
+            part.catalogSearchUrl && !part.catalogSearchUrl.includes("partsouq")
+              ? part.catalogSearchUrl
+              : `https://www.google.com/search?q=${encodeURIComponent(
+                  `${vehicle?.year || ""} ${vehicle?.make || ""} ${vehicle?.model || ""} ${
+                    part.partNameEnglish || part.partNameLibyan || ""
+                  } ${
+                    part.oemPartNumber && !part.oemPartNumber.includes("VIN") && !part.oemPartNumber.includes("مطابقة")
+                      ? part.oemPartNumber
+                      : ""
+                  } OEM part number`.trim()
+                )}`
+          }
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-md border border-[var(--royal-blue-light)]/40 bg-[var(--royal-blue)]/10 px-3 py-1.5 text-xs font-bold text-[var(--royal-blue-light)] transition hover:bg-[var(--royal-blue)]/20"

@@ -17,7 +17,6 @@ import '../../data/storage/hive_storage.dart';
 import '../../data/models/report_sections_config.dart';
 import '../../data/repositories/part_number_resolver.dart';
 import 'report_sanitizer.dart';
-import 'report_qr_helper.dart';
 
 class KashifPdfGenerator {
   static Future<pw.Font> _loadArabicFont({bool bold = false}) async {
@@ -102,7 +101,6 @@ class KashifPdfGenerator {
       appIconImage = pw.MemoryImage(iconBytes.buffer.asUint8List());
     } catch (_) {}
 
-    final qrSummary = ReportQrHelper.buildQrInspectionSummary(report);
 
     final workshopName = KashifStorage.workshopName;
     final workshopPhone = KashifStorage.workshopPhone;
@@ -798,107 +796,149 @@ class KashifPdfGenerator {
                 style: pw.TextStyle(font: arabicBoldFont, fontSize: 11),
               ),
               pw.SizedBox(height: 5),
-              pw.TableHelper.fromTextArray(
-                border: pw.TableBorder.all(
-                  color: PdfColors.grey300,
-                  width: 0.5,
-                ),
-                headerStyle: pw.TextStyle(
-                  font: arabicBoldFont,
-                  fontSize: 8,
-                  color: PdfColors.white,
-                ),
-                headerDecoration: pw.BoxDecoration(
-                  color: PdfColor.fromHex('2E9E5B'),
-                ), // 30A Green
-                headerPadding: const pw.EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 5,
-                ),
-                cellStyle: pw.TextStyle(
-                  font: arabicFont,
-                  fontSize: 7.5,
-                  height: 1.3,
-                ),
-                cellPadding: const pw.EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 4,
-                ),
-                headers: [
-                  'السعر التقديري',
-                  'البدائل المعتمدة',
-                  'رقم القطعة الأصلي',
-                  'القطعة بالليبي',
-                ],
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(1.4), // السعر (يسار)
-                  1: const pw.FlexColumnWidth(2.8), // البدائل
-                  2: const pw.FlexColumnWidth(2.0), // رقم OEM
-                  3: const pw.FlexColumnWidth(2.6), // اسم القطعة (يمين)
-                },
-                cellAlignments: {
-                  0: pw.Alignment.center,
-                  1: pw.Alignment.centerRight,
-                  2: pw.Alignment.center,
-                  3: pw.Alignment.centerRight,
-                },
-                headerAlignments: {
-                  0: pw.Alignment.center,
-                  1: pw.Alignment.center,
-                  2: pw.Alignment.center,
-                  3: pw.Alignment.center,
-                },
-                data: PartNumberResolver.enrichList(
+              () {
+                final enrichedPdfParts = PartNumberResolver.enrichList(
                   report.spareParts,
                   vehicle: report.vehicle,
-                ).map((p) {
-                  final price = p.estimatedPriceRangeLYD;
-                  final priceStr = price != null
-                      ? '\u200F${price.min.toInt()} - ${price.max.toInt()} د.ل'
-                      : 'حسب السوق';
-                  final cleanPartName = ReportSanitizer.clean(p.partNameLibyan)
-                      .replaceAll('السلندر', 'البسطوني')
-                      .replaceAll('سلندر', 'بسطوني')
-                      .replaceAll(RegExp(r'[\u200E\u202A\u202D]'), '')
-                      .trim();
-                  final replacementsStr = p.aftermarketReplacements.isNotEmpty
-                      ? ReportSanitizer.clean(p.aftermarketReplacements.join(' • '))
-                      : 'أصلي أو حسب المتوفر';
-                  final rawOem = p.oemPartNumber?.trim() ?? '';
-                  final oemDisplay = (rawOem.isEmpty ||
-                          rawOem.toUpperCase() == 'N/A' ||
-                          rawOem == 'null' ||
-                          rawOem.contains('مطابقة') ||
-                          rawOem.contains('VIN'))
-                      ? 'مطابقة بالهيكل'
-                      : rawOem;
-                  return [
-                    priceStr,
-                    replacementsStr,
-                    oemDisplay,
-                    cleanPartName,
-                  ];
-                }).toList(),
-              ),
-              if (report.vehicle.cleanVin.isNotEmpty && report.vehicle.cleanVin != 'غير محدد') ...[
-                pw.SizedBox(height: 4),
-                pw.Align(
-                  alignment: pw.Alignment.centerLeft,
-                  child: pw.UrlLink(
-                    destination: 'https://partsouq.com/en/search/all?q=${report.vehicle.cleanVin}',
-                    child: pw.Text(
-                      '🔗 فتح كتالوج الوكالة برقم الهيكل',
-                      style: pw.TextStyle(
-                        font: arabicBoldFont,
-                        fontSize: 7.5,
-                        color: PdfColor.fromHex('0284C7'),
-                        decoration: pw.TextDecoration.underline,
-                      ),
-                      textDirection: pw.TextDirection.rtl,
+                );
+                return pw.TableHelper.fromTextArray(
+                  border: pw.TableBorder.all(
+                    color: PdfColors.grey300,
+                    width: 0.5,
+                  ),
+                  headerStyle: pw.TextStyle(
+                    font: arabicBoldFont,
+                    fontSize: 8,
+                    color: PdfColors.white,
+                  ),
+                  headerDecoration: pw.BoxDecoration(
+                    color: PdfColor.fromHex('2E9E5B'),
+                  ), // 30A Green
+                  headerPadding: const pw.EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 5,
+                  ),
+                  cellStyle: pw.TextStyle(
+                    font: arabicFont,
+                    fontSize: 7.5,
+                    height: 1.3,
+                  ),
+                  cellPadding: const pw.EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 4,
+                  ),
+                  headers: [
+                    'السعر التقديري',
+                    'البدائل المعتمدة',
+                    'رقم القطعة الأصلي',
+                    'القطعة بالليبي',
+                  ],
+                  columnWidths: {
+                    0: const pw.FlexColumnWidth(1.4), // السعر (يسار)
+                    1: const pw.FlexColumnWidth(2.8), // البدائل
+                    2: const pw.FlexColumnWidth(2.0), // رقم OEM
+                    3: const pw.FlexColumnWidth(2.6), // اسم القطعة (يمين)
+                  },
+                  cellAlignments: {
+                    0: pw.Alignment.center,
+                    1: pw.Alignment.centerRight,
+                    2: pw.Alignment.center,
+                    3: pw.Alignment.centerRight,
+                  },
+                  headerAlignments: {
+                    0: pw.Alignment.center,
+                    1: pw.Alignment.center,
+                    2: pw.Alignment.center,
+                    3: pw.Alignment.center,
+                  },
+                  data: enrichedPdfParts.map((p) {
+                    final price = p.estimatedPriceRangeLYD;
+                    final priceStr = price != null
+                        ? '\u200F${price.min.toInt()} - ${price.max.toInt()} د.ل'
+                        : 'حسب السوق';
+                    final cleanPartName = ReportSanitizer.clean(p.partNameLibyan)
+                        .replaceAll('السلندر', 'البسطوني')
+                        .replaceAll('سلندر', 'بسطوني')
+                        .replaceAll(RegExp(r'[\u200E\u202A\u202D]'), '')
+                        .trim();
+                    final replacementsStr = p.aftermarketReplacements.isNotEmpty
+                        ? ReportSanitizer.clean(p.aftermarketReplacements.join(' • '))
+                        : 'أصلي أو حسب المتوفر';
+                    final rawOem = p.oemPartNumber?.trim() ?? '';
+                    final oemDisplay = (rawOem.isEmpty ||
+                            rawOem.toUpperCase() == 'N/A' ||
+                            rawOem == 'null' ||
+                            rawOem.contains('مطابقة') ||
+                            rawOem.contains('VIN'))
+                        ? 'مطابقة بالهيكل'
+                        : rawOem;
+                    return [
+                      priceStr,
+                      replacementsStr,
+                      oemDisplay,
+                      cleanPartName,
+                    ];
+                  }).toList(),
+                  cellBuilder: (colIndex, cellData, rowNum) {
+                    if (rowNum > 0 && rowNum <= enrichedPdfParts.length) {
+                      final p = enrichedPdfParts[rowNum - 1];
+                      final searchUrl = p.catalogSearchUrl ??
+                          PartNumberResolver.generateCatalogSearchUrl(
+                            vehicle: report.vehicle,
+                            part: p,
+                          );
+                      if (colIndex == 2) {
+                        return pw.UrlLink(
+                          destination: searchUrl,
+                          child: pw.Text(
+                            cellData.toString(),
+                            style: pw.TextStyle(
+                              font: arabicBoldFont,
+                              fontSize: 7.5,
+                              color: PdfColor.fromHex('0284C7'),
+                              decoration: pw.TextDecoration.underline,
+                            ),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                        );
+                      }
+                      if (colIndex == 3) {
+                        return pw.UrlLink(
+                          destination: searchUrl,
+                          child: pw.Text(
+                            cellData.toString(),
+                            style: pw.TextStyle(
+                              font: arabicBoldFont,
+                              fontSize: 7.5,
+                              color: PdfColor.fromHex('0F172A'),
+                            ),
+                            textDirection: pw.TextDirection.rtl,
+                            textAlign: pw.TextAlign.right,
+                          ),
+                        );
+                      }
+                    }
+                    return null;
+                  },
+                );
+              }(),
+              pw.SizedBox(height: 6),
+              pw.Align(
+                alignment: pw.Alignment.centerLeft,
+                child: pw.UrlLink(
+                  destination: PartNumberResolver.generateVehicleCatalogUrl(vehicle: report.vehicle),
+                  child: pw.Text(
+                    '🔗 فتح كتالوج الوكالة برقم الهيكل (البحث المباشر عن المخططات والقطع)',
+                    style: pw.TextStyle(
+                      font: arabicBoldFont,
+                      fontSize: 8,
+                      color: PdfColor.fromHex('0284C7'),
+                      decoration: pw.TextDecoration.underline,
                     ),
+                    textDirection: pw.TextDirection.rtl,
                   ),
                 ),
-              ],
+              ),
               pw.SizedBox(height: 12),
             ],
 
@@ -1050,7 +1090,7 @@ class KashifPdfGenerator {
               pw.SizedBox(height: 16),
             ],
 
-            // Technician Info & Endorsement Box with QR Verification
+            // Technician Info & Certified Inspection Endorsement Box
             if (config.includeTechnicianSignature)
               pw.Container(
                 margin: const pw.EdgeInsets.only(top: 14),
@@ -1223,57 +1263,45 @@ class KashifPdfGenerator {
                           ),
                         ),
 
-                      // QR Code Verification Box
+                      // Official Certified Inspection Endorsement Badge (خالٍ من أي كود QR)
                       pw.Container(
-                        padding: const pw.EdgeInsets.all(5),
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: pw.BoxDecoration(
-                          color: PdfColors.white,
+                          color: PdfColor.fromHex('F8FAFC'),
                           border: pw.Border.all(
                             color: PdfColor.fromHex('CBD5E1'),
                             width: 0.8,
                           ),
                           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                         ),
-                        child: pw.Row(
-                          mainAxisSize: pw.MainAxisSize.min,
+                        child: pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          mainAxisSize: pw.MainAxisSize.min,
                           children: [
-                            pw.BarcodeWidget(
-                              barcode: pw.Barcode.qrCode(),
-                              data: qrSummary,
-                              width: 58,
-                              height: 58,
+                            pw.Text(
+                              'شهادة فحص فني معتمدة',
+                              style: pw.TextStyle(
+                                font: arabicBoldFont,
+                                fontSize: 9,
+                                color: PdfColor.fromHex('1A365D'),
+                              ),
+                              textDirection: pw.TextDirection.rtl,
                             ),
-                            pw.SizedBox(width: 8),
-                            pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [
-                                pw.Text(
-                                  'رمز التحقق الذكي (QR)',
-                                  style: pw.TextStyle(
-                                    font: arabicBoldFont,
-                                    fontSize: 8.5,
-                                    color: PdfColor.fromHex('0F172A'),
-                                  ),
-                                ),
-                                pw.SizedBox(height: 2),
-                                pw.Text(
-                                  'امسح الكود بكاميرا أي هاتف',
-                                  style: pw.TextStyle(
-                                    font: arabicFont,
-                                    fontSize: 7.5,
-                                    color: PdfColor.fromHex('64748B'),
-                                  ),
-                                ),
-                                pw.Text(
-                                  'لعرض ملخص الفحص فوراً',
-                                  style: pw.TextStyle(
-                                    font: arabicFont,
-                                    fontSize: 7.5,
-                                    color: PdfColor.fromHex('64748B'),
-                                  ),
-                                ),
-                              ],
+                            pw.SizedBox(height: 2),
+                            pw.Text(
+                              'Flow Cars Certified Diagnostics',
+                              style: const pw.TextStyle(
+                                fontSize: 7,
+                                color: PdfColors.blueGrey700,
+                              ),
+                            ),
+                            pw.SizedBox(height: 2),
+                            pw.Text(
+                              'رقم التقرير: ${report.id.substring(0, report.id.length > 8 ? 8 : report.id.length).toUpperCase()}',
+                              style: const pw.TextStyle(
+                                fontSize: 7,
+                                color: PdfColors.grey700,
+                              ),
                             ),
                           ],
                         ),

@@ -169,11 +169,26 @@ export async function parseScannerPdf(buffer: Buffer): Promise<ExtractedScannerD
   const scannerMatch = rawText.match(/The Report is created by\s+([^\n\r]+)/i);
   const scannerTool = scannerMatch ? scannerMatch[1].trim() : "Ediag / Launch OBD-II Scanner";
 
-  // Extract DTC codes (e.g. P0102, B2321, C1201, U0100)
-  const dtcRegex = /\b([PBUC][0-9A-Fa-f]{4})\b/g;
-  const standardCodes = Array.from(
-    new Set((rawText.match(dtcRegex) || []).map((c) => c.toUpperCase()))
-  );
+  // Extract DTC codes: standard OBD-II (P0102, B1811) and European/BMW proprietary codes (02, 1F, D6)
+  const foundCodesSet = new Set<string>();
+
+  // 1. Standard OBD-II patterns
+  const dtcRegex = /\b([PBUC][0-9A-Fa-f]{4}(?:-[0-9A-Fa-f]{1,2})?)\b/gi;
+  for (const m of rawText.matchAll(dtcRegex)) {
+    foundCodesSet.add(m[1].toUpperCase());
+  }
+
+  // 2. Numbered scanner fault lines: e.g. "1.P0102 ...", "2.1F Control ...", "1.29 Wheel Speed"
+  const lines = rawText.split(/\r?\n/);
+  const numberedFaultRegex = /^\s*(\d+)\.([BPCU][0-9A-Fa-f]{4}|[A-Fa-f0-9]{2,4})\b\s+(.+)$/i;
+  for (const line of lines) {
+    const match = line.match(numberedFaultRegex);
+    if (match) {
+      foundCodesSet.add(match[2].trim().toUpperCase());
+    }
+  }
+
+  const standardCodes = Array.from(foundCodesSet);
 
   return {
     rawText,

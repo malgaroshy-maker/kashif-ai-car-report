@@ -60,6 +60,10 @@ class VehicleInfo {
   }
 
   /// Clean VIN or empty if missing / placeholder
+  String get cleanMake => (make.trim().isNotEmpty && make.trim() != 'غير محدد') ? make.trim() : '';
+  String get cleanModel => (model.trim().isNotEmpty && model.trim() != 'غير محدد') ? model.trim() : '';
+  String get cleanYear => (year.trim().isNotEmpty && year.trim() != '—') ? year.trim() : '';
+
   String get cleanVin {
     return (vin.trim().isNotEmpty && vin.trim() != 'N/A') ? vin.trim() : '';
   }

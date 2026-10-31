@@ -29,19 +29,38 @@ class PartNumberResolver {
     VehicleInfo? vehicle,
     required SparePartItem part,
   }) {
-    final vin = vehicle?.cleanVin.trim() ?? '';
-    if (vin.isNotEmpty && vin != 'غير محدد' && vin.length >= 11) {
-      return 'https://partsouq.com/en/search/all?q=${Uri.encodeComponent(vin)}';
-    }
     final car = '${vehicle?.year ?? ""} ${vehicle?.make ?? ""} ${vehicle?.model ?? ""}'.trim();
     final pName = part.partNameEnglish.isNotEmpty ? part.partNameEnglish : part.partNameLibyan;
+    final cleanVin = (vehicle?.cleanVin.isNotEmpty == true && vehicle?.cleanVin != 'غير محدد' && vehicle!.cleanVin.length >= 11)
+        ? vehicle.cleanVin.trim()
+        : '';
     final oem = (part.oemPartNumber != null &&
             !part.oemPartNumber!.contains('VIN') &&
-            !part.oemPartNumber!.contains('مطابقة'))
-        ? part.oemPartNumber!
+            !part.oemPartNumber!.contains('مطابقة') &&
+            !part.oemPartNumber!.contains('حسب') &&
+            !part.oemPartNumber!.contains('وكالة'))
+        ? part.oemPartNumber!.trim()
         : '';
-    final query = '$car $pName $oem OEM part number'.trim();
-    return 'https://www.google.com/search?q=${Uri.encodeComponent(query)}';
+
+    // Direct targeted search query: opens exact part schematics, exploded diagrams, and OEM listings directly
+    final queryWords = [car, pName, oem, 'OEM part number', cleanVin]
+        .where((s) => s.isNotEmpty)
+        .join(' ')
+        .trim();
+    return 'https://www.google.com/search?q=${Uri.encodeComponent(queryWords)}';
+  }
+
+  /// Generates a direct link to the vehicle's entire OEM parts catalog by make, model, year and VIN
+  static String generateVehicleCatalogUrl({VehicleInfo? vehicle}) {
+    final car = '${vehicle?.year ?? ""} ${vehicle?.make ?? ""} ${vehicle?.model ?? ""}'.trim();
+    final cleanVin = (vehicle?.cleanVin.isNotEmpty == true && vehicle?.cleanVin != 'غير محدد' && vehicle!.cleanVin.length >= 11)
+        ? vehicle.cleanVin.trim()
+        : '';
+    final queryWords = [car, cleanVin, 'OEM parts catalog diagrams schematics']
+        .where((s) => s.isNotEmpty)
+        .join(' ')
+        .trim();
+    return 'https://www.google.com/search?q=${Uri.encodeComponent(queryWords)}';
   }
 
   /// Synchronous enrichment: checks verified EPC local catalog first,
@@ -95,6 +114,14 @@ class PartNumberResolver {
     final rawOem = part.oemPartNumber?.trim() ?? '';
     final isDummyOem = rawOem.contains('123456') ||
         rawOem.contains('028100200') ||
+        rawOem.contains('19456') ||
+        rawOem.contains('4111') ||
+        rawOem.contains('4112') ||
+        rawOem.contains('2J000') ||
+        rawOem.contains('2J700') ||
+        rawOem.contains('2J001') ||
+        rawOem.contains('2J002') ||
+        RegExp(r'\b\d{5}-2J\d{3}\b').hasMatch(rawOem) ||
         rawOem.toLowerCase().contains('dummy') ||
         rawOem.toLowerCase().contains('fake') ||
         rawOem == '1234567';
@@ -108,7 +135,7 @@ class PartNumberResolver {
         rawOem.contains('حسب رقم الهيكل') ||
         rawOem.contains('أصلي وكالة') ||
         rawOem.contains('وكالة') ||
-        rawOem.contains('مطابقة برقم الهيكل') ||
+        rawOem.contains('مطابقة') ||
         rawOem.contains('VIN');
 
     // Clean up hallucinated sequential numbers in aftermarket replacements
@@ -131,7 +158,7 @@ class PartNumberResolver {
         partNameLibyan: part.partNameLibyan,
         partNameStandardArabic: part.partNameStandardArabic,
         partNameEnglish: part.partNameEnglish,
-        oemPartNumber: 'مطابقة برقم الهيكل (VIN)',
+        oemPartNumber: 'مطابقة بالهيكل',
         aftermarketReplacements: part.aftermarketReplacements.isNotEmpty
             ? part.aftermarketReplacements
             : const [

@@ -46,6 +46,9 @@ export function Masthead({
               Flow Cars
             </span>
             <Wordmark />
+            <span className="hidden sm:inline-block rounded border border-[var(--rib)] bg-[var(--cell)] px-1.5 py-0.5 text-[10px] font-mono font-bold text-(color:--ink-3)" title="Flow Cars Platform Build 8">
+              v1.2.5
+            </span>
           </div>
         </div>
 

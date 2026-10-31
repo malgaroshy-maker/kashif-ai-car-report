@@ -344,6 +344,7 @@ export default function MobileAppScreen() {
                         make: activeReport.vehicle.make ?? undefined,
                         model: activeReport.vehicle.model ?? undefined,
                         year: activeReport.vehicle.year ?? undefined,
+                        vin: activeReport.vehicle.vin ?? undefined,
                       }}
                     />
                   </div>

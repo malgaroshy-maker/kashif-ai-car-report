@@ -86,9 +86,9 @@ try {
     }
 
     $destPocoRoot = Join-Path $rootOutputDir "kashif_poco_x7_pro.apk"
-    $destVersionRoot = Join-Path $rootOutputDir "kashif_poco_v1.2.5_b8.apk"
+    $destVersionRoot = Join-Path $rootOutputDir "kashif_poco_v1.2.6_b9.apk"
     $destPocoLocal = Join-Path $localOutputDir "kashif_poco_x7_pro.apk"
-    $destVersionLocal = Join-Path $localOutputDir "kashif_poco_v1.2.5_b8.apk"
+    $destVersionLocal = Join-Path $localOutputDir "kashif_poco_v1.2.6_b9.apk"
 
     Copy-Item -Path $apkFile -Destination $destPocoRoot -Force
     Copy-Item -Path $apkFile -Destination $destVersionRoot -Force
@@ -102,9 +102,9 @@ try {
  Flow Cars / Kashif AI (Poco X7 Pro Edition)
 ======================================================================
  Application  : Flow Cars
- Version      : 1.2.5
- Build Number : 8
- Serial       : KASHIF-V1.2.5-B8-20261029
+ Version      : 1.2.6
+ Build Number : 9
+ Serial       : KASHIF-V1.2.6-B9-20261031
  Build Date   : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
  Target       : ARM64-v8a (MediaTek Dimensity 8400-Ultra / 64-bit)
  Status       : FRESH BUILD COMPLETE
@@ -121,7 +121,7 @@ try {
     Write-Host " Location 1 : $destPocoRoot" -ForegroundColor Cyan
     Write-Host " Location 2 : $destPocoLocal" -ForegroundColor Cyan
     Write-Host " File Size  : $fileSizeMB MB" -ForegroundColor Yellow
-    Write-Host " Version    : v1.2.5 #8 (Serial: KASHIF-V1.2.5-B8-20261029)" -ForegroundColor White
+    Write-Host " Version    : v1.2.6 #9 (Serial: KASHIF-V1.2.6-B9-20261031)" -ForegroundColor White
     Write-Host "======================================================================" -ForegroundColor Green
     Write-Host ""
 

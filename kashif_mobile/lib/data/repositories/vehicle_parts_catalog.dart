@@ -258,6 +258,86 @@ class VehiclePartsCatalog {
           );
         }
 
+        // Airbag Clock Spring / شريط الإيرباق (B1346, B1347, Driver Airbag Resistance)
+        if (code.contains('B1346') || code.contains('B1347') || pLibyan.contains('شريط') || pLibyan.contains('كلوك') || pEnglish.contains('clock') || pEnglish.contains('spring') || (pLibyan.contains('ايرباق') && pLibyan.contains('سائق'))) {
+          return SparePartItem(
+            id: part.id,
+            relatedCode: part.relatedCode.isNotEmpty ? part.relatedCode : 'B1346',
+            partNameLibyan: 'شريط وسادة الهواء بالستيروني (كلوك سبرينغ / شريط الإيرباق)',
+            partNameStandardArabic: 'ملف التوصيل الحلزوني للوسادة الهوائية للسائق (Clock Spring)',
+            partNameEnglish: 'Driver Airbag Clock Spring / Spiral Cable',
+            oemPartNumber: '93490-2B200',
+            aftermarketReplacements: const [
+              'Hyundai Mobis Genuine 93490-2B200',
+              'Dorman 525-042',
+              'Standard Motor CSP260',
+              'قطع غيار استيراد وكالة معتمدة',
+            ],
+            estimatedPriceRangeLYD: const PriceRangeLYD(
+              min: 110,
+              max: 240,
+              marketNote: 'سعر شريط الإيرباق في السوق الليبي',
+            ),
+            systemCategory: 'الأمان والوسائد الهوائية',
+            replacementUrgency: 'حرج',
+            confidence: 'verified',
+            catalogSearchUrl: 'https://www.google.com/search?q=Hyundai+Santa+Fe+93490-2B200+clock+spring+OEM',
+          );
+        }
+
+        // Steering Angle Sensor / حساس زاوية الستيروني (C1260, C1261)
+        if (code.contains('C1260') || code.contains('C1261') || pLibyan.contains('زاوية') || pEnglish.contains('steering angle')) {
+          return SparePartItem(
+            id: part.id,
+            relatedCode: part.relatedCode.isNotEmpty ? part.relatedCode : 'C1260',
+            partNameLibyan: 'حساس زاوية الستيروني (معايرة الصفر الإلكتروني أو استبدال)',
+            partNameStandardArabic: 'مستشعر زاوية توجيه عجلة القيادة (Steering Angle Sensor)',
+            partNameEnglish: 'Steering Angle Sensor (SAS Module)',
+            oemPartNumber: '93480-2H000 (أو معايرة إلكترونية بالجهاز)',
+            aftermarketReplacements: const [
+              'معايرة الصفر الإلكتروني بجهاز الفحص (SAS Calibration)',
+              'Hyundai Mobis Genuine 93480-2H000',
+              'تشليح أصلي وكالة مفحوص',
+            ],
+            estimatedPriceRangeLYD: const PriceRangeLYD(
+              min: 60,
+              max: 280,
+              marketNote: '60 د.ل تكلفة المعايرة بالجهاز / 280 د.ل في حال الاستبدال',
+            ),
+            systemCategory: 'التوجيه والتعليق',
+            replacementUrgency: 'مهم',
+            confidence: 'verified',
+            catalogSearchUrl: 'https://www.google.com/search?q=Hyundai+Santa+Fe+93480-2H000+steering+angle+sensor',
+          );
+        }
+
+        // Fuel Tank Gas Cap / غطاء خزان الوقود (P0442, P0455, P0456)
+        if (pLibyan.contains('غطاء') || pLibyan.contains('تانكي') || pEnglish.contains('gas cap') || pEnglish.contains('fuel cap')) {
+          return SparePartItem(
+            id: part.id,
+            relatedCode: part.relatedCode.isNotEmpty ? part.relatedCode : 'P0442',
+            partNameLibyan: 'غطاء تانكي البنزين (جوانات مانعة لتسريب أبخرة الفاب)',
+            partNameStandardArabic: 'غطاء فتحة تعبئة خزان الوقود مانع للتسريب',
+            partNameEnglish: 'Fuel Tank Filler Gas Cap',
+            oemPartNumber: '31010-3L600',
+            aftermarketReplacements: const [
+              'Hyundai Mobis Genuine 31010-3L600',
+              'Stant 10834',
+              'Gates 31832',
+              'Motorad MGC-834',
+            ],
+            estimatedPriceRangeLYD: const PriceRangeLYD(
+              min: 40,
+              max: 85,
+              marketNote: 'سعر غطاء التانكي الأصلي مع الصمام الداخلي',
+            ),
+            systemCategory: 'الوقود والمحرك',
+            replacementUrgency: 'متوسط',
+            confidence: 'verified',
+            catalogSearchUrl: 'https://www.google.com/search?q=Hyundai+Santa+Fe+31010-3L600+gas+cap+OEM',
+          );
+        }
+
         // Oxygen Sensor / Rich Trim (P2188, P2190, P0171, P0172)
         if (code.contains('P218') || code.contains('P219') || code.contains('P017') || pLibyan.contains('مرميط') || pEnglish.contains('oxygen') || pEnglish.contains('o2')) {
           return SparePartItem(

@@ -2,23 +2,23 @@
 /// Updated with each release and build.
 class AppVersion {
   /// Semantic version (Major.Minor.Patch)
-  static const String version = '1.2.5';
+  static const String version = '1.2.6';
 
   /// Incremental build number (matches pubspec.yaml versionCode)
-  static const int buildNumber = 8;
+  static const int buildNumber = 9;
 
   /// Build Release Date
-  static const String buildDate = '2026-10-29';
+  static const String buildDate = '2026-10-31';
 
   /// Hardware Optimization Target
   static const String buildDeviceTarget = 'Poco X7 Pro (ARM64-v8a)';
 
-  /// Short badge displayed in AppBar, e.g. "v1.2.5 #8"
+  /// Short badge displayed in AppBar, e.g. "v1.2.6 #9"
   static const String badge = 'v$version #$buildNumber';
 
-  /// Standard display format, e.g. "الإصدار 1.2.5 (بناء #8)"
+  /// Standard display format, e.g. "الإصدار 1.2.6 (بناء #9)"
   static const String display = 'الإصدار $version (بناء #$buildNumber)';
 
   /// Unique serial number / build fingerprint for verification
-  static const String serial = 'KASHIF-V$version-B$buildNumber-20261029';
+  static const String serial = 'KASHIF-V$version-B$buildNumber-20261031';
 }

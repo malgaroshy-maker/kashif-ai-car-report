@@ -124,6 +124,8 @@ export interface SparePartItem {
     | "نقل الحركة"
     | null;
   partImageUrl?: string;
+  catalogSearchUrl?: string;
+  confidence?: "verified" | "requires_vin";
 }
 
 export interface DiagnosticStep {
