@@ -4,8 +4,10 @@
  Application  : Flow Cars
  Version      : 1.2.6
  Build Number : 9
- Serial       : KASHIF-V1.2.6-B9-20261031
- Build Date   : 2026-10-31 08:25:25
+ Version Tag  : v1.2.6_b9
+ Serial       : KASHIF-V1.2.6-B9-20261104
+ Primary File : FlowCars_v1.2.6_b9_PocoX7Pro.apk
+ Build Date   : 2026-11-04 11:59:39
  Target       : ARM64-v8a (MediaTek Dimensity 8400-Ultra / 64-bit)
  Status       : FRESH BUILD COMPLETE
 ======================================================================

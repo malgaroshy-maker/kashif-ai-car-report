@@ -45,8 +45,12 @@ class ApinexClient {
   }
 
   String get _activeModel {
-    final model = KashifStorage.apinexModel;
-    return (model.isNotEmpty) ? model : defaultModel;
+    final model = KashifStorage.apinexModel.trim();
+    if (model.isEmpty) return defaultModel;
+    if (!model.startsWith('free/') && !model.contains('/')) {
+      return 'free/$model';
+    }
+    return model;
   }
 
   String get masterInstruction {
@@ -203,91 +207,120 @@ class ApinexClient {
       };
     }
 
-    final modelInList = availableModels.isEmpty || availableModels.contains(model);
+    // Stage 2: Test selected model with short prompt, with auto-healing and free model fallback
+    String targetModel = model.trim();
+    if (targetModel.isEmpty) {
+      targetModel = defaultModel;
+    }
+    if (!targetModel.startsWith('free/') && !targetModel.contains('/')) {
+      targetModel = 'free/$targetModel';
+    }
 
-    // Stage 2: Test selected model with short prompt
-    try {
-      final res = await _postRequest({
-        'model': model,
-        'messages': [
-          {'role': 'user', 'content': 'قل متصل'}
-        ],
-        'max_tokens': 10,
-      }, keyOverride: key);
+    final List<String> candidateModels = [targetModel];
+    if (targetModel.startsWith('free/')) {
+      final stripped = targetModel.substring(5);
+      if (!candidateModels.contains(stripped)) candidateModels.add(stripped);
+    }
+    for (final m in [defaultModel, 'free/glm-5.3-flash', 'free/deepseek-v4.1-flash', 'free/gpt-6-luna']) {
+      if (!candidateModels.contains(m)) candidateModels.add(m);
+    }
+    for (final m in availableModels.where((m) => m.startsWith('free/'))) {
+      if (!candidateModels.contains(m)) candidateModels.add(m);
+    }
 
-      if (res.statusCode == 200) {
-        return {
-          'success': true,
-          'stage': 2,
-          'message': '✅ تم الاتصال بنجاح! المفتاح متصل والنموذج ($model) جاهز ويعمل بكفاءة فائقة.',
-          'availableModels': availableModels,
-        };
-      } else {
-        return {
-          'success': false,
-          'stage': 2,
-          'message': '❌ رد السيرفر برمز: ${res.statusCode}',
-          'availableModels': availableModels,
-        };
+    String? workingModel;
+    DioException? lastDioError;
+    int lastStatusCode = 0;
+    String? lastServerMsg;
+
+    for (final cand in candidateModels) {
+      if (availableModels.isNotEmpty && !availableModels.contains(cand) && cand != targetModel) {
+        continue;
       }
-    } catch (e) {
-      if (e is DioException) {
-        final status = e.response?.statusCode;
-        final resData = e.response?.data;
-        String? serverMsg;
-        if (resData is Map && resData['error'] is Map) {
-          serverMsg = resData['error']['message']?.toString();
-        }
+      try {
+        final res = await _postRequest({
+          'model': cand,
+          'messages': [
+            {'role': 'user', 'content': 'قل متصل'}
+          ],
+          'max_tokens': 10,
+        }, keyOverride: key);
 
-        if (status == 402) {
-          return {
-            'success': false,
-            'stage': 2,
-            'message':
-                '⚠️ تم التحقق من المفتاح بنجاح! النماذج مجانية 100% ولا تتطلب أي دفع أو شحن رصيد إطلاقاً؛ كل ما تحتاجه هو تسجيل حضور يومي مجاني (Daily Check-in) بنقرة واحدة عبر الرابط: https://apinex.bond/airdrop?tab=quests لتفعيل النموذج فوراً.',
-            'availableModels': availableModels,
-          };
-        } else if (status == 404 || !modelInList) {
-          return {
-            'success': false,
-            'stage': 2,
-            'message':
-                '❌ النموذج المختار ($model) غير متوفر في قائمة السيرفر الحالية.',
-            'availableModels': availableModels,
-          };
-        } else if (status == 429) {
-          return {
-            'success': false,
-            'stage': 2,
-            'message':
-                '⏳ تم تجاوز معدل الطلبات المسموح به للنموذج ($model) حالياً (Rate Limit 429). يرجى الانتظار دقيقة وإعادة المحاولة.',
-            'availableModels': availableModels,
-          };
-        } else if (status == 524 || status == 504) {
-          return {
-            'success': false,
-            'stage': 2,
-            'message':
-                '⚠️ تجاوز النموذج ($model) مهلة استجابة السيرفر (Cloudflare 524). نوصي باختيار DeepSeek V4.1 Flash فائق السرعة.',
-            'availableModels': availableModels,
-          };
-        } else if (serverMsg != null && serverMsg.isNotEmpty) {
-          return {
-            'success': false,
-            'stage': 2,
-            'message': '⚠️ استجابة سيرفر APInex: $serverMsg',
-            'availableModels': availableModels,
-          };
+        if (res.statusCode == 200) {
+          workingModel = cand;
+          break;
+        }
+      } catch (e) {
+        if (e is DioException) {
+          lastDioError = e;
+          lastStatusCode = e.response?.statusCode ?? 0;
+          final resData = e.response?.data;
+          if (resData is Map && resData['error'] is Map) {
+            lastServerMsg = resData['error']['message']?.toString();
+          }
         }
       }
+    }
 
+    if (workingModel != null) {
+      await KashifStorage.setApinexModel(workingModel);
+      final isExact = workingModel == model || workingModel == 'free/$model';
+      final msg = isExact
+          ? '✅ تم الاتصال بنجاح! المفتاح متصل والنموذج ($workingModel) جاهز ويعمل بكفاءة فائقة.'
+          : '✅ تم الاتصال بنجاح! تم اعتماد وتفعيل النموذج المجاني المعتمد ($workingModel) تلقائياً.';
       return {
-        'success': false,
+        'success': true,
         'stage': 2,
-        'message': '❌ خطأ أثناء اختبار النموذج ($model): ${e.toString()}',
+        'activeModel': workingModel,
+        'message': msg,
         'availableModels': availableModels,
       };
     }
+
+    if (lastStatusCode == 402) {
+      return {
+        'success': false,
+        'stage': 2,
+        'activeModel': targetModel,
+        'message':
+            '⚠️ تم التحقق من المفتاح بنجاح! (${availableModels.length} نموذج متاح)\nالنماذج مجانية 100% ولا تتطلب أي دفع أو شحن رصيد؛ كل ما تحتاجه هو تسجيل حضور يومي مجاني (Daily Check-in) بنقرة واحدة عبر الرابط أدناه لتفعيل الرصيد المجاني فوراً.',
+        'availableModels': availableModels,
+      };
+    } else if (lastStatusCode == 429) {
+      return {
+        'success': false,
+        'stage': 2,
+        'activeModel': targetModel,
+        'message':
+            '⏳ تم تجاوز معدل الطلبات المسموح به للنموذج ($targetModel) حالياً (Rate Limit 429). يرجى الانتظار دقيقة وإعادة المحاولة.',
+        'availableModels': availableModels,
+      };
+    } else if (lastStatusCode == 524 || lastStatusCode == 504) {
+      return {
+        'success': false,
+        'stage': 2,
+        'activeModel': targetModel,
+        'message':
+            '⚠️ تجاوز النموذج ($targetModel) مهلة استجابة السيرفر (Cloudflare 524). نوصي باختيار $defaultModel فائق السرعة.',
+        'availableModels': availableModels,
+      };
+    } else if (lastServerMsg != null && lastServerMsg.isNotEmpty) {
+      return {
+        'success': false,
+        'stage': 2,
+        'activeModel': targetModel,
+        'message': '⚠️ استجابة سيرفر APInex: $lastServerMsg',
+        'availableModels': availableModels,
+      };
+    }
+
+    return {
+      'success': false,
+      'stage': 2,
+      'activeModel': targetModel,
+      'message': '❌ خطأ أثناء اختبار النموذج ($targetModel): ${lastDioError?.message ?? 'تعذر الاتصال'}',
+      'availableModels': availableModels,
+    };
   }
 
   /// Test connection returning simple boolean

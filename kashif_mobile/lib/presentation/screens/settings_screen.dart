@@ -18,29 +18,34 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
   static const List<Map<String, String>> apinexFreeModels = [
     {
+      'id': 'free/gemini-2.5-flash',
+      'name': 'Gemini 2.5 Flash 🌟 (مجاني • فائق الذكاء والسرعة ⚡ • موصى به)',
+      'desc': 'النسخة المجانية الأفضل والأدق في قراءة تقارير الفحص وتشخيص الأعطال بالقاموس الليبي',
+    },
+    {
+      'id': 'free/claude-3.5-sonnet',
+      'name': 'Claude 3.5 Sonnet ✨ (مجاني • دقة استدلال هندسية فائقة)',
+      'desc': 'تحليل منطقي متقدم لأعطال السيارات المعقدة والكهربائية والحساسات',
+    },
+    {
       'id': 'free/qwen-3.8-max',
-      'name': 'Qwen 3.8 Max (مجاني • فائق السرعة 1.8 ثانية ⚡ • موصى به)',
-      'desc': 'أسرع نموذج مجاني تم اختباره (1.8s)، كفاءة عالية في تشخيص أعطال السيارات بالعربية',
-    },
-    {
-      'id': 'free/glm-5.3-flash',
-      'name': 'GLM-5.3 Flash (مجاني • سريع جداً 2.6 ثانية ⚡)',
-      'desc': 'استجابة فائقة السرعة مع دقة هندسية في تفسير أكواد OBD-II وحساسات المحرك',
-    },
-    {
-      'id': 'free/deepseek-v4.1-flash',
-      'name': 'DeepSeek V4.1 Flash (مجاني • مستقر ومجرب 3.1 ثانية)',
-      'desc': 'النموذج الشهير المعتمد لتشخيص الأعطال وقراءة أكواد الفحص بدون اشتراك',
-    },
-    {
-      'id': 'free/deepseek-v4-pro-0813',
-      'name': 'DeepSeek V4 Pro (مجاني • استدلال احترافي عميق)',
-      'desc': 'استدلال منطقي متقدم لأعطال السيارات الشديدة والمتشابكة والأنظمة الهجينة',
+      'name': 'Qwen 3.8 Max ⚡ (مجاني • فائق السرعة 1.8 ثانية)',
+      'desc': 'أسرع نموذج مجاني تم اختباره (1.8s)، كفاءة عالية ومستقرة في تشخيص الأعطال',
     },
     {
       'id': 'free/gpt-6-luna',
       'name': 'GPT-6 Luna (مجاني • صياغة تقارير شاملة)',
       'desc': 'تحليل تفصيلي شامل للأعطال مع مقارنات دقيقة لحساسات الأكسجين والعادم',
+    },
+    {
+      'id': 'free/deepseek-v4.1-flash',
+      'name': 'DeepSeek V4.1 Flash (مجاني • مستقر ومجرب)',
+      'desc': 'النموذج الشهير المعتمد لتشخيص الأعطال وقراءة أكواد الفحص بدون اشتراك',
+    },
+    {
+      'id': 'free/glm-5.3-flash',
+      'name': 'GLM-5.3 Flash (مجاني • سريع جداً 2.6 ثانية ⚡)',
+      'desc': 'استجابة فائقة السرعة مع دقة هندسية في تفسير أكواد OBD-II وحساسات المحرك',
     },
     {
       'id': 'custom',
@@ -83,7 +88,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _addressController = TextEditingController(text: s.workshopAddress);
     final initialKey = s.apinexApiKey;
     _apinexKeyController = TextEditingController(text: initialKey);
-    final initialModel = s.apinexModel.isNotEmpty ? s.apinexModel : ApinexClient.defaultModel;
+    String initialModel = s.apinexModel.isNotEmpty ? s.apinexModel.trim() : ApinexClient.defaultModel;
+    if (!initialModel.startsWith('free/') && !initialModel.contains('/')) {
+      initialModel = 'free/$initialModel';
+    }
     _apinexModelController = TextEditingController(text: initialModel);
     _selectedModelPreset = SettingsScreen.apinexFreeModels.any((m) => m['id'] == initialModel)
         ? initialModel
@@ -251,7 +259,111 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  int _getModelRank(String modelId) {
+    final lower = modelId.toLowerCase();
+    // Prioritize free models so they appear at the top and avoid 402 Payment Required
+    final int freeOffset = lower.startsWith('free/') ? 0 : 300;
+
+    // 1. Google Gemini (المرتبة الأولى: الأفضل في التطبيق)
+    if (lower.contains('gemini')) {
+      if (lower.contains('2.5') || lower.contains('flash')) return freeOffset + 10;
+      if (lower.contains('2.0')) return freeOffset + 12;
+      if (lower.contains('1.5-flash')) return freeOffset + 14;
+      if (lower.contains('1.5-pro') || lower.contains('pro')) return freeOffset + 16;
+      return freeOffset + 18;
+    }
+    // 2. Anthropic Claude (المرتبة الثانية: استدلال فني متفوق)
+    if (lower.contains('claude')) {
+      if (lower.contains('3.7') || lower.contains('3-7')) return freeOffset + 30;
+      if (lower.contains('3.5-sonnet') || lower.contains('3-5-sonnet')) return freeOffset + 32;
+      if (lower.contains('3.5-haiku') || lower.contains('3-5-haiku')) return freeOffset + 34;
+      return freeOffset + 36;
+    }
+    // 3. OpenAI GPT / o-series
+    if (lower.contains('gpt-4o') || lower.contains('gpt-4')) return freeOffset + 50;
+    if (lower.contains('o1') || lower.contains('o3')) return freeOffset + 52;
+    if (lower.contains('gpt')) return freeOffset + 54;
+    // 4. DeepSeek
+    if (lower.contains('deepseek')) {
+      if (lower.contains('v3') || lower.contains('chat')) return freeOffset + 70;
+      if (lower.contains('r1') || lower.contains('reasoner')) return freeOffset + 72;
+      return freeOffset + 74;
+    }
+    // 5. Qwen
+    if (lower.contains('qwen')) {
+      if (lower.contains('max')) return freeOffset + 90;
+      if (lower.contains('72b')) return freeOffset + 92;
+      return freeOffset + 94;
+    }
+    // 6. GLM / Llama / Others
+    if (lower.contains('glm')) return freeOffset + 110;
+    if (lower.contains('llama')) return freeOffset + 120;
+    return freeOffset + 200;
+  }
+
+  List<String> _sortModelsByPreference(List<String> rawModels) {
+    final list = List<String>.from(rawModels);
+    list.sort((a, b) {
+      final rankA = _getModelRank(a);
+      final rankB = _getModelRank(b);
+      if (rankA != rankB) {
+        return rankA.compareTo(rankB);
+      }
+      return a.toLowerCase().compareTo(b.toLowerCase());
+    });
+    return list;
+  }
+
+  List<Map<String, String>> _getAvailableModelItems() {
+    if (_liveServerModels.isEmpty) {
+      return SettingsScreen.apinexFreeModels;
+    }
+
+    final List<Map<String, String>> items = [];
+    for (final id in _liveServerModels) {
+      final lower = id.toLowerCase();
+      String name = id;
+      String desc = 'نموذج متاح من سيرفر APInex';
+
+      if (lower.contains('gemini')) {
+        name = 'Google Gemini ($id) 🌟 (الأفضل في التطبيق)';
+        desc = 'أعلى دقة في قراءة الفحص وتشخيص الأعطال بالقاموس الليبي';
+      } else if (lower.contains('claude')) {
+        name = 'Anthropic Claude ($id) ✨ (دقة استدلال فائقة)';
+        desc = 'دقة استدلال منطقي فائقة لعزل الأعطال والحساسات';
+      } else if (lower.contains('gpt-4') || lower.contains('o1') || lower.contains('o3')) {
+        name = 'OpenAI GPT ($id)';
+        desc = 'تحليل شامل ومفصل للأعطال';
+      } else if (lower.contains('deepseek')) {
+        name = 'DeepSeek ($id)';
+        desc = 'استدلال متقدم لأعطال المحرك وأكواد OBD-II';
+      } else if (lower.contains('qwen')) {
+        name = 'Qwen ($id)';
+        desc = 'استجابة سريعة لتشخيص الأعطال';
+      } else if (lower.contains('glm')) {
+        name = 'GLM Flash ($id)';
+        desc = 'نموذج سريع وخفيف';
+      }
+
+      items.add({
+        'id': id,
+        'name': name,
+        'desc': desc,
+      });
+    }
+
+    // Always include Custom at the end
+    items.add({
+      'id': 'custom',
+      'name': 'نموذج آخر (كتابة يدوية مخصصة)',
+      'desc': 'أدخل اسم أي موديل متاح على حسابك في سيرفر APInex',
+    });
+
+    return items;
+  }
+
   Future<void> _fetchServerModels() async {
+
     final key = _apinexKeyController.text.trim();
     if (key.isEmpty) {
       final messenger = ScaffoldMessenger.of(context);
@@ -267,20 +379,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
     setState(() => _isFetchingModels = true);
     try {
-      final models = await ApinexClient().fetchAvailableModels(keyOverride: key);
+      final rawModels = await ApinexClient().fetchAvailableModels(keyOverride: key);
       if (mounted) {
+        final sorted = _sortModelsByPreference(rawModels);
         setState(() {
-          _liveServerModels = models;
+          _liveServerModels = sorted;
           _isFetchingModels = false;
         });
+
+        // Automatically select the best free Gemini/Claude model, or best available free model
+        String? bestCandidate;
+        try {
+          bestCandidate = sorted.firstWhere((m) => m.startsWith('free/') && m.toLowerCase().contains('gemini'));
+        } catch (_) {
+          try {
+            bestCandidate = sorted.firstWhere((m) => m.startsWith('free/') && m.toLowerCase().contains('claude'));
+          } catch (_) {
+            try {
+              bestCandidate = sorted.firstWhere((m) => m.startsWith('free/'));
+            } catch (_) {
+              try {
+                bestCandidate = sorted.firstWhere((m) => m.toLowerCase().contains('gemini'));
+              } catch (_) {
+                if (sorted.isNotEmpty) bestCandidate = sorted.first;
+              }
+            }
+          }
+        }
+
+        if (bestCandidate != null && bestCandidate.isNotEmpty) {
+          final chosen = bestCandidate;
+          setState(() {
+            _selectedModelPreset = chosen;
+            _apinexModelController.text = chosen;
+          });
+          ref.read(settingsProvider.notifier).updateApinexSettings(model: chosen);
+          KashifStorage.setApinexModel(chosen);
+        }
+
+        final geminiCount = sorted.where((m) => m.toLowerCase().contains('gemini')).length;
+        final claudeCount = sorted.where((m) => m.toLowerCase().contains('claude')).length;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '✅ تم جلب ${models.length} نموذجاً متاحاً من سيرفر APInex بنجاح!',
+              '✅ تم جلب ${sorted.length} نموذجاً مرتبة بالأفضلية: نماذج Gemini في المقدمة ($geminiCount) ثم Claude ($claudeCount)! تم تفعيل الأفضل تلقائياً.',
               style: KashifTypography.arabic(fontSize: 12),
             ),
             backgroundColor: const Color(0xFF1B5E20),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -608,16 +755,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final success = res['success'] == true;
     final stage = (res['stage'] as int?) ?? 1;
     final message = res['message']?.toString() ?? '';
-    final models = (res['availableModels'] as List<dynamic>?)
+    final rawAvailable = (res['availableModels'] as List<dynamic>?)
             ?.map((e) => e.toString())
-            .where((m) => m.startsWith('free/'))
+            .where((m) => m.isNotEmpty)
             .toList() ??
         [];
+    final models = _sortModelsByPreference(rawAvailable);
 
     if (models.isNotEmpty) {
       setState(() {
         _liveServerModels = models;
       });
+    }
+
+    final activeModel = res['activeModel']?.toString();
+    if (activeModel != null && activeModel.isNotEmpty) {
+      setState(() {
+        _selectedModelPreset = activeModel;
+        _apinexModelController.text = activeModel;
+      });
+      await ref.read(settingsProvider.notifier).updateApinexSettings(model: activeModel);
+      await KashifStorage.setApinexModel(activeModel);
     }
 
     if (mounted) {
@@ -626,7 +784,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         success: success,
         stage: stage,
         message: message,
-        modelName: modelToTest,
+        modelName: activeModel ?? modelToTest,
         availableModels: models,
       );
     }
@@ -1436,7 +1594,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  'تثبيت APInex',
+                                  'تثبيت APInex (الأساسي)',
                                   style: KashifTypography.arabic(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
@@ -1452,7 +1610,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'المحرك الرئيسي دائماً (GPT-6 Luna والأنظمة المجانية دون توقف)',
+                            'المحرك الأساسي والرئيسي للفحص (نماذج Gemini و Claude و GPT)',
                             style: KashifTypography.arabic(
                               fontSize: 10,
                               height: 1.3,
@@ -1476,7 +1634,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                '⭐ مُثبّت ومُعتمد',
+                                '⭐ المحرك الأساسي المُعتمد',
                                 style: KashifTypography.arabic(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -1546,7 +1704,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  'Google Gemini',
+                                  'Google Gemini (ثانوي)',
                                   style: KashifTypography.arabic(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
@@ -1562,7 +1720,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'المحرك الافتراضي مع تحويل تلقائي فوري لـ APInex عند نفاذ الكوتة',
+                            'المحرك الثانوي / الاحتياطي (يعمل كبديل فوري عند تعذر اتصال APInex)',
                             style: KashifTypography.arabic(
                               fontSize: 10,
                               height: 1.3,
@@ -1960,81 +2118,90 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 6),
 
-                  // Dropdown of Free Models
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? KashifColors.darkBoard
-                          : KashifColors.lightBoard,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: isDark
-                            ? KashifColors.darkBorder
-                            : KashifColors.lightBorder,
-                      ),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _selectedModelPreset,
-                        dropdownColor: isDark
-                            ? const Color(0xFF0F1E38)
-                            : Colors.white,
-                        items: SettingsScreen.apinexFreeModels.map((m) {
-                          return DropdownMenuItem<String>(
-                            value: m['id'],
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    m['name']!,
-                                    style: KashifTypography.arabic(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? KashifColors.goldLight
-                                          : KashifColors.royalBlue,
-                                    ),
+                  // Dropdown of Available / Server Models (Gemini & Claude prioritized)
+                  Builder(
+                    builder: (context) {
+                      final modelItems = _getAvailableModelItems();
+                      final currentVal = modelItems.any((m) => m['id'] == _selectedModelPreset)
+                          ? _selectedModelPreset
+                          : 'custom';
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? KashifColors.darkBoard
+                              : KashifColors.lightBoard,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isDark
+                                ? KashifColors.darkBorder
+                                : KashifColors.lightBorder,
+                          ),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            value: currentVal,
+                            dropdownColor: isDark
+                                ? const Color(0xFF0F1E38)
+                                : Colors.white,
+                            items: modelItems.map((m) {
+                              return DropdownMenuItem<String>(
+                                value: m['id'],
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        m['name']!,
+                                        style: KashifTypography.arabic(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? KashifColors.goldLight
+                                              : KashifColors.royalBlue,
+                                        ),
+                                      ),
+                                      Text(
+                                        m['desc']!,
+                                        style: KashifTypography.arabic(
+                                          fontSize: 10,
+                                          color: isDark
+                                              ? KashifColors.darkTextMuted
+                                              : KashifColors.lightTextMuted,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    m['desc']!,
-                                    style: KashifTypography.arabic(
-                                      fontSize: 10,
-                                      color: isDark
-                                          ? KashifColors.darkTextMuted
-                                          : KashifColors.lightTextMuted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() {
-                              _selectedModelPreset = val;
-                              if (val != 'custom') {
-                                _apinexModelController.text = val;
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() {
+                                  _selectedModelPreset = val;
+                                  if (val != 'custom') {
+                                    _apinexModelController.text = val;
+                                  }
+                                });
+                                final modelToSave = val != 'custom'
+                                    ? val
+                                    : _apinexModelController.text.trim();
+                                if (modelToSave.isNotEmpty) {
+                                  ref
+                                      .read(settingsProvider.notifier)
+                                      .updateApinexSettings(model: modelToSave);
+                                  KashifStorage.setApinexModel(modelToSave);
+                                }
                               }
-                            });
-                            final modelToSave = val != 'custom'
-                                ? val
-                                : _apinexModelController.text.trim();
-                            if (modelToSave.isNotEmpty) {
-                              ref
-                                  .read(settingsProvider.notifier)
-                                  .updateApinexSettings(model: modelToSave);
-                              KashifStorage.setApinexModel(modelToSave);
-                            }
-                          }
-                        },
-                      ),
-                    ),
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 12),
@@ -2058,7 +2225,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               style: KashifTypography.mono(fontSize: 12),
                               onChanged: (val) {
                                 final clean = val.trim();
-                                final match = SettingsScreen.apinexFreeModels
+                                final match = _getAvailableModelItems()
                                     .any((m) => m['id'] == clean);
                                 setState(() {
                                   _selectedModelPreset = match

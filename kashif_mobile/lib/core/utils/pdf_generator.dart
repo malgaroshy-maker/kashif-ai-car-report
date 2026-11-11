@@ -320,17 +320,40 @@ class KashifPdfGenerator {
                     ),
                   ),
                 ),
-                // Center: Flow Cars Kashif AI
+                // Center: Flow Cars (0910077239) | كاشف الذكي
                 pw.Expanded(
-                  flex: 3,
+                  flex: 4,
                   child: pw.Center(
-                    child: pw.Text(
-                      'Flow Cars | كاشف الذكي',
-                      style: pw.TextStyle(
-                        font: arabicFont,
-                        fontSize: 8.5,
-                        color: PdfColor.fromHex('64748B'),
-                      ),
+                    child: pw.Row(
+                      mainAxisSize: pw.MainAxisSize.min,
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.Text(
+                          'كاشف الذكي',
+                          style: pw.TextStyle(
+                            font: arabicFont,
+                            fontSize: 8.5,
+                            color: PdfColor.fromHex('64748B'),
+                          ),
+                        ),
+                        pw.Text(
+                          ' | ',
+                          style: pw.TextStyle(
+                            font: arabicFont,
+                            fontSize: 8.5,
+                            color: PdfColor.fromHex('94A3B8'),
+                          ),
+                        ),
+                        pw.Text(
+                          'Flow Cars (0910077239)',
+                          textDirection: pw.TextDirection.ltr,
+                          style: pw.TextStyle(
+                            font: arabicFont,
+                            fontSize: 8.5,
+                            color: PdfColor.fromHex('64748B'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -670,9 +693,20 @@ class KashifPdfGenerator {
                   String sevLabel = 'متوسط';
                   if (f.severity == CodeSeverity.critical) sevLabel = 'حرج';
                   if (f.severity == CodeSeverity.history) sevLabel = 'ذاكرة';
-                  final cleanLibyanTerm = ReportSanitizer.clean(f.libyanTerm)
+                  String cleanLibyanTerm = ReportSanitizer.clean(f.libyanTerm)
                       .replaceAll('السلندر', 'البسطوني')
                       .replaceAll('سلندر', 'بسطوني');
+                  if (f.code.toUpperCase().startsWith('P034') || f.code.toUpperCase().contains('CAM')) {
+                    cleanLibyanTerm = cleanLibyanTerm
+                        .replaceAll('حساس المرميطة (حساس امبروكم)', 'حساس الامبروكم')
+                        .replaceAll('حساس المرميطة', 'حساس الامبروكم')
+                        .replaceAll('المرميطة', 'الامبروكم');
+                  } else if (f.code.toUpperCase().startsWith('P033') || f.code.toUpperCase().contains('CRANK')) {
+                    cleanLibyanTerm = cleanLibyanTerm
+                        .replaceAll('حساس المرميطة (حساس كولوا)', 'حساس الكولوا')
+                        .replaceAll('حساس المرميطة', 'حساس الكولوا')
+                        .replaceAll('المرميطة', 'الكولوا');
+                  }
                   final cleanAction = ReportSanitizer.clean(f.recommendedAction)
                       .replaceAll('السلندر', 'البسطوني')
                       .replaceAll('سلندر', 'بسطوني');
@@ -999,9 +1033,20 @@ class KashifPdfGenerator {
                 data: allFaults
                     .where((f) => f.rootCauses.isNotEmpty)
                     .map((f) {
-                  final cleanLibyanTerm = ReportSanitizer.clean(f.libyanTerm)
+                  String cleanLibyanTerm = ReportSanitizer.clean(f.libyanTerm)
                       .replaceAll('السلندر', 'البسطوني')
                       .replaceAll('سلندر', 'بسطوني');
+                  if (f.code.toUpperCase().startsWith('P034') || f.code.toUpperCase().contains('CAM')) {
+                    cleanLibyanTerm = cleanLibyanTerm
+                        .replaceAll('حساس المرميطة (حساس امبروكم)', 'حساس الامبروكم')
+                        .replaceAll('حساس المرميطة', 'حساس الامبروكم')
+                        .replaceAll('المرميطة', 'الامبروكم');
+                  } else if (f.code.toUpperCase().startsWith('P033') || f.code.toUpperCase().contains('CRANK')) {
+                    cleanLibyanTerm = cleanLibyanTerm
+                        .replaceAll('حساس المرميطة (حساس كولوا)', 'حساس الكولوا')
+                        .replaceAll('حساس المرميطة', 'حساس الكولوا')
+                        .replaceAll('المرميطة', 'الكولوا');
+                  }
                   final causesChain = f.rootCauses.asMap().entries.map((entry) {
                     final cleanCause = ReportSanitizer.clean(entry.value)
                         .replaceAll('السلندر', 'البسطوني')
@@ -1106,208 +1151,152 @@ class KashifPdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text(
-                          'بيانات الفني واعتماد فحص التقرير',
-                          style: pw.TextStyle(
-                            font: arabicBoldFont,
-                            fontSize: 10,
-                            color: PdfColor.fromHex('0F172A'),
-                          ),
-                        ),
-                        pw.Text(
-                          'Flow Cars Certified Diagnostic Report',
-                          style: pw.TextStyle(
-                            font: arabicFont,
-                            fontSize: 8,
-                            color: PdfColor.fromHex('64748B'),
-                          ),
-                        ),
-                      ],
+                    pw.Text(
+                      'بيانات الفني واعتماد فحص التقرير',
+                      style: pw.TextStyle(
+                        font: arabicBoldFont,
+                        fontSize: 10,
+                        color: PdfColor.fromHex('0F172A'),
+                      ),
                     ),
                     pw.Divider(color: PdfColor.fromHex('E2E8F0'), thickness: 0.8, height: 10),
+                    if ((workshopName.trim().isNotEmpty &&
+                            workshopName.trim() != 'ورشة الفحص الفني') ||
+                        workshopAddress.trim().isNotEmpty) ...[
+                      pw.Row(
+                        children: [
+                          if (workshopName.trim().isNotEmpty &&
+                              workshopName.trim() != 'ورشة الفحص الفني') ...[
+                            pw.Text(
+                              'المركز / الورشة: ',
+                              style: pw.TextStyle(
+                                font: arabicBoldFont,
+                                fontSize: 9,
+                                color: PdfColors.blueGrey900,
+                              ),
+                            ),
+                            pw.Text(
+                              workshopName.trim(),
+                              style: pw.TextStyle(
+                                font: arabicFont,
+                                fontSize: 9,
+                                color: PdfColors.blueGrey800,
+                              ),
+                            ),
+                            pw.SizedBox(width: 16),
+                          ],
+                          if (workshopAddress.trim().isNotEmpty) ...[
+                            pw.Text(
+                              'العنوان / المدينة: ',
+                              style: pw.TextStyle(
+                                font: arabicBoldFont,
+                                fontSize: 9,
+                                color: PdfColors.blueGrey900,
+                              ),
+                            ),
+                            pw.Text(
+                              workshopAddress.trim(),
+                              style: pw.TextStyle(
+                                font: arabicFont,
+                                fontSize: 9,
+                                color: PdfColors.blueGrey800,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      pw.SizedBox(height: 6),
+                    ],
                     pw.Row(
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: pw.CrossAxisAlignment.center,
                       children: [
-                        // Technician & Signature Details
-                        pw.Expanded(
-                          child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              pw.Row(
-                                children: [
-                                  pw.Text(
-                                    'اسم الفني: ',
-                                    style: pw.TextStyle(
-                                      font: arabicBoldFont,
-                                      fontSize: 9.5,
-                                      color: PdfColors.blueGrey900,
-                                    ),
-                                  ),
-                                  pw.Text(
-                                    technicianName.trim().isNotEmpty
-                                        ? technicianName.trim()
-                                        : ((workshopName.trim().isNotEmpty &&
-                                                workshopName.trim() != 'ورشة الفحص الفني')
-                                            ? workshopName.trim()
-                                            : 'فني فحص معتمد'),
-                                    style: pw.TextStyle(
-                                      font: arabicBoldFont,
-                                      fontSize: 9.5,
-                                      color: PdfColors.blueGrey800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (workshopName.trim().isNotEmpty &&
-                                  workshopName.trim() != 'ورشة الفحص الفني') ...[
-                                pw.SizedBox(height: 2.5),
-                                pw.Row(
-                                  children: [
-                                    pw.Text(
-                                      'المركز / الورشة: ',
-                                      style: pw.TextStyle(
-                                        font: arabicBoldFont,
-                                        fontSize: 9,
-                                        color: PdfColors.blueGrey900,
-                                      ),
-                                    ),
-                                    pw.Text(
-                                      workshopName.trim(),
-                                      style: pw.TextStyle(
-                                        font: arabicFont,
-                                        fontSize: 9,
-                                        color: PdfColors.blueGrey800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                              if (workshopAddress.trim().isNotEmpty) ...[
-                                pw.SizedBox(height: 2.5),
-                                pw.Row(
-                                  children: [
-                                    pw.Text(
-                                      'العنوان / المدينة: ',
-                                      style: pw.TextStyle(
-                                        font: arabicBoldFont,
-                                        fontSize: 9,
-                                        color: PdfColors.blueGrey900,
-                                      ),
-                                    ),
-                                    pw.Text(
-                                      workshopAddress.trim(),
-                                      style: pw.TextStyle(
-                                        font: arabicFont,
-                                        fontSize: 9,
-                                        color: PdfColors.blueGrey800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                              pw.SizedBox(height: 2.5),
-                              pw.Row(
-                                children: [
-                                  pw.Text(
-                                    'رقم الهاتف: ',
-                                    style: pw.TextStyle(
-                                      font: arabicBoldFont,
-                                      fontSize: 9.5,
-                                      color: PdfColors.blueGrey900,
-                                    ),
-                                  ),
-                                  pw.Text(
-                                    workshopPhone.trim().isNotEmpty
-                                        ? workshopPhone.trim()
-                                        : '—',
-                                    textDirection: pw.TextDirection.ltr,
-                                    style: pw.TextStyle(
-                                      font: arabicBoldFont,
-                                      fontSize: 9.5,
-                                      color: PdfColors.blueGrey800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              pw.SizedBox(height: 5),
-                              pw.Row(
-                                children: [
-                                  pw.Text(
-                                    'التوقيع / الختم: ',
-                                    style: pw.TextStyle(
-                                      font: arabicBoldFont,
-                                      fontSize: 9,
-                                      color: PdfColors.blueGrey700,
-                                    ),
-                                  ),
-                                  pw.Container(
-                                    width: 100,
-                                    height: 18,
-                                    decoration: const pw.BoxDecoration(
-                                      border: pw.Border(
-                                        bottom: pw.BorderSide(
-                                          color: PdfColors.blueGrey400,
-                                          width: 1,
-                                          style: pw.BorderStyle.dashed,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      // Official Certified Inspection Endorsement Badge (خالٍ من أي كود QR)
-                      pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: pw.BoxDecoration(
-                          color: PdfColor.fromHex('F8FAFC'),
-                          border: pw.Border.all(
-                            color: PdfColor.fromHex('CBD5E1'),
-                            width: 0.8,
-                          ),
-                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                        ),
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        // 1. Right: اسم الفني
+                        pw.Row(
                           mainAxisSize: pw.MainAxisSize.min,
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
                           children: [
                             pw.Text(
-                              'شهادة فحص فني معتمدة',
+                              'اسم الفني: ',
                               style: pw.TextStyle(
                                 font: arabicBoldFont,
-                                fontSize: 9,
-                                color: PdfColor.fromHex('1A365D'),
-                              ),
-                              textDirection: pw.TextDirection.rtl,
-                            ),
-                            pw.SizedBox(height: 2),
-                            pw.Text(
-                              'Flow Cars Certified Diagnostics',
-                              style: const pw.TextStyle(
-                                fontSize: 7,
-                                color: PdfColors.blueGrey700,
+                                fontSize: 9.5,
+                                color: PdfColors.blueGrey900,
                               ),
                             ),
-                            pw.SizedBox(height: 2),
                             pw.Text(
-                              'رقم التقرير: ${report.id.substring(0, report.id.length > 8 ? 8 : report.id.length).toUpperCase()}',
-                              style: const pw.TextStyle(
-                                fontSize: 7,
-                                color: PdfColors.grey700,
+                              technicianName.trim().isNotEmpty
+                                  ? technicianName.trim()
+                                  : ((workshopName.trim().isNotEmpty &&
+                                          workshopName.trim() != 'ورشة الفحص الفني')
+                                      ? workshopName.trim()
+                                      : 'فني فحص معتمد'),
+                              style: pw.TextStyle(
+                                font: arabicBoldFont,
+                                fontSize: 9.5,
+                                color: PdfColors.blueGrey800,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
+
+                        // 2. Middle: رقم الهاتف
+                        pw.Row(
+                          mainAxisSize: pw.MainAxisSize.min,
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.Text(
+                              'رقم الهاتف: ',
+                              style: pw.TextStyle(
+                                font: arabicBoldFont,
+                                fontSize: 9.5,
+                                color: PdfColors.blueGrey900,
+                              ),
+                            ),
+                            pw.Text(
+                              workshopPhone.trim().isNotEmpty
+                                  ? workshopPhone.trim()
+                                  : '—',
+                              textDirection: pw.TextDirection.ltr,
+                              style: pw.TextStyle(
+                                font: arabicBoldFont,
+                                fontSize: 9.5,
+                                color: PdfColors.blueGrey800,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // 3. Left: التوقيع / الختم
+                        pw.Row(
+                          mainAxisSize: pw.MainAxisSize.min,
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.Text(
+                              'التوقيع / الختم: ',
+                              style: pw.TextStyle(
+                                font: arabicBoldFont,
+                                fontSize: 9,
+                                color: PdfColors.blueGrey700,
+                              ),
+                            ),
+                            pw.Container(
+                              width: 90,
+                              height: 16,
+                              decoration: const pw.BoxDecoration(
+                                border: pw.Border(
+                                  bottom: pw.BorderSide(
+                                    color: PdfColors.blueGrey400,
+                                    width: 1,
+                                    style: pw.BorderStyle.dashed,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),

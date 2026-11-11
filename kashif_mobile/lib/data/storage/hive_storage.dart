@@ -445,10 +445,10 @@ class KashifStorage {
   static bool get useApinexAsPrimary {
     try {
       if (Hive.isBoxOpen(settingsBoxName)) {
-        return settingsBox.get('useApinexAsPrimary', defaultValue: false) as bool;
+        return settingsBox.get('useApinexAsPrimary', defaultValue: true) as bool;
       }
     } catch (_) {}
-    return false;
+    return true;
   }
 
   static Future<void> setUseApinexAsPrimary(bool val) async =>
